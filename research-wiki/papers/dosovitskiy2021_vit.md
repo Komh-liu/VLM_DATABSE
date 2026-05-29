@@ -19,12 +19,26 @@ added: 2026-05-29T16:00:00Z
 
 A pure Transformer architecture applied directly to sequences of image patches can achieve state-of-the-art image classification when pre-trained at sufficient scale, outperforming convolutional networks with lower pre-training cost.
 
+ViT挑战了CNN的“归纳偏置”。简单来说，归纳偏置就是模型为了让学习问题变得可行，而提前内置在算法中的“先验知识”或“默认假设”。CNN的先验知识就是假设图像具有局部性和平移等变性
+
+## Assumptions
+1. Sufficient pre-training data is available (at least 14M images) — the model does not generalize well on small data
+2. Patch size and position embedding interpolation are sufficient spatial inductive bias; the model assumes 2D structure can be learned from data
+3. Standard Transformer architecture transfers directly from NLP to vision with minimal modification
+
+之前的视觉问题无论如何解决不了对CNN的依赖，研究证明对CNN的依赖不是必要的（直接使用序列方法）。在大量数据上进行预训练并迁移到多个中型或小型图像识别基准时表现很好。
+在小的数据集上表现要略低于ResNets，作者的观点是因为这缺乏了某些先验假设
+这也是为什么ViT在小尺寸表现不好（作者认为小尺寸更关注局部信息，这对全局处理的架构没有很大帮助）但是扩展到大尺寸的图片表现优于传统CNN
+
 ## Problem / Gap
 
 The dominant approach in computer vision relied on convolutional architectures (CNNs). While Transformers had become standard in NLP, their application to vision was limited to augmenting CNNs or replacing specific components. Prior attempts at pure self-attention for images either used complex engineering for efficient implementation or underperformed on mid-sized datasets. The question was whether the scalability of Transformers could overcome the lack of CNN-like inductive biases (translation equivariance, locality) in vision.
-
+之前的工作主要还是考虑如何对像素使用序列化方法，或者使用注意力机制对CNN进行改进，但是CNN真的是有必要的吗？能否划分为子图做处理呢？(Xie's ConvNext有卷积神经网络的相关讨论)
 ## Method
-
+![ViT Architecture Diagram](../images/ViT.png)
+INPUT: An image of shape H * W *C (H,W,C分别代表图片的高度 宽度 通道数)
+展开为: An sequence of n * p^2 * C(分别是序列长度 patch大小 通道数)
+Projection to: $Z_0 = [{x_p}^1E ;\dots {x_p}^nE] + E_{pos} $
 ViT splits an image into fixed-size patches (e.g., 16x16), linearly embeds each patch, adds position embeddings, and feeds the resulting sequence to a standard Transformer encoder. A learnable [CLS] token appended to the sequence serves as the image representation for classification. The model uses standard Transformer blocks (multi-head self-attention, MLP, LayerNorm, residual connections). ViT intentionally minimizes vision-specific modifications — the key inductive biases are only at patch extraction and position embedding interpolation during fine-tuning. A hybrid variant uses CNN feature maps as input patches instead of raw pixels.
 
 ## Key Results
@@ -35,11 +49,7 @@ ViT splits an image into fixed-size patches (e.g., 16x16), linearly embeds each 
 - Performance scales with dataset size — on mid-sized datasets (ImageNet-1k) ViT underperforms ResNets of comparable size without strong regularization, but on large datasets the gap reverses
 - Self-supervised pre-training (masked patch prediction) shows promising initial results
 
-## Assumptions
 
-- Sufficient pre-training data is available (at least 14M images) — the model does not generalize well on small data
-- Patch size and position embedding interpolation are sufficient spatial inductive bias; the model assumes 2D structure can be learned from data
-- Standard Transformer architecture transfers directly from NLP to vision with minimal modification
 
 ## Limitations / Failure Modes
 
@@ -68,8 +78,8 @@ ViT splits an image into fixed-size patches (e.g., 16x16), linearly embeds each 
 
 ## Connections
 
-- **Extended by:** `paper:radford2021_clip` (CLIP — uses ViT as image encoder backbone)
-- **Extended by:** `paper:li2023_blip2` (BLIP-2 — uses ViT-based frozen image encoders as visual backbones)
+- Extended by: `paper:radford2021_clip` (CLIP — uses ViT as image encoder backbone)
+- Extended by: `paper:li2023_blip2` (BLIP-2 — uses ViT-based frozen image encoders as visual backbones)
 
 ## Relevance to This Project
 
