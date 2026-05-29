@@ -36,8 +36,8 @@ The dominant approach in computer vision relied on convolutional architectures (
 之前的工作主要还是考虑如何对像素使用序列化方法，或者使用注意力机制对CNN进行改进，但是CNN真的是有必要的吗？能否划分为子图做处理呢？(Xie's ConvNext有卷积神经网络的相关讨论)
 ## Method
 ![ViT Architecture Diagram](../images/ViT.png)
-INPUT: An image of shape $H \times W \times C$ (H,W,C分别代表图片的高度 宽度 通道数)
-展开为: An sequence of $n \times p^2 \times C$(分别是序列长度 patch大小 通道数)
+INPUT: An image of shape $H \times W \times C$ ($H,W,C$ 分别代表图片的高度 宽度 通道数)
+展开为: An sequence of $n \times p^2 \times C$(分别是序列长度 , patch大小 , 通道数)
 Projection to: $Z_0 = [{x_p}^1E ;\dots {x_p}^nE] + E_{pos}$
 ViT splits an image into fixed-size patches (e.g., 16x16), linearly embeds each patch, adds position embeddings, and feeds the resulting sequence to a standard Transformer encoder. A learnable [CLS] token appended to the sequence serves as the image representation for classification. The model uses standard Transformer blocks (multi-head self-attention, MLP, LayerNorm, residual connections). ViT intentionally minimizes vision-specific modifications — the key inductive biases are only at patch extraction and position embedding interpolation during fine-tuning. A hybrid variant uses CNN feature maps as input patches instead of raw pixels.
 
