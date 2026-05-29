@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VLM Research Knowledge Graph</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+  min-height: 100vh;
+}
+.header {
+  background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+  border-bottom: 1px solid #30363d;
+  padding: 32px 40px 24px;
+}
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #58a6ff, #3fb950, #f0883e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header .subtitle {
+  color: #8b949e;
+  font-size: 14px;
+  margin-top: 6px;
+}
+.stats-bar {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+.stat .num {
+  font-weight: 700;
+  font-size: 18px;
+  color: #f0f6fc;
+}
+.stat .label { color: #8b949e; }
+.stat .dot {
+  width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+}
+
+.main { display: flex; gap: 0; min-height: calc(100vh - 160px); }
+.graph-panel { flex: 1; position: relative; min-height: 500px; }
+.graph-panel svg { width: 100%; height: 100%; display: block; }
+.graph-title {
+  position: absolute; top: 16px; left: 24px;
+  font-size: 16px; font-weight: 600; color: #f0f6fc;
+  pointer-events: none;
+}
+.graph-legend {
+  position: absolute; bottom: 20px; left: 24px;
+  background: rgba(22,27,34,0.92);
+  border: 1px solid #30363d;
+  border-radius: 8px; padding: 12px 16px;
+  font-size: 12px;
+  pointer-events: none;
+}
+.graph-legend div { margin: 4px 0; display: flex; align-items: center; gap: 8px; }
+.graph-legend .swatch { width: 28px; height: 3px; border-radius: 2px; }
+
+.side-panel {
+  width: 380px;
+  border-left: 1px solid #30363d;
+  background: #161b22;
+  overflow-y: auto;
+  max-height: calc(100vh - 160px);
+}
+.side-panel::-webkit-scrollbar { width: 6px; }
+.side-panel::-webkit-scrollbar-track { background: #161b22; }
+.side-panel::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+
+.node-card {
+  padding: 20px;
+  border-bottom: 1px solid #21262d;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.node-card:hover { background: #1c2128; }
+.node-card.active { background: #1c2128; border-left: 3px solid #58a6ff; }
+.node-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #58a6ff;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+.node-card .meta {
+  font-size: 12px;
+  color: #8b949e;
+  margin-bottom: 6px;
+}
+.node-card .thesis {
+  font-size: 13px;
+  color: #c9d1d9;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.node-card .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.node-card .tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(88,166,255,0.12);
+  color: #58a6ff;
+  border: 1px solid rgba(88,166,255,0.2);
+}
+.tag.vit { background: rgba(88,166,255,0.12); color: #58a6ff; border-color: rgba(88,166,255,0.2); }
+.tag.clip { background: rgba(63,185,80,0.12); color: #3fb950; border-color: rgba(63,185,80,0.2); }
+.tag.blip2 { background: rgba(240,136,62,0.12); color: #f0883e; border-color: rgba(240,136,62,0.2); }
+.node-card .conn {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #8b949e;
+  border-top: 1px solid #21262d;
+  padding-top: 8px;
+}
+.node-card .conn div { margin: 3px 0; }
+.node-card .conn .ext { color: #3fb950; }
+.node-card .conn .extby { color: #58a6ff; }
+
+.tooltip {
+  position: absolute;
+  background: rgba(22,27,34,0.95);
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  pointer-events: none;
+  max-width: 300px;
+  line-height: 1.5;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.tooltip.visible { opacity: 1; }
+.tooltip strong { color: #f0f6fc; }
+
+.nodes circle { stroke: #0d1117; stroke-width: 3px; cursor: pointer; transition: stroke-width 0.15s; }
+.nodes circle:hover { stroke-width: 5px; }
+.labels text { font-size: 13px; font-weight: 600; pointer-events: none; }
+.labels .sub { font-size: 11px; fill: #8b949e; font-weight: 400; }
+.edges line { stroke-opacity: 0.6; }
+.arrowheads { fill: none; }
+
+.detail-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+.detail-modal.open { display: flex; }
+.detail-content {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 32px;
+  position: relative;
+}
+.detail-content::-webkit-scrollbar { width: 6px; }
+.detail-content::-webkit-scrollbar-track { background: #161b22; }
+.detail-content::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+.detail-close {
+  position: absolute; top: 16px; right: 20px;
+  background: none;
+  border: none;
+  color: #8b949e;
+  font-size: 24px;
+  cursor: pointer;
+}
+.detail-close:hover { color: #f0f6fc; }
+.detail-content h2 { font-size: 20px; color: #f0f6fc; margin-bottom: 4px; }
+.detail-content .meta-line { font-size: 13px; color: #8b949e; margin-bottom: 16px; }
+.detail-content section { margin-bottom: 20px; }
+.detail-content section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #58a6ff;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #21262d;
+}
+.detail-content section p, .detail-content section li {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #c9d1d9;
+}
+.detail-content ul { padding-left: 18px; }
+.detail-content li { margin-bottom: 4px; }
+.detail-content .conn-detail {
+  background: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+}
+.detail-content .conn-detail div { margin: 4px 0; font-size: 13px; }
+
+@media (max-width: 800px) {
+  .main { flex-direction: column; }
+  .side-panel { width: 100%; border-left: none; border-top: 1px solid #30363d; max-height: none; }
+  .graph-panel { min-height: 400px; }
+  .header { padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>VLM Research Knowledge Graph</h1>
+  <div class="subtitle">Vision-Language Model 知识图谱 · 基于 research-wiki 构建</div>
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="num">3</span>
+      <span class="label">Papers</span>
+    </div>
+    <div class="stat">
+      <span class="num">3</span>
+      <span class="label">Relationships</span>
+    </div>
+    <div class="stat">
+      <span class="num">2021–2023</span>
+      <span class="label">Timeline</span>
+    </div>
+    <div class="stat">
+      <span class="dot" style="background:#58a6ff"></span>
+      <span class="label">ViT · Foundation</span>
+    </div>
+    <div class="stat">
+      <span class="dot" style="background:#3fb950"></span>
+      <span class="label">CLIP · Vision-Language</span>
+    </div>
+    <div class="stat">
+      <span class="dot" style="background:#f0883e"></span>
+      <span class="label">BLIP-2 · Efficient VLP</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="graph-panel" id="graph">
+    <div class="graph-title">Knowledge Graph · Force-Directed</div>
+    <div class="graph-legend">
+      <div><span class="swatch" style="background:#58a6ff"></span> extends / builds upon</div>
+    </div>
+  </div>
+  <div class="side-panel" id="sidePanel"></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+<div class="detail-modal" id="detailModal">
+  <div class="detail-content" id="detailContent">
+    <button class="detail-close" onclick="closeDetail()">&times;</button>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<script>
+const papers = [
+  {
+    id: "paper:dosovitskiy2021_vit",
+    slug: "ViT",
+    title: "An Image Is Worth 16×16 Words: Transformers for Image Recognition at Scale",
+    short: "ViT",
+    authors: ["Alexey Dosovitskiy", "Lucas Beyer", "Alexander Kolesnikov", "et al."],
+    year: 2021,
+    venue: "ICLR",
+    arxiv: "2010.11929",
+    tags: ["vision-transformer", "image-classification", "self-attention", "patch-embedding", "scaling"],
+    tagClass: "vit",
+    thesis: "A pure Transformer applied directly to sequences of image patches achieves SOTA classification when pre-trained at sufficient scale, outperforming CNNs with lower cost.",
+    color: "#58a6ff",
+    connections: [
+      { type: "extended_by", target: "paper:radford2021_clip", text: "CLIP uses ViT as image encoder backbone" },
+      { type: "extended_by", target: "paper:li2023_blip2", text: "BLIP-2 uses ViT-based frozen image encoders" }
+    ],
+    sections: {
+      "Problem / Gap": "The dominant approach in computer vision relied on CNNs. While Transformers had become standard in NLP, their application to vision was limited to augmenting CNNs or replacing specific components. Prior attempts at pure self-attention for images either used complex engineering or underperformed on mid-sized datasets.",
+      "Method": "ViT splits an image into fixed-size patches (e.g., 16×16), linearly embeds each patch, adds position embeddings, and feeds the sequence to a standard Transformer encoder. A learnable [CLS] token serves as the image representation for classification. The model uses standard Transformer blocks (multi-head self-attention, MLP, LayerNorm, residual connections).",
+      "Key Results": [
+        "88.55% on ImageNet, 90.72% on ImageNet-ReaL, 94.55% on CIFAR-100, 77.63% on VTAB",
+        "Matches or beats SOTA CNNs with substantially less pre-training compute",
+        "Performance scales with dataset size — large-scale training trumps inductive bias"
+      ],
+      "Limitations": [
+        "Requires large-scale pre-training data to outperform CNNs",
+        "Quadratic self-attention cost limits high-resolution processing",
+        "No built-in translation equivariance"
+      ]
+    }
+  },
+  {
+    id: "paper:radford2021_clip",
+    slug: "CLIP",
+    title: "Learning Transferable Visual Models From Natural Language Supervision",
+    short: "CLIP",
+    authors: ["Alec Radford", "Jong Wook Kim", "Chris Hallacy", "Aditya Ramesh", "et al."],
+    year: 2021,
+    venue: "arXiv",
+    arxiv: "2103.00020",
+    tags: ["contrastive-learning", "vision-language", "zero-shot", "multi-modal", "image-text"],
+    tagClass: "clip",
+    thesis: "Pre-training image and text encoders jointly with contrastive learning on 400M (image, text) pairs yields transferable representations enabling zero-shot classification on diverse tasks.",
+    color: "#3fb950",
+    connections: [
+      { type: "extends", target: "paper:dosovitskiy2021_vit", text: "Uses ViT as image encoder backbone" },
+      { type: "extended_by", target: "paper:li2023_blip2", text: "BLIP-2 uses frozen CLIP encoders" }
+    ],
+    sections: {
+      "Problem / Gap": "Computer vision systems were trained to predict fixed object categories, limiting generality. Learning from raw text about images showed promise but had much lower performance than supervised approaches. Scaling to web-scale data was underexplored.",
+      "Method": "CLIP trains image and text encoders jointly with a contrastive objective to predict correct (image, text) pairings in a batch. After pre-training, natural language enables zero-shot transfer — the text encoder synthesizes a classifier by embedding class names. Training uses WIT: 400M (image, text) pairs collected from the internet.",
+      "Key Results": [
+        "Zero-shot CLIP matches ResNet-50 on ImageNet without using any of its 1.28M training examples",
+        "Competitive on 30+ datasets: OCR, action recognition, geo-localization, fine-grained classification",
+        "Much more robust than equivalent-accuracy supervised ImageNet models",
+        "Contrastive learning is 4× more efficient than bag-of-words, 12× than generative language modeling"
+      ],
+      "Limitations": [
+        "Poor zero-shot on specialized tasks (medical, satellite) not well-represented in WIT",
+        "Contrastive objective may miss fine-grained visual understanding",
+        "Can exhibit social biases present in web-crawled data"
+      ]
+    }
+  },
+  {
+    id: "paper:li2023_blip2",
+    slug: "BLIP-2",
+    title: "BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models",
+    short: "BLIP-2",
+    authors: ["Junnan Li", "Dongxu Li", "Silvio Savarese", "Steven Hoi"],
+    year: 2023,
+    venue: "arXiv",
+    arxiv: "2301.12597",
+    tags: ["vision-language", "q-former", "frozen-encoders", "llm", "multi-modal"],
+    tagClass: "blip2",
+    thesis: "A compute-efficient VLP strategy bootstrapping from frozen image encoders and frozen LLMs via a lightweight Q-Former, achieving SOTA with far fewer trainable parameters.",
+    color: "#f0883e",
+    connections: [
+      { type: "extends", target: "paper:radford2021_clip", text: "Uses frozen CLIP image encoders, builds on contrastive VLP" },
+      { type: "extends", target: "paper:dosovitskiy2021_vit", text: "Uses ViT-based frozen image encoders (e.g. ViT-L/14)" }
+    ],
+    sections: {
+      "Problem / Gap": "VLP had become increasingly prohibitive due to end-to-end training of large models. Aligning feature spaces of frozen unimodal models — especially when LLMs haven't seen images — remained a key challenge. Existing modular approaches used only image-to-text generation loss, insufficient to bridge the modality gap.",
+      "Method": "BLIP-2 introduces a Querying Transformer (Q-Former) — a 188M-parameter lightweight transformer with 32 learnable query tokens acting as an information bottleneck. Two-stage pre-training: (1) Vision-Language Representation Learning with ITC + ITG + ITM objectives, (2) Vision-to-Language Generative Learning connecting Q-Former to a frozen LLM (OPT or FlanT5).",
+      "Key Results": [
+        "Outperforms Flamingo80B by 8.7% on zero-shot VQAv2 with 54× fewer trainable parameters",
+        "SOTA on VQA, image captioning, image-text retrieval",
+        "Zero-shot image-to-text generation following natural language instructions",
+        "Works with both decoder-only (OPT) and encoder-decoder (FlanT5) LLMs"
+      ],
+      "Limitations": [
+        "Q-Former adds architectural complexity and extra pre-training phase",
+        "Performance upper-bounded by frozen image encoder and LLM quality",
+        "Fixed 32-query bottleneck may limit complex visual understanding"
+      ]
+    }
+  }
+];
+
+const edges = [
+  { from: "paper:radford2021_clip", to: "paper:dosovitskiy2021_vit", type: "extends",
+    evidence: "CLIP uses ViT as one of its image encoder backbones" },
+  { from: "paper:li2023_blip2", to: "paper:radford2021_clip", type: "extends",
+    evidence: "BLIP-2 uses frozen CLIP image encoders, builds on contrastive VLP" },
+  { from: "paper:li2023_blip2", to: "paper:dosovitskiy2021_vit", type: "extends",
+    evidence: "BLIP-2 uses ViT-based frozen image encoders (e.g., ViT-L/14)" }
+];
+
+const nodeMap = {};
+papers.forEach(p => nodeMap[p.id] = p);
+
+/* ---- side panel ---- */
+const sidePanel = document.getElementById("sidePanel");
+papers.sort((a,b) => a.year - b.year).forEach(p => {
+  const card = document.createElement("div");
+  card.className = "node-card";
+  card.dataset.id = p.id;
+  card.innerHTML = `
+    <h3>${p.short}: ${p.title.replace(/:/g, ':<wbr>')}</h3>
+    <div class="meta">${p.authors[0]} et al. · ${p.venue} ${p.year} · arXiv:${p.arxiv}</div>
+    <div class="thesis">${p.thesis}</div>
+    <div class="tags">${p.tags.map(t => `<span class="tag ${p.tagClass}">${t}</span>`).join('')}</div>
+    <div class="conn">
+      ${p.connections.map(c => {
+        const cls = c.type === 'extends' ? 'ext' : 'extby';
+        const label = c.type === 'extends' ? '→ Extends' : '← Extended by';
+        return `<div class="${cls}">${label}: ${c.text}</div>`;
+      }).join('')}
+    </div>
+  `;
+  card.addEventListener("click", () => openDetail(p.id));
+  sidePanel.appendChild(card);
+});
+
+/* ---- detail modal ---- */
+function openDetail(id) {
+  const p = nodeMap[id];
+  if (!p) return;
+  const body = document.getElementById("detailBody");
+  let connHtml = '';
+  p.connections.forEach(c => {
+    const t = nodeMap[c.target];
+    const label = c.type === 'extends' ? 'Extends' : 'Extended by';
+    connHtml += `<div>${label}: <strong>${t ? t.short : c.target}</strong> — ${c.text}</div>`;
+  });
+  body.innerHTML = `
+    <h2>${p.short}: ${p.title}</h2>
+    <div class="meta-line">${p.authors.join(', ')} · ${p.venue} ${p.year} · <a href="https://arxiv.org/abs/${p.arxiv}" target="_blank" style="color:#58a6ff">arXiv:${p.arxiv}</a></div>
+    <section>
+      <h3>One-line Thesis</h3>
+      <p>${p.thesis}</p>
+    </section>
+    ${Object.entries(p.sections).map(([k, v]) => {
+      if (Array.isArray(v)) {
+        return `<section><h3>${k}</h3><ul>${v.map(i => `<li>${i}</li>`).join('')}</ul></section>`;
+      }
+      return `<section><h3>${k}</h3><p>${v}</p></section>`;
+    }).join('')}
+    <section>
+      <h3>Knowledge Graph Connections</h3>
+      <div class="conn-detail">${connHtml}</div>
+    </section>
+  `;
+  document.getElementById("detailModal").classList.add("open");
+}
+function closeDetail() {
+  document.getElementById("detailModal").classList.remove("open");
+}
+document.getElementById("detailModal").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) closeDetail();
+});
+
+/* ---- D3 force graph ---- */
+const width = document.getElementById("graph").clientWidth;
+const height = Math.max(500, window.innerHeight - 200);
+
+const svg = d3.select("#graph")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height);
+
+const g = svg.append("g");
+
+const zoom = d3.zoom()
+  .scaleExtent([0.3, 3])
+  .on("zoom", (event) => g.attr("transform", event.transform));
+svg.call(zoom);
+
+const nodes = papers.map(p => ({ ...p }));
+const linkData = edges.map(e => ({
+  source: nodes.findIndex(n => n.id === e.from),
+  target: nodes.findIndex(n => n.id === e.to),
+  type: e.type,
+  evidence: e.evidence
+}));
+
+const simulation = d3.forceSimulation(nodes)
+  .force("link", d3.forceLink(linkData).distance(200).strength(0.5))
+  .force("charge", d3.forceManyBody().strength(-600))
+  .force("center", d3.forceCenter(width / 2, height / 2))
+  .force("collision", d3.forceCollide().radius(100));
+
+/* defs: arrows */
+const defs = svg.append("defs");
+defs.append("marker")
+  .attr("id", "arrow")
+  .attr("viewBox", "0 -5 10 10")
+  .attr("refX", 48)
+  .attr("refY", 0)
+  .attr("markerWidth", 8)
+  .attr("markerHeight", 8)
+  .attr("orient", "auto")
+  .append("path")
+  .attr("d", "M0,-4L10,0L0,4")
+  .attr("fill", "#58a6ff")
+  .attr("opacity", 0.6);
+
+/* edges */
+const link = g.append("g").attr("class", "edges")
+  .selectAll("line")
+  .data(linkData)
+  .join("line")
+  .attr("stroke", "#58a6ff")
+  .attr("stroke-width", 2.5)
+  .attr("stroke-dasharray", "6,3")
+  .attr("marker-end", "url(#arrow)");
+
+/* edge labels */
+const edgeLabels = g.append("g").attr("class", "edge-labels")
+  .selectAll("text")
+  .data(linkData)
+  .join("text")
+  .attr("font-size", 10)
+  .attr("fill", "#8b949e")
+  .attr("text-anchor", "middle")
+  .attr("dy", -6)
+  .text("extends");
+
+/* nodes */
+const node = g.append("g").attr("class", "nodes")
+  .selectAll("g")
+  .data(nodes)
+  .join("g")
+  .call(d3.drag()
+    .on("start", (event, d) => {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x; d.fy = d.y;
+    })
+    .on("drag", (event, d) => { d.fx = event.x; d.fy = event.y; })
+    .on("end", (event, d) => {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null; d.fy = null;
+    }));
+
+node.append("circle")
+  .attr("r", 42)
+  .attr("fill", d => d.color)
+  .attr("opacity", 0.85)
+  .on("mouseover", (event, d) => showTooltip(event, d))
+  .on("mouseout", hideTooltip)
+  .on("click", (event, d) => { event.stopPropagation(); openDetail(d.id); });
+
+/* node labels */
+const labelG = g.append("g").attr("class", "labels");
+const labels = labelG.selectAll("g")
+  .data(nodes)
+  .join("g")
+  .attr("text-anchor", "middle");
+
+labels.append("text")
+  .attr("dy", -6)
+  .attr("fill", "#f0f6fc")
+  .text(d => d.short);
+
+labels.append("text")
+  .attr("dy", 10)
+  .attr("class", "sub")
+  .text(d => `${d.venue} ${d.year}`);
+
+/* year marker lines */
+g.append("line")
+  .attr("x1", width * 0.15).attr("x2", width * 0.85)
+  .attr("y1", height - 50).attr("y2", height - 50)
+  .attr("stroke", "#30363d").attr("stroke-width", 1);
+
+/* tooltip */
+function showTooltip(event, d) {
+  const tip = document.getElementById("tooltip");
+  const connLeft = d.connections.filter(c => c.type === "extended_by").map(c => nodeMap[c.target]?.short || c.target).join(", ");
+  const connRight = d.connections.filter(c => c.type === "extends").map(c => nodeMap[c.target]?.short || c.target).join(", ");
+  tip.innerHTML = `
+    <strong>${d.short}: ${d.title}</strong><br>
+    ${d.authors[0]} et al. · ${d.venue} ${d.year} · arXiv:${d.arxiv}<br><br>
+    ${d.thesis}<br><br>
+    ${connRight ? '→ Extends: ' + connRight + '<br>' : ''}
+    ${connLeft ? '← Extended by: ' + connLeft : ''}
+  `;
+  const rect = svg.node().getBoundingClientRect();
+  tip.style.left = (event.pageX - rect.left + 12) + 'px';
+  tip.style.top = (event.pageY - rect.top - 10) + 'px';
+  tip.classList.add("visible");
+}
+function hideTooltip() {
+  document.getElementById("tooltip").classList.remove("visible");
+}
+
+simulation.on("tick", () => {
+  link
+    .attr("x1", d => d.source.x)
+    .attr("y1", d => d.source.y)
+    .attr("x2", d => d.target.x)
+    .attr("y2", d => d.target.y);
+
+  edgeLabels
+    .attr("x", d => (d.source.x + d.target.x) / 2)
+    .attr("y", d => (d.source.y + d.target.y) / 2);
+
+  labels.attr("transform", d => `translate(${d.x},${d.y + 50})`);
+  node.attr("transform", d => `translate(${d.x},${d.y})`);
+});
+
+/* resize */
+window.addEventListener("resize", () => {
+  const w = document.getElementById("graph").clientWidth;
+  const h = Math.max(500, window.innerHeight - 200);
+  svg.attr("width", w).attr("height", h);
+  simulation.force("center", d3.forceCenter(w / 2, h / 2));
+  simulation.alpha(0.3).restart();
+});
+</script>
+</body>
+</html>
