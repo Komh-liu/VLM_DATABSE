@@ -228,6 +228,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .stat .num{font-weight:700;font-size:18px;color:#f0f6fc}
 .stat .label{color:#8b949e}
 .stat .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.search-bar{display:flex;align-items:center;gap:8px;margin-top:16px;max-width:420px}
+.search-bar input{flex:1;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:9px 14px;font-size:13px;color:#f0f6fc;outline:none;transition:border-color .2s}
+.search-bar input:focus{border-color:#58a6ff}
+.search-bar input::placeholder{color:#484f58}
+.search-bar .search-count{font-size:12px;color:#8b949e;white-space:nowrap;min-width:50px}
 .main{display:flex;min-height:calc(100vh - 160px)}
 .graph-panel{flex:1;position:relative;min-height:500px}
 .graph-panel svg{width:100%;height:100%;display:block}
@@ -280,6 +285,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
   <h1>VLM Research Knowledge Graph</h1>
   <div class="subtitle" id="headerSubtitle">Loading...</div>
   <div class="stats-bar" id="statsBar"></div>
+  <div class="search-bar"><input type="text" id="searchInput" placeholder="Search papers, authors, tags, content..." autofocus><span class="search-count" id="searchCount"></span></div>
 </div>
 <div class="main">
   <div class="graph-panel" id="graph">
@@ -336,6 +342,11 @@ function init() {
     side.appendChild(c);
   });
 
+  // Search
+  var si=document.getElementById('searchInput');
+  si.addEventListener('input',function(){searchPapers(this.value)});
+  searchPapers(si.value);
+
   // D3 force graph
   var el=document.getElementById('graph');
   var w=el.clientWidth,h=Math.max(500,window.innerHeight-200);
@@ -356,6 +367,7 @@ function init() {
 
   var node=g.append('g').selectAll('g').data(nd).join('g').call(d3.drag().on('start',function(e,d){if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',function(e,d){d.fx=e.x;d.fy=e.y}).on('end',function(e,d){if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
   node.append('circle').attr('r',42).attr('fill',function(d){return d.nodeColor}).attr('opacity',0.85).on('mouseover',function(e,d){showTooltip(e,d)}).on('mouseout',function(){hideTooltip()}).on('click',function(e,d){e.stopPropagation();openDetail(d.id)});
+  window._nodeSel=node;
 
   var lg=g.append('g');var labels=lg.selectAll('g').data(nd).join('g').attr('text-anchor','middle');
   labels.append('text').attr('dy',-6).attr('fill','#f0f6fc').text(function(d){return d.short});
@@ -369,6 +381,27 @@ function init() {
   window.addEventListener('resize',function(){var cw=el.clientWidth,ch=Math.max(500,window.innerHeight-200);svg.attr('width',cw).attr('height',ch);sim.force('center',d3.forceCenter(cw/2,ch/2)).alpha(0.3).restart()});
 }
 
+function searchPapers(query){
+  var q=query.toLowerCase().trim();
+  var cards=document.getElementById('sidePanel').children;
+  var count=PAPERS.length;
+  var matches={};
+  if(q){
+    count=0;
+    PAPERS.forEach(function(p,i){
+      var haystack=[p.title,p.short,p.authors.join(' '),p.tags.join(' '),p.thesis,p.venue,String(p.year||''),p.slug];
+      var match=haystack.join(' ').toLowerCase().indexOf(q)!==-1;
+      matches[p.id]=match;
+      if(match)count++;
+      if(cards[i])cards[i].style.display=match?'':'none';
+    });
+  }else{PAPERS.forEach(function(p,i){matches[p.id]=true;if(cards[i])cards[i].style.display=''})}
+  document.getElementById('searchCount').textContent=q?(count+'/'+PAPERS.length+' results'):'';
+  if(window._nodeSel){
+    window._nodeSel.select('circle').attr('opacity',function(d){return matches[d.id]?0.85:0.15});
+    window._nodeSel.selectAll('text').attr('opacity',function(d){return matches[d.id]?1:0.15});
+  }
+}
 function showTooltip(e,d){
   var tip=document.getElementById('tooltip');
   var ex=d.connections.filter(function(c){return c.type==='extends'}).map(function(c){return c.target}).join(', ');
@@ -396,7 +429,7 @@ function openDetail(id){
   });
   body.innerHTML='<h2>'+p.short+': '+p.title+'</h2><div class="meta-line">'+a+' · '+p.venue+' '+p.year+' '+ar+'</div><section><h3>One-line Thesis</h3><p>'+p.thesis+'</p></section>'+sh+'<section><h3>Knowledge Graph Connections</h3><div class="conn-detail">'+(cn||'(none)')+'</div></section>';
   document.getElementById('detailModal').classList.add('open');
-  if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+  (function r(n){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([document.getElementById('detailBody')]).catch(console.error)}else if(n>0){setTimeout(function(){r(n-1)},200)}})(10);
 }
 function closeDetail(){document.getElementById('detailModal').classList.remove('open')}
 document.getElementById('detailModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeDetail()});
