@@ -38,7 +38,7 @@ The dominant approach in computer vision relied on convolutional architectures (
 ![ViT Architecture Diagram](../images/ViT.png)
 INPUT: An image of shape H * W *C (H,W,C分别代表图片的高度 宽度 通道数)
 展开为: An sequence of n * p^2 * C(分别是序列长度 patch大小 通道数)
-Projection to: $Z_0 = [{x_p}^1E ;\dots {x_p}^nE] + E_{pos}\$
+Projection to: $Z_0 = [{x_p}^1E ;\dots {x_p}^nE] + E_{pos}$
 ViT splits an image into fixed-size patches (e.g., 16x16), linearly embeds each patch, adds position embeddings, and feeds the resulting sequence to a standard Transformer encoder. A learnable [CLS] token appended to the sequence serves as the image representation for classification. The model uses standard Transformer blocks (multi-head self-attention, MLP, LayerNorm, residual connections). ViT intentionally minimizes vision-specific modifications — the key inductive biases are only at patch extraction and position embedding interpolation during fine-tuning. A hybrid variant uses CNN feature maps as input patches instead of raw pixels.
 
 ## Key Results
