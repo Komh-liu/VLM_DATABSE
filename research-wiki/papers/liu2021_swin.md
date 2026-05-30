@@ -18,7 +18,7 @@ added: 2026-05-29T16:00:00Z
 ## One-line thesis
 
 - Swin Transformer introduces a hierarchical Transformer architecture with shifted window self-attention that achieves linear computational complexity with respect to image size, enabling it to serve as a general-purpose backbone for both image classification and dense prediction tasks (detection, segmentation).
-- 使用滑动窗口，减轻了不重叠的窗口之间可能包含的信息，增强了对多窗口信息之间联系的理解。具有良好的scale up能力，并且降低计算复杂度到线性。（ViT关注的是全局注意力，Swin Transformer的先验假设是只有小窗口内的才重要）
+- 使用滑动窗口，减轻了不重叠的窗口之间可能包含的信息，增强了对多窗口信息之间联系的理解。具有良好的scale up能力，并且降低计算复杂度到线性。（ViT关注的是全局注意力，Swin Transformer的先验假设是小窗口内的需要优先关注，然后再是大的）
 
 ## Problem / Gap
 
@@ -28,17 +28,17 @@ Previous vision Transformers (ViT) produce single-resolution feature maps and ha
 
 Swin Transformer introduces several key innovations over ViT:
 
-1. **Hierarchical feature maps**: Starting from small 4×4 patches, neighboring patches are gradually merged in deeper layers (via patch merging layers), producing feature maps at 4×, 8×, 16×, and 32× downsampling ratios — analogous to the multi-scale feature pyramid in CNNs like ResNet.
+- **Hierarchical feature maps**: Starting from small 4×4 patches, neighboring patches are gradually merged in deeper layers (via patch merging layers), producing feature maps at 4×, 8×, 16×, and 32× downsampling ratios — analogous to the multi-scale feature pyramid in CNNs like ResNet.
 
 - 先小patch再逐步扩大，得到对于全局的感知。
 ![Swin](../images/SwinT.png)
-1. **Shifted window attention (Swin)**: Self-attention is computed within non-overlapping local windows (default 7×7 patches). Between consecutive Transformer blocks, the window partition is shifted ((⌊M/2⌋, ⌊M/2⌋) pixels), enabling cross-window connections. This yields O(M²hwC) complexity — **linear** in image size hw — versus O((hw)²C) for global self-attention.
+- **Shifted window attention (Swin)**: Self-attention is computed within non-overlapping local windows (default 7×7 patches). Between consecutive Transformer blocks, the window partition is shifted ((⌊M/2⌋, ⌊M/2⌋) pixels), enabling cross-window connections. This yields O(M²hwC) complexity — **linear** in image size hw — versus O((hw)²C) for global self-attention.
 
 - 滑动窗口其实是主要参考了CNN的**inductive bias**，使用了平移不变性，相邻的窗口如果连在一起应该能取得相同的效果。使用注意力机制进行更新之后，序列的信息$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$主要是对窗口内的上下文信息进行了更新。那么滑动之后对于相邻的上下文信息也会进行一个处理和更新。这样长程的注意力也会在逐步传播之后更新。
 
-4. **Efficient batch computation**: A cyclic-shifting technique ensures that the number of batched windows remains the same between regular and shifted configurations, avoiding the 2.25× computation blow-up of naive padding.
+- **Efficient batch computation**: A cyclic-shifting technique ensures that the number of batched windows remains the same between regular and shifted configurations, avoiding the 2.25× computation blow-up of naive padding.
 
-5. **Relative position bias**: The model uses learnable relative position biases B̂ ∈ R^(2M−1)×(2M−1) per attention head, which improve accuracy over absolute position embeddings.相对位置编码通过在窗口内的token对之间管理，有效的关注到了不同token之间的关系，实验显著优于绝对位置编码。（为啥ViT一维就好，swinT使用相对的更好？）
+- **Relative position bias**: The model uses learnable relative position biases B̂ ∈ R^(2M−1)×(2M−1) per attention head, which improve accuracy over absolute position embeddings.相对位置编码通过在窗口内的token对之间管理，有效的关注到了不同token之间的关系，实验显著优于绝对位置编码。（为啥ViT一维就好，swinT使用相对的更好？）
 
 Architecture variants: Swin-T (tiny), Swin-S (small), Swin-B (base), Swin-L (large), with channel sizes C = 96/96/128/192 and layer counts {2,2,6,2} / {2,2,18,2} / {2,2,18,2} / {2,2,18,2}.
 
