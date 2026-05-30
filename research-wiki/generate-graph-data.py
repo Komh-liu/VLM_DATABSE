@@ -106,6 +106,92 @@ def embed_section_images(text, md_path):
     return re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', _replace, text)
 
 
+def _protect_math(text):
+    """Temporarily replace MathJax $...$ and $$...$$ with placeholders."""
+    blocks = []
+    def _save(m):
+        blocks.append(m.group(0))
+        return f'\x00MATH{len(blocks) - 1}\x00'
+    text = re.sub(r'\$\$[^$]+\$\$|\$[^$]+\$', _save, text)
+    return text, blocks
+
+
+def _restore_math(text, blocks):
+    """Restore MathJax blocks from placeholders."""
+    for i, m in enumerate(blocks):
+        text = text.replace(f'\x00MATH{i}\x00', m)
+    return text
+
+
+def _render_inline(text):
+    """Render inline markdown: bold, italic, code, links. Preserves MathJax."""
+    text, math_blocks = _protect_math(text)
+    text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
+    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+    text = re.sub(r'(?<!\*)\*([^*\n]+?)\*(?!\*)', r'<em>\1</em>', text)
+    text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', text)
+    return _restore_math(text, math_blocks)
+
+
+def render_markdown_to_html(text):
+    """Convert basic markdown to HTML: lists, paragraphs, inline formatting."""
+    if not text or not text.strip():
+        return text
+
+    lines = text.split('\n')
+    result = []
+    i = 0
+
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        # Empty line — skip
+        if stripped == '':
+            i += 1
+            continue
+
+        # Unordered list: - item  or  * item (but not **bold**)
+        ul_match = re.match(r'^(\s*)[-*]\s+(.+)$', stripped)
+        if ul_match and not re.match(r'^\s*\*\s*\*\*', stripped):
+            result.append('<ul>')
+            while i < len(lines):
+                ul_match = re.match(r'^(\s*)[-*]\s+(.+)$', lines[i].strip())
+                if not ul_match:
+                    break
+                result.append(f'<li>{_render_inline(ul_match.group(2))}</li>')
+                i += 1
+            result.append('</ul>')
+            continue
+
+        # Ordered list: 1. item
+        ol_match = re.match(r'^(\s*)\d+\.\s+(.+)$', stripped)
+        if ol_match:
+            result.append('<ol>')
+            while i < len(lines):
+                ol_match = re.match(r'^(\s*)\d+\.\s+(.+)$', lines[i].strip())
+                if not ol_match:
+                    break
+                result.append(f'<li>{_render_inline(ol_match.group(2))}</li>')
+                i += 1
+            result.append('</ol>')
+            continue
+
+        # Regular paragraph — collect consecutive non-empty, non-list lines
+        para_lines = []
+        while i < len(lines) and lines[i].strip() != '' \
+                and not re.match(r'^(\s*)[-*]\s+', lines[i].strip()) \
+                and not re.match(r'^(\s*)\d+\.\s+', lines[i].strip()):
+            para_lines.append(_render_inline(lines[i].strip()))
+            i += 1
+
+        if para_lines:
+            para_html = '<br>'.join(para_lines)
+            result.append(f'<p>{para_html}</p>')
+
+    return '\n'.join(result)
+
+
 SHORT_NAMES = {'vit': 'ViT', 'clip': 'CLIP', 'blip': 'BLIP', 'blip2': 'BLIP-2', 'swin': 'Swin'}
 COLORS = ['#58a6ff', '#3fb950', '#f0883e', '#da3633', '#a371f7', '#db6d28', '#238636', '#1f6feb', '#795548']
 
@@ -160,7 +246,7 @@ def main():
             'tags': tags if isinstance(tags, list) else [],
             'nodeColor': slug_color(slug),
             'thesis': sections.get('One-line thesis', '').strip(),
-            'sections': {k: embed_section_images(v, md_file) for k, v in sections.items() if k != 'Connections'},
+            'sections': {k: render_markdown_to_html(embed_section_images(v, md_file)) for k, v in sections.items() if k != 'Connections'},
         })
 
 
@@ -425,7 +511,7 @@ function openDetail(id){
   var sh='',exKeys=['One-line thesis','Connections','Claims','Relevance to This Project'];
   Object.keys(p.sections||{}).forEach(function(k){
     if(exKeys.indexOf(k)!==-1)return;var v=p.sections[k];if(!v||!v.trim())return;
-    sh+='<section><h3>'+k+'</h3><p>'+v.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>')+'</p></section>'
+    sh+='<section><h3>'+k+'</h3>'+v+'</section>'
   });
   body.innerHTML='<h2>'+p.short+': '+p.title+'</h2><div class="meta-line">'+a+' · '+p.venue+' '+p.year+' '+ar+'</div><section><h3>One-line Thesis</h3><p>'+p.thesis+'</p></section>'+sh+'<section><h3>Knowledge Graph Connections</h3><div class="conn-detail">'+(cn||'(none)')+'</div></section>';
   document.getElementById('detailModal').classList.add('open');
