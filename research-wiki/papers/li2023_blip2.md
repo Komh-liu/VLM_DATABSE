@@ -1,7 +1,7 @@
 ---
 type: paper
 node_id: paper:li2023_blip2
-title: "BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models"
+title: "Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models"
 authors: ["Junnan Li", "Dongxu Li", "Silvio Savarese", "Steven Hoi"]
 year: 2023
 venue: "arXiv"
