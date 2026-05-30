@@ -69,7 +69,7 @@ ViT splits an image into fixed-size patches (e.g., 16x16), linearly embeds each 
 - Hybrid CNN+Transformer design for leveraging feature maps
 - 2D interpolation of position embeddings for variable-resolution fine-tuning
 - Scalable proof that large-scale training trumps inductive bias
-
+- 对每个部分的拆分分析，包括为什么1d位置编码效果好，可视化验证表明在学习中，patch映射的embedding已经学习到了2d的空间特征。实验还发现有些注意力头在开始就已经关注到远处的信息。而作者也关注到这种长距离关注在ResNet中不是很明显，作者的推断是注意力机制代替了CNN的某些inductive bias
 ## Open Questions
 
 - Can ViT benefit from more vision-specific inductive biases without losing scalability?
@@ -77,7 +77,7 @@ ViT splits an image into fixed-size patches (e.g., 16x16), linearly embeds each 
 - What is the optimal patch size trade-off between performance and computational cost?
 
 ## Claims
-
+Attention机制在某些程度上可以起到和原来的CNN一样的感受能力，从而替代CNN的同时获得了更好的scale up能力
 
 ## Connections
 
