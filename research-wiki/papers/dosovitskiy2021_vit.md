@@ -38,7 +38,7 @@ The dominant approach in computer vision relied on convolutional architectures (
 ![ViT Architecture Diagram](../images/ViT.png)
 - INPUT: An image of shape $H \times W \times C$ ($H,W,C$ 分别代表图片的高度 宽度 通道数)
 - Flatten to: An sequence of $n \times p^2 \times C$(分别是序列长度 , patch大小 , 通道数)
-- Projection to: $Z_0 = [{x_p}^1E ;\dots {x_p}^nE] + E_{pos}$
+- Projection to: $Z_0 = [\mathbf{x}_p^1 \mathbf{E}; \dots ; \mathbf{x}_p^N \mathbf{E}] + \mathbf{E}_{pos}$
 此外，序列的第一个位置设置为一个可学习的token，用于预测class。位置编码的实验表明1d的位置编码表现比2d好。一个有意思的点是，当分辨率提高时，原来的位置编码失效，作者采用插值的方法将新的位置得到编码
 对于zero shot下游任务，将最后的projection头替换掉，改用$D \times K$ 的头进行微调
 ViT splits an image into fixed-size patches (e.g., 16x16), linearly embeds each patch, adds position embeddings, and feeds the resulting sequence to a standard Transformer encoder. A learnable [CLS] token appended to the sequence serves as the image representation for classification. The model uses standard Transformer blocks (multi-head self-attention, MLP, LayerNorm, residual connections). ViT intentionally minimizes vision-specific modifications — the key inductive biases are only at patch extraction and position embedding interpolation during fine-tuning. A hybrid variant uses CNN feature maps as input patches instead of raw pixels.
@@ -48,7 +48,7 @@ ViT splits an image into fixed-size patches (e.g., 16x16), linearly embeds each 
 - Pre-trained on ImageNet-21k (14M images) or JFT-300M (303M images), ViT matches or beats state-of-the-art CNNs on multiple benchmarks。在去重后的下游数据集进行测试。
 - Best model: 88.55% on ImageNet, 90.72% on ImageNet-ReaL, 94.55% on CIFAR-100, 77.63% on VTAB (19 tasks)
 - ViT requires substantially less computational resources to pre-train than comparable CNNs
-- Performance scales with dataset size — on mid-sized datasets (ImageNet-1k) ViT underperforms ResNets of comparable size without strong regularization, but on large datasets the gap reverses 一个有意思的关注是CNN在scale up的表现上不如Transformer架构，而ViT-Huge在所有任务上的表现最好，证明了Transformer架构scale up在图片理解上也能成功。而4.3的实验也证明了这一点。（似乎大尺寸的模型甚至在小尺寸直接找不到了）
+- Performance scales with dataset size — on mid-sized datasets (ImageNet-1k) ViT underperforms ResNets of comparable size without strong regularization, but on large datasets the gap reverses 一个有意思的关注是CNN在scale up的表现上不如Transformer架构，而ViT-Huge在所有任务上的表现最好，证明了Transformer架构scale up在图片理解上也能成功。而4.3的实验也证明了这一点。（似乎大尺寸的模型甚至在小数据集的准确率直接找不到了）
 ![ViT Experiment on Datasets](../images/ViT_dataset.png)
 - Self-supervised pre-training (masked patch prediction) shows promising initial results
 
