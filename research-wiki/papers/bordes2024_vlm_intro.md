@@ -76,9 +76,6 @@ VLMs remain challenging for newcomers due to the rapid pace of the field, the di
 
 ## 第二章：VLM 家族分类
 
-> 以下为论文第二章 *"The Families of VLMs"*（第5–16页）的完整中文翻译，原样保留所有公式与图片。
-
----
 
 鉴于深度学习在计算机视觉和自然语言处理领域带来的令人瞩目的进展，已有许多尝试将这两个领域连接起来。在本文中，我们聚焦于基于 Transformer [Vaswani et al., 2017] 的最新技术。我们将这些近期的尝试归为四种不同的训练范式（见图 1）。
 

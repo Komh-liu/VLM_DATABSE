@@ -485,10 +485,17 @@ function init() {
   defs.append('marker').attr('id','arrow').attr('viewBox','0 -5 10 10').attr('refX',48).attr('refY',0).attr('markerWidth',8).attr('markerHeight',8).attr('orient','auto').append('path').attr('d','M0,-4L10,0L0,4').attr('fill',clAccent).attr('opacity',0.6);
 
   var link=g.append('g').selectAll('line').data(ld).join('line').attr('stroke',clAccent).attr('stroke-width',2.5).attr('stroke-dasharray','6,3').attr('marker-end','url(#arrow)');
-  var cs=getComputedStyle(document.documentElement);
-  var clText=cs.getPropertyValue('--text3').trim()||'#f0f6fc';
-  var clMuted=cs.getPropertyValue('--text2').trim()||'#8b949e';
-  var clAccent=cs.getPropertyValue('--accent').trim()||'#79c0ff';
+  function getThemeColors(){
+    var isLight=document.documentElement.getAttribute('data-theme')==='light';
+    return {
+      text: isLight?'#1a1a1a':'#f0f6fc',
+      muted: isLight?'#555':'#8b949e',
+      accent: isLight?'#3b7abf':'#79c0ff',
+      nodes: isLight?'#faf6ee':'#0d1117'
+    };
+  }
+  var tc=getThemeColors();
+  var clText=tc.text,clMuted=tc.muted,clAccent=tc.accent;
   g.append('g').selectAll('text').data(ld).join('text').attr('font-size',10).attr('fill',clMuted).attr('text-anchor','middle').attr('dy',-6).text('extends');
 
   var node=g.append('g').selectAll('g').data(nd).join('g').call(d3.drag().on('start',function(e,d){if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',function(e,d){d.fx=e.x;d.fy=e.y}).on('end',function(e,d){if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
@@ -579,16 +586,12 @@ document.getElementById('detailModal').addEventListener('click',function(e){if(e
     btn.title=t==='light'?'Switch to dark theme':'Switch to light theme';
   }
   window.updateGraphColors=function(){
-    var cs=getComputedStyle(document.documentElement);
-    var t=cs.getPropertyValue('--text3').trim();
-    var m=cs.getPropertyValue('--text2').trim();
-    var a=cs.getPropertyValue('--accent').trim();
-    var n=cs.getPropertyValue('--nodes').trim();
-    d3.selectAll('.nodes circle').attr('stroke',n);
-    d3.selectAll('line').attr('stroke',a);
-    d3.select('#arrow path').attr('fill',a);
-    d3.selectAll('.lbl-name').attr('fill',t);
-    d3.selectAll('text.sub').attr('fill',m);
+    var tc=getThemeColors();
+    d3.selectAll('.nodes circle').attr('stroke',tc.nodes);
+    d3.selectAll('line').attr('stroke',tc.accent);
+    d3.select('#arrow path').attr('fill',tc.accent);
+    d3.selectAll('.lbl-name').attr('fill',tc.text);
+    d3.selectAll('text.sub').attr('fill',tc.muted);
   };
 })();
 document.addEventListener('DOMContentLoaded',init);
