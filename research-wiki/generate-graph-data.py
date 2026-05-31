@@ -129,7 +129,7 @@ def _render_inline(text):
     text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
     text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
     text = re.sub(r'(?<!\*)\*([^*\n]+?)\*(?!\*)', r'<em>\1</em>', text)
-    text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', text)
+    text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', lambda m: '<a href="'+m.group(2)+'"' + (' target="_blank"' if not m.group(2).startswith('#') else '') + '>'+m.group(1)+'</a>', text)
     return _restore_math(text, math_blocks)
 
 
@@ -506,12 +506,14 @@ function openDetail(id){
   var ar=p.arxiv?'· <a href="https://arxiv.org/abs/'+p.arxiv+'" target="_blank" style="color:#58a6ff">arXiv:'+p.arxiv+'</a>':'';
   var cn='';
   p.connections.forEach(function(c){cn+='<div>'+(c.type==='extends'?'Extends':'Extended by')+': <strong>'+c.target+'</strong> — '+c.text+'</div>'});
+  function slugify(s){return s.replace(/[^\w一-鿿]+/g,'-').replace(/^-|-$/g,'')}
   var sh='',exKeys=['One-line thesis','Connections','Claims','Relevance to This Project'];
   Object.keys(p.sections||{}).forEach(function(k){
     if(exKeys.indexOf(k)!==-1)return;var v=p.sections[k];if(!v||!v.trim())return;
-    sh+='<section><h3>'+k+'</h3>'+v+'</section>'
+    sh+='<section id="sec-'+slugify(k)+'"><h3>'+k+'</h3>'+v+'</section>'
   });
-  body.innerHTML='<h2>'+p.short+': '+p.title+'</h2><div class="meta-line">'+a+' · '+p.venue+' '+p.year+' '+ar+'</div><section><h3>One-line Thesis</h3><p>'+p.thesis+'</p></section>'+sh+'<section><h3>Knowledge Graph Connections</h3><div class="conn-detail">'+(cn||'(none)')+'</div></section>';
+  body.innerHTML='<h2>'+p.short+': '+p.title+'</h2><div class="meta-line">'+a+' · '+p.venue+' '+p.year+' '+ar+'</div><section id="sec-thesis"><h3>One-line Thesis</h3><p>'+p.thesis+'</p></section>'+sh+'<section id="sec-connections"><h3>Knowledge Graph Connections</h3><div class="conn-detail">'+(cn||'(none)')+'</div></section>';
+  body.style.scrollBehavior='smooth';
   document.getElementById('detailModal').classList.add('open');
   (function r(n){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([document.getElementById('detailBody')]).catch(console.error)}else if(n>0){setTimeout(function(){r(n-1)},200)}})(10);
 }

@@ -39,46 +39,44 @@ A comprehensive tutorial and entry guide to vision-language models (VLMs), categ
 
 通过降低进入 VLM 研究的门槛，我们希望为推动 VLM 的负责任发展奠定基础，同时拓展视觉理解的边界。
 
-## 目录结构（完整章节）
+## 目录结构（点击跳转）
 
-### 1. 引言（Introduction）
-### 2. VLM 的家族分类（The Families of VLMs）
-- 2.1 基于 Transformer 的早期 VLM 工作（VisualBERT、ViLBERT）
-- 2.2 基于对比学习的 VLM（CLIP、SigLIP、Llip）+ 能量模型 / InfoNCE 理论
-- 2.3 基于掩码目标的 VLM（FLAVA、MaskVLM）+ 信息论视角
-- 2.4 基于生成的 VLM（CoCa、CM3Leon、Chameleon；用扩散模型做判别任务）
-- 2.5 基于预训练骨干网络的 VLM（Frozen、MiniGPT-4/5/v2、Qwen-VL、BLIP-2）
-### 3. VLM 训练指南（A Guide to VLM Training）
-- 3.1 训练数据（DataComp、启发式过滤、CLIPScore、MetaCLIP；合成数据、数据增强、交织数据、质量评估、人工标注）
-- 3.2 软件与硬件（OpenCLIP、transformers、GPU 预算估算、torch.compile、xformers、FFCV）
-- 3.3 如何选择模型（何时用对比学习 / 掩码 / 生成 / 预训练骨干网）
-- 3.4 提升接地能力（边界框标注、负样本描述）
-- 3.5 提升对齐能力（指令微调、RLHF、LLaVA 系列、多模态上下文学习）
-- 3.6 提升富含文本图像的理解能力（LLaVAR、Monkey、Lumos）
-- 3.7 参数高效微调 PEFT（LoRA、QLoRA、VeRA、DoRA；CoOp、VPT；Adapter；MAPL、LiMBeR）
-### 4. 负责任的 VLM 评估方法（Approaches for Responsible VLM Evaluation）
-- 4.1 视觉-语言能力基准测试（图像描述、文本到图像一致性、VQA、文本中心 VQA、零样本分类、组合推理、密集描述、合成数据评估）
-- 4.2 偏差与差异基准测试（基于分类、基于嵌入、语言偏差警告、训练数据概念影响）
-- 4.3 幻觉基准测试（CHAIR、POPE、GAVIE、MMHal-Bench）
-- 4.4 记忆化基准测试（déjà vu、k-NN 测试、文本随机化）
-- 4.5 红队测试
-### 5. 将 VLM 扩展到视频领域（Extending VLMs to Videos）
-- 5.1 基于 BERT 的早期视频工作（VideoBERT、MERLOT）
-- 5.2 早期融合 VLM 实现文本生成（VideoOFA）
-- 5.3 使用预训练 LLM（Video-LLaMA、Video-LLaVA、MiniGPT4-Video）
-- 5.4 评估中的机遇（EgoSchema、ActivityNet-QA、基于物理的合成数据）
-- 5.5 视频数据利用的挑战（稀缺的时序标注、名词偏置、计算成本、冗余问题）
-### 6. 结论（Conclusion）
+- **[1. 引言](#sec-引言-中文翻译)** — 背景、VLM 面临的挑战、本文定位
+- **[2. VLM 的家族分类](#sec-VLM的四种训练范式)**
+  - 2.1 基于 Transformer 的早期 VLM 工作（VisualBERT、ViLBERT）
+  - 2.2 基于对比学习的 VLM（CLIP、SigLIP、Llip）+ 能量模型 / InfoNCE 理论
+  - 2.3 基于掩码目标的 VLM（FLAVA、MaskVLM）+ 信息论视角
+  - 2.4 基于生成的 VLM（CoCa、CM3Leon、Chameleon；用扩散模型做判别任务）
+  - 2.5 基于预训练骨干网络的 VLM（Frozen、MiniGPT-4/5/v2、Qwen-VL、BLIP-2）
+- **[3. VLM 训练指南](#sec-VLM训练指南)**
+  - 3.1 训练数据（DataComp、启发式过滤、CLIPScore、MetaCLIP；合成数据、数据增强、交织数据、质量评估、人工标注）
+  - 3.2 软件与硬件（OpenCLIP、transformers、GPU 预算估算、torch.compile、xformers、FFCV）
+  - 3.3 如何选择模型（何时用对比学习 / 掩码 / 生成 / 预训练骨干网）
+  - 3.4 提升接地能力（边界框标注、负样本描述）
+  - 3.5 提升对齐能力（指令微调、RLHF、LLaVA 系列、多模态上下文学习）
+  - 3.6 提升富含文本图像的理解能力（LLaVAR、Monkey、Lumos）
+  - 3.7 参数高效微调 PEFT（LoRA、QLoRA、VeRA、DoRA；CoOp、VPT；Adapter；MAPL、LiMBeR）
+- **[4. 负责任的 VLM 评估](#sec-负责任的VLM评估)**
+  - 4.1 视觉-语言能力基准测试（图像描述、文本到图像一致性、VQA、文本中心 VQA、零样本分类、组合推理、密集描述、合成数据评估）
+  - 4.2 偏差与差异基准测试（基于分类、基于嵌入、语言偏差警告、训练数据概念影响）
+  - 4.3 幻觉基准测试（CHAIR、POPE、GAVIE、MMHal-Bench）
+  - 4.4 记忆化基准测试（déjà vu、k-NN 测试、文本随机化）
+  - 4.5 红队测试
+- **[5. 将 VLM 扩展到视频](#sec-将VLM扩展到视频)**
+  - 5.1 基于 BERT 的早期视频工作（VideoBERT、MERLOT）
+  - 5.2 早期融合 VLM 实现文本生成（VideoOFA）
+  - 5.3 使用预训练 LLM（Video-LLaMA、Video-LLaVA、MiniGPT4-Video）
+  - 5.4 评估中的机遇（EgoSchema、ActivityNet-QA、基于物理的合成数据）
+  - 5.5 视频数据利用的挑战（稀缺的时序标注、名词偏置、计算成本、冗余问题）
+- **[6. 结论](#sec-Key-Results)** — 主要发现与开放问题
 
 ## Problem / Gap
 
 VLMs remain challenging for newcomers due to the rapid pace of the field, the diversity of training paradigms, and scattered practical guidance. Existing resources either focus narrowly on specific models or assume significant prior knowledge. There was no accessible, unified entry point covering the full VLM landscape — from foundational paradigms through training recipes, evaluation best practices, bias/fairness considerations, hallucination detection, and video extensions — aimed at students and researchers entering the field.
 
-## Method
+## VLM 的四种训练范式
 
-### VLM 的四种训练范式
-
-#### 1. 基于对比学习的 VLM（Contrastive-based VLMs）
+### 1. 基于对比学习的 VLM（Contrastive-based VLMs）
 
 对比训练从基于能量的模型（EBM）视角理解最好。InfoNCE 损失是核心——利用余弦相似度在表示空间中拉近正例对、推开负例对。
 
@@ -86,7 +84,7 @@ VLMs remain challenging for newcomers due to the rapid pace of the field, the di
 - **SigLIP**：将 InfoNCE 的多分类目标替换为二分类交叉熵，在小批量下效果更好。
 - **Llip**：通过交叉注意力模块将图像编码条件化于目标描述，考虑描述的多样性，提高零样本迁移和检索性能。
 
-#### 2. 基于掩码目标的 VLM（Masking-based VLMs）
+### 2. 基于掩码目标的 VLM（Masking-based VLMs）
 
 掩码可视为一种特定形式的去噪自编码器，噪声具有空间结构。
 
@@ -94,7 +92,7 @@ VLMs remain challenging for newcomers due to the rapid pace of the field, the di
 - **MaskVLM**：直接在像素空间和文本 Token 空间应用掩码，利用模态间的信息流（文本重建接收图像编码器信息，反之亦然）。
 - **信息论视角**：VLM 可理解为解决率失真问题——减少冗余信息（Rate）、最大化预测信息（Distortion）。对比损失可视为无数据重建的压缩，掩码的 entropy bottleneck 受掩码信息量限制。
 
-#### 3. 基于生成的 VLM（Generative-based VLMs）
+### 3. 基于生成的 VLM（Generative-based VLMs）
 
 此范式考虑文本和/或图像的生成，训练成本通常最高。
 
@@ -103,7 +101,7 @@ VLMs remain challenging for newcomers due to the rapid pace of the field, the di
 - **Chameleon**：混合模态基础模型，从头端到端训练，统一架构处理图像和文本 Token，早期融合策略实现跨模态推理。
 - **用生成模型做判别任务**：通过贝叶斯定理（$p_\theta(c_i|x) = \frac{p(c_i)p_\theta(x|c_i)}{\sum_j p(c_j)p_\theta(x|c_j)}$），条件生成模型可直接用于分类。扩散模型分类虽推理成本高，但具有更好的分布外鲁棒性和组合推理能力。图像分词器基于 VQ-VAE 框架（CNN/ViT 编码器 + 矢量量化层 + 解码器），VIT-VQGAN 使用 ViT 替代 CNN。
 
-#### 4. 基于预训练骨干网络的 VLM（VLMs from Pretrained Backbones）
+### 4. 基于预训练骨干网络的 VLM（VLMs from Pretrained Backbones）
 
 利用开源 LLM（如 Llama），学习图像编码器与 LLM 之间的映射，计算成本更低。
 
@@ -112,9 +110,9 @@ VLMs remain challenging for newcomers due to the rapid pace of the field, the di
 - **Qwen-VL**：LLM 初始化为 Qwen-7B，视觉编码器基于 ViT-bigG，单层交叉注意力模块压缩视觉表示为固定长度（256）。
 - **BLIP-2**：使用 Q-Former（~100-200M 参数）将冻结视觉编码器表示映射到冻结 LLM 输入空间。
 
-### VLM 训练指南
+## VLM 训练指南
 
-#### 3.1 训练数据
+### 3.1 训练数据
 
 数据筛选方法分为三类：
 - **启发式过滤**：单模态（文本复杂度、非英语过滤、分辨率/宽高比）+ 多模态（图像分类器筛选、文字检测去重）
@@ -123,47 +121,47 @@ VLMs remain challenging for newcomers due to the rapid pace of the field, the di
 
 **合成数据**：BLIP/BLIP2 生成描述性合成标注，LLaVA 作为标注模型，但大规模下合成标注多样性上限受限。**数据增强**：CLIP-rocket 使用不对称增强（弱+强），分离投影器（线性 vs 2层MLP），推理时插值融合。**交织数据**：OBELICS（自然交织）+MM1（合成交织），交织数据提升少样本性能。**质量评估**：QuRating、VILA、LAION-aesthetics 分别评估文本/图像/对齐质量，但缺乏整体的多模态质量评估方法。
 
-#### 3.2 软件与硬件
+### 3.2 软件与硬件
 
 - **软件**：OpenCLIP、HuggingFace transformers 提供大多数 VLM 实现
 - **GPU 预算**：CLIP 规模训练需 500+ GPU（数十万美元），但使用高质量数据集+掩码策略，从零训练对比模型约需 64 GPU（~1万美元）。利用预训练骨干网则成本更低
 - **加速训练**：torch.compile、xformers（高效注意力）、FFCV（高效数据加载）
 - **关键超参数**：图像分辨率 > 视觉编码器容量 > 视觉预训练数据 > 模态连接方式；文本+交织+图文对的正确混合比至关重要
 
-#### 3.3 如何选择模型
+### 3.3 如何选择模型
 
 - **对比学习（CLIP）**：适合数据整理、检索、零样本分类；训练简单，表示空间具有图文双重语义
 - **掩码**：无批量依赖（无需负样本），小批量友好；但需额外解码器，效率可能不如纯对比方法
 - **生成模型**：可输出可视化结果（无需 k-NN 查找），学习隐式联合分布，但计算成本最高
 - **预训练骨干网 + LLM**：适合快速构建 VLM；利用已有 LLM 知识，训练成本最低
 
-#### 3.4 提升接地能力（Grounding）
+### 3.4 提升接地能力（Grounding）
 
 - **边界框标注**：提供空间定位信息
 - **负样本描述**：训练模型理解"不是什么"，减少幻觉
 
-#### 3.5 提升对齐能力（Alignment）
+### 3.5 提升对齐能力（Alignment）
 
 - **指令微调**：LLaVA 系列（LLaVA、LLaVA-1.5、LLaVA-NeXT）将图文对齐到指令遵循格式
 - **RLHF**：人类反馈强化学习对齐
 - **多模态上下文学习**：在提示中提供图文示例
 
-#### 3.6 提升富含文本图像的理解
+### 3.6 提升富含文本图像的理解
 
 - **LLaVAR**：增强文本丰富图像的理解
 - **Monkey**：提高输入分辨率以增强 OCR 能力
 - **Lumos**：专注于文本中心的视觉理解
 
-#### 3.7 参数高效微调（PEFT）
+### 3.7 参数高效微调（PEFT）
 
 - **LoRA 系列**：LoRA、QLoRA（量化）、VeRA（向量随机化）、DoRA（权重分解）
 - **提示方法**：CoOp（连续提示优化）、VPT（视觉提示微调）
 - **Adapter 方法**：在预训练层之间插入小型可训练瓶颈模块
 - **映射方法**：MAPL、LiMBeR——学习视觉与语言之间的轻量级映射
 
-### 负责任的 VLM 评估
+## 负责任的 VLM 评估
 
-#### 4.1 视觉-语言能力基准测试
+### 4.1 视觉-语言能力基准测试
 
 - **图像描述**：COCO Captions、Flickr30k、NoCaps
 - **文本到图像一致性**：TIFA、VPEval、Davidsonian
@@ -174,54 +172,54 @@ VLMs remain challenging for newcomers due to the rapid pace of the field, the di
 - **密集描述与裁剪匹配**：Dense Captioning、Crop-Caption Matching
 - **合成数据评估**：利用程序生成的视觉场景进行受控测试
 
-#### 4.2 偏差与差异基准测试
+### 4.2 偏差与差异基准测试
 
 - **基于分类的偏差**：FairFace、DollarStreet——测量跨人口统计的分类差异
 - **基于嵌入的偏差**：WEAT、SEAT——测量嵌入空间中的刻板印象关联
 - **语言偏差警告**：许多基准测试本身存在语言偏差捷径，影响评估有效性
 - **训练数据概念影响**：评估特定训练数据概念对下游性能的影响
 
-#### 4.3 幻觉基准测试
+### 4.3 幻觉基准测试
 
 - **CHAIR**：测量图像描述中的目标幻觉率
 - **POPE**：轮询式目标探测评估
 - **GAVIE**：基于 GPT-4 的细粒度幻觉评估
 - **MMHal-Bench**：多模态幻觉基准
 
-#### 4.4 记忆化基准测试
+### 4.4 记忆化基准测试
 
 - **déjà vu 记忆化**：检测训练数据记忆
 - **k-NN 测试**：通过最近邻检索评估记忆化
 - **文本随机化**：对比原始文本与随机化文本的训练动态
 
-#### 4.5 红队测试
+### 4.5 红队测试
 
 对抗性评估，识别模型的安全漏洞和失败模式。
 
-### 将 VLM 扩展到视频
+## 将 VLM 扩展到视频
 
-#### 5.1 早期基于 BERT 的方法
+### 5.1 早期基于 BERT 的方法
 
 - **VideoBERT**：将 BERT 扩展到视频，使用矢量量化处理视觉 Token
 - **MERLOT**：大规模视频-语言预训练
 
-#### 5.2 早期融合文本生成
+### 5.2 早期融合文本生成
 
 - **VideoOFA**：早期融合视觉和文本模态进行视频文本生成
 
-#### 5.3 使用预训练 LLM
+### 5.3 使用预训练 LLM
 
 - **Video-LLaMA**：使用视频 Q-Former 桥接冻结视觉编码器和 LLM
 - **Video-LLaVA**：将 LLaVA 扩展到视频理解
 - **MiniGPT4-Video**：MiniGPT-4 的视频版本
 
-#### 5.4 评估中的机遇
+### 5.4 评估中的机遇
 
 - **EgoSchema**：自我中心视频理解
 - **ActivityNet-QA**：基于活动视频的问答
 - **基于物理的合成数据**：测试物理推理能力——当前视频 VLM 在物理推理任务上表现低于随机水平
 
-#### 5.5 视频数据的挑战
+### 5.5 视频数据的挑战
 
 - 时序标注稀缺
 - 名词偏置（模型依赖名词捷径）
