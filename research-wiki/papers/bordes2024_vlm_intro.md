@@ -83,7 +83,7 @@ VLMs remain challenging for newcomers due to the rapid pace of the field, the di
 鉴于深度学习在计算机视觉和自然语言处理领域带来的令人瞩目的进展，已有许多尝试将这两个领域连接起来。在本文中，我们聚焦于基于 Transformer [Vaswani et al., 2017] 的最新技术。我们将这些近期的尝试归为四种不同的训练范式（见图 1）。
 
 **Figure 1: VLM 家族分类。**
-<img src="../images/vlm_intro_ch2_p7_0.png" alt="Figure 1: Families of VLMs" width="50%">
+![Figure 1: Families of VLMs](../images/vlm_intro_ch2_p7_0.png)
 
 对比训练是一种常用策略，它利用正例对和负例对。VLM 被训练为对正例对预测相似的表示，而对负例对预测不同的表示。掩码是另一种可用于训练 VLM 的策略，通过在给定未掩码文本标注的条件下重建缺失的图像块。类似地，通过掩码标注中的词语，可以训练 VLM 在给定未掩码图像的条件下重建这些词语。虽然大多数方法利用中间表示或部分重建，但生成式 VLM 的训练方式使其能够生成整个图像或非常长的标注。鉴于这些模型的本质，它们的训练成本通常是最高的。基于预训练骨干网的 VLM 通常利用开源 LLM（如 Llama）来学习图像编码器（也可以是预训练的）与 LLM 之间的映射。需要强调的是，这些范式并非互斥的；许多方法依赖于对比、掩码和生成标准的混合。
 
