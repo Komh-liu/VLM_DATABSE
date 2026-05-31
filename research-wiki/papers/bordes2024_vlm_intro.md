@@ -42,13 +42,13 @@ A comprehensive tutorial and entry guide to vision-language models (VLMs), categ
 ## 目录结构（点击跳转）
 
 - **[1. 引言](#sec-引言-中文翻译)** — 背景、VLM 面临的挑战、本文定位
-- **[2. VLM 的家族分类](#sec-VLM的四种训练范式)**
+- **[2. VLM 的家族分类](#sec-VLM-的四种训练范式)**
   - 2.1 基于 Transformer 的早期 VLM 工作（VisualBERT、ViLBERT）
   - 2.2 基于对比学习的 VLM（CLIP、SigLIP、Llip）+ 能量模型 / InfoNCE 理论
   - 2.3 基于掩码目标的 VLM（FLAVA、MaskVLM）+ 信息论视角
   - 2.4 基于生成的 VLM（CoCa、CM3Leon、Chameleon；用扩散模型做判别任务）
   - 2.5 基于预训练骨干网络的 VLM（Frozen、MiniGPT-4/5/v2、Qwen-VL、BLIP-2）
-- **[3. VLM 训练指南](#sec-VLM训练指南)**
+- **[3. VLM 训练指南](#sec-VLM-训练指南)**
   - 3.1 训练数据（DataComp、启发式过滤、CLIPScore、MetaCLIP；合成数据、数据增强、交织数据、质量评估、人工标注）
   - 3.2 软件与硬件（OpenCLIP、transformers、GPU 预算估算、torch.compile、xformers、FFCV）
   - 3.3 如何选择模型（何时用对比学习 / 掩码 / 生成 / 预训练骨干网）
@@ -56,13 +56,13 @@ A comprehensive tutorial and entry guide to vision-language models (VLMs), categ
   - 3.5 提升对齐能力（指令微调、RLHF、LLaVA 系列、多模态上下文学习）
   - 3.6 提升富含文本图像的理解能力（LLaVAR、Monkey、Lumos）
   - 3.7 参数高效微调 PEFT（LoRA、QLoRA、VeRA、DoRA；CoOp、VPT；Adapter；MAPL、LiMBeR）
-- **[4. 负责任的 VLM 评估](#sec-负责任的VLM评估)**
+- **[4. 负责任的 VLM 评估](#sec-负责任的-VLM-评估)**
   - 4.1 视觉-语言能力基准测试（图像描述、文本到图像一致性、VQA、文本中心 VQA、零样本分类、组合推理、密集描述、合成数据评估）
   - 4.2 偏差与差异基准测试（基于分类、基于嵌入、语言偏差警告、训练数据概念影响）
   - 4.3 幻觉基准测试（CHAIR、POPE、GAVIE、MMHal-Bench）
   - 4.4 记忆化基准测试（déjà vu、k-NN 测试、文本随机化）
   - 4.5 红队测试
-- **[5. 将 VLM 扩展到视频](#sec-将VLM扩展到视频)**
+- **[5. 将 VLM 扩展到视频](#sec-将-VLM-扩展到视频)**
   - 5.1 基于 BERT 的早期视频工作（VideoBERT、MERLOT）
   - 5.2 早期融合 VLM 实现文本生成（VideoOFA）
   - 5.3 使用预训练 LLM（Video-LLaMA、Video-LLaVA、MiniGPT4-Video）
