@@ -2,14 +2,29 @@
 type: paper
 node_id: paper:liu2021_swin
 title: " Hierarchical Vision Transformer using Shifted Windows"
-authors: ["Ze Liu", "Yutong Lin", "Yue Cao", "Han Hu", "Yixuan Wei", "Zheng Zhang", "Stephen Lin", "Baining Guo"]
+authors:
+  - Ze Liu
+  - Yutong Lin
+  - Yue Cao
+  - Han Hu
+  - Yixuan Wei
+  - Zheng Zhang
+  - Stephen Lin
+  - Baining Guo
 year: 2021
-venue: "ICCV"
+venue: ICCV
 external_ids:
   arxiv: "2103.14030"
-  doi: null
-  s2: null
-tags: ["vision-transformer", "hierarchical", "shifted-windows", "backbone", "object-detection", "semantic-segmentation", "dense-prediction"]
+  doi:
+  s2:
+tags:
+  - vision-transformer
+  - hierarchical
+  - shifted-windows
+  - backbone
+  - object-detection
+  - semantic-segmentation
+  - dense-prediction
 added: 2026-05-29T16:00:00Z
 ---
 

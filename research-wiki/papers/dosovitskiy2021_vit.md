@@ -87,3 +87,4 @@ Attention机制在某些程度上可以起到和原来的CNN一样的感受能�
 ## Relevance to This Project
 
 Foundational architecture for modern vision-language models — both CLIP and BLIP-2 use ViT as a backbone image encoder. Understanding ViT is essential for any VLM research.
+[[bordes2024_vlm_intro]]]

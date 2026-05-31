@@ -280,3 +280,7 @@ VLMs remain challenging for newcomers due to the rapid pace of the field, the di
 ## Relevance to This Project
 
 这是截至 2024 年 VLM 领域的权威入门指南。它将本知识图谱中的基础论文（ViT、CLIP、BLIP-2）整合为统一的叙述，提供了适用于任何 VLM 项目的实用训练指南，并建立了严格的评估标准。其四种范式分类法可作为理解新 VLM 论文之间关系的组织框架。
+[[liu2021_swin]]
+[[radford2021_clip]]
+[[dosovitskiy2021_vit]]
+[[li2023_blip2]]

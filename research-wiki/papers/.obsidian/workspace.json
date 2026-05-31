@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "liu2021_swin.md",
+                "file": "bordes2024_vlm_intro.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "liu2021_swin"
+              "title": "bordes2024_vlm_intro"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "liu2021_swin.md",
+                "file": "bordes2024_vlm_intro.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "liu2021_swin 的反向链接列表"
+              "title": "bordes2024_vlm_intro 的反向链接列表"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "liu2021_swin.md",
+                "file": "bordes2024_vlm_intro.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "liu2021_swin 的出链列表"
+              "title": "bordes2024_vlm_intro 的出链列表"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "liu2021_swin.md",
+                "file": "bordes2024_vlm_intro.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "liu2021_swin 的大纲"
+              "title": "bordes2024_vlm_intro 的大纲"
             }
           }
         ]
@@ -185,6 +185,9 @@
   },
   "active": "92afbbbd2c133537",
   "lastOpenFiles": [
-    "bordes2024_vlm_intro.md"
+    "bordes2024_vlm_intro.md",
+    "li2023_blip2.md",
+    "dosovitskiy2021_vit.md",
+    "liu2021_swin.md"
   ]
 }
