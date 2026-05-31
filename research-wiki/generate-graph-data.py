@@ -412,8 +412,7 @@ function init() {
   subtitle.textContent='Vision-Language Model 知识图谱 · '+PAPERS.length+' 篇论文 · '+EDGES.length+' 条关系';
   var years=PAPERS.map(function(p){return p.year}).filter(Boolean);
   var yr=years.length?Math.min.apply(null,years)+'–'+Math.max.apply(null,years):'—';
-  var dots=PAPERS.slice(0,6).map(function(p){return'<div class="stat"><span class="dot" style="background:'+p.nodeColor+'"></span><span class="label">'+p.short+'</span></div>'}).join('');
-  document.getElementById('statsBar').innerHTML='<div class="stat"><span class="num">'+PAPERS.length+'</span><span class="label">Papers</span></div><div class="stat"><span class="num">'+EDGES.length+'</span><span class="label">Relationships</span></div><div class="stat"><span class="num">'+yr+'</span><span class="label">Timeline</span></div>'+dots;
+  document.getElementById('statsBar').innerHTML='<div class="stat"><span class="num">'+PAPERS.length+'</span><span class="label">Papers</span></div><div class="stat"><span class="num">'+EDGES.length+'</span><span class="label">Relationships</span></div><div class="stat"><span class="num">'+yr+'</span><span class="label">Timeline</span></div>';
 
   // Side panel
   var side=document.getElementById('sidePanel');side.innerHTML='';
@@ -453,6 +452,8 @@ function init() {
 
   var node=g.append('g').selectAll('g').data(nd).join('g').call(d3.drag().on('start',function(e,d){if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',function(e,d){d.fx=e.x;d.fy=e.y}).on('end',function(e,d){if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
   node.append('circle').attr('r',42).attr('fill',function(d){return d.nodeColor}).attr('opacity',0.85).on('mouseover',function(e,d){showTooltip(e,d)}).on('mouseout',function(){hideTooltip()}).on('click',function(e,d){e.stopPropagation();openDetail(d.id)});
+  node.append('text').attr('dy',-6).attr('fill','#f0f6fc').attr('text-anchor','middle').attr('pointer-events','none').text(function(d){return d.short});
+  node.append('text').attr('dy',10).attr('class','sub').attr('text-anchor','middle').attr('pointer-events','none').text(function(d){return d.year});
   window._nodeSel=node;
 
 
