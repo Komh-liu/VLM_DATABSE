@@ -117,9 +117,12 @@ def _protect_math(text):
 
 
 def _restore_math(text, blocks):
-    """Restore MathJax blocks from placeholders."""
+    """Restore MathJax blocks from placeholders, HTML-escaping < and >."""
     for i, m in enumerate(blocks):
-        text = text.replace(f'\x00MATH{i}\x00', m)
+        # Escape < and > to prevent browsers from parsing them as HTML tags
+        # (e.g., t_{<j} would otherwise break MathJax rendering)
+        escaped = m.replace('<', '&lt;').replace('>', '&gt;')
+        text = text.replace(f'\x00MATH{i}\x00', escaped)
     return text
 
 
