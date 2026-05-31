@@ -193,7 +193,7 @@ def render_markdown_to_html(text):
 
 
 SHORT_NAMES = {'vit': 'ViT', 'clip': 'CLIP', 'blip': 'BLIP', 'blip2': 'BLIP-2', 'swin': 'Swin'}
-COLORS = ['#58a6ff', '#3fb950', '#f0883e', '#da3633', '#a371f7', '#db6d28', '#238636', '#1f6feb', '#795548']
+COLORS = ['#79c0ff', '#3fb950', '#f0883e', '#da3633', '#a371f7', '#db6d28', '#238636', '#1f6feb', '#795548']
 
 def slug_color(slug):
     h = sum(ord(c) * (i + 1) for i, c in enumerate(slug))
@@ -307,7 +307,7 @@ window.MathJax = {
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh}
 .header{background:linear-gradient(135deg,#161b22 0%,#0d1117 100%);border-bottom:1px solid #30363d;padding:32px 40px 24px}
-.header h1{font-size:28px;font-weight:700;background:linear-gradient(90deg,#58a6ff,#3fb950,#f0883e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header h1{font-size:28px;font-weight:700;background:linear-gradient(90deg,#79c0ff,#3fb950,#f0883e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .header .subtitle{color:#8b949e;font-size:14px;margin-top:6px}
 .stats-bar{display:flex;gap:24px;margin-top:16px;flex-wrap:wrap}
 .stat{display:flex;align-items:center;gap:8px;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:8px 16px;font-size:13px}
@@ -316,7 +316,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .stat .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
 .search-bar{display:flex;align-items:center;gap:8px;margin-top:16px;max-width:420px}
 .search-bar input{flex:1;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:9px 14px;font-size:13px;color:#f0f6fc;outline:none;transition:border-color .2s}
-.search-bar input:focus{border-color:#58a6ff}
+.search-bar input:focus{border-color:#79c0ff}
 .search-bar input::placeholder{color:#484f58}
 .search-bar .search-count{font-size:12px;color:#8b949e;white-space:nowrap;min-width:50px}
 .main{display:flex;min-height:calc(100vh - 160px)}
@@ -332,7 +332,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .side-panel::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
 .node-card{padding:20px;border-bottom:1px solid #21262d;cursor:pointer;transition:background .15s}
 .node-card:hover{background:#1c2128}
-.node-card h3{font-size:15px;font-weight:600;color:#58a6ff;margin-bottom:4px;line-height:1.4}
+.node-card h3{font-size:15px;font-weight:600;color:#79c0ff;margin-bottom:4px;line-height:1.4}
 .node-card .meta{font-size:12px;color:#8b949e;margin-bottom:6px}
 .node-card .thesis{font-size:13px;color:#c9d1d9;line-height:1.5;margin-bottom:8px}
 .node-card .tags{display:flex;flex-wrap:wrap;gap:4px}
@@ -340,7 +340,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .node-card .conn{margin-top:10px;font-size:12px;color:#8b949e;border-top:1px solid #21262d;padding-top:8px}
 .node-card .conn div{margin:3px 0}
 .node-card .conn .ext{color:#3fb950}
-.node-card .conn .extby{color:#58a6ff}
+.node-card .conn .extby{color:#79c0ff}
 .tooltip{position:absolute;background:rgba(22,27,34,0.95);border:1px solid #30363d;border-radius:8px;padding:12px 16px;font-size:13px;pointer-events:none;max-width:300px;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,0.4);opacity:0;transition:opacity .15s;z-index:100}
 .tooltip.visible{opacity:1}
 .tooltip strong{color:#f0f6fc}
@@ -357,7 +357,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .detail-content h2{font-size:20px;color:#f0f6fc;margin-bottom:4px}
 .detail-content .meta-line{font-size:13px;color:#8b949e;margin-bottom:16px}
 .detail-content section{margin-bottom:20px}
-.detail-content section h3{font-size:14px;font-weight:600;color:#58a6ff;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #21262d}
+.detail-content section h3{font-size:14px;font-weight:600;color:#79c0ff;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #21262d}
 .detail-content section p,.detail-content section li{font-size:13px;line-height:1.6;color:#c9d1d9}
 .detail-content ul{padding-left:18px}
 .detail-content li{margin-bottom:4px}
@@ -376,7 +376,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 <div class="main">
   <div class="graph-panel" id="graph">
     <div class="graph-title">Knowledge Graph · Force-Directed</div>
-    <div class="graph-legend"><div><span class="swatch" style="background:#58a6ff"></span> extends / builds upon</div></div>
+    <div class="graph-legend"><div><span class="swatch" style="background:#79c0ff"></span> extends / builds upon</div></div>
   </div>
   <div class="side-panel" id="sidePanel"></div>
 </div>
@@ -445,9 +445,9 @@ function init() {
   var sim=d3.forceSimulation(nd).force('link',d3.forceLink(ld).distance(200).strength(0.5)).force('charge',d3.forceManyBody().strength(-600)).force('center',d3.forceCenter(w/2,h/2)).force('collision',d3.forceCollide().radius(100));
 
   var defs=svg.append('defs');
-  defs.append('marker').attr('id','arrow').attr('viewBox','0 -5 10 10').attr('refX',48).attr('refY',0).attr('markerWidth',8).attr('markerHeight',8).attr('orient','auto').append('path').attr('d','M0,-4L10,0L0,4').attr('fill','#58a6ff').attr('opacity',0.6);
+  defs.append('marker').attr('id','arrow').attr('viewBox','0 -5 10 10').attr('refX',48).attr('refY',0).attr('markerWidth',8).attr('markerHeight',8).attr('orient','auto').append('path').attr('d','M0,-4L10,0L0,4').attr('fill','#79c0ff').attr('opacity',0.6);
 
-  var link=g.append('g').selectAll('line').data(ld).join('line').attr('stroke','#58a6ff').attr('stroke-width',2.5).attr('stroke-dasharray','6,3').attr('marker-end','url(#arrow)');
+  var link=g.append('g').selectAll('line').data(ld).join('line').attr('stroke','#79c0ff').attr('stroke-width',2.5).attr('stroke-dasharray','6,3').attr('marker-end','url(#arrow)');
   g.append('g').selectAll('text').data(ld).join('text').attr('font-size',10).attr('fill','#8b949e').attr('text-anchor','middle').attr('dy',-6).text('extends');
 
   var node=g.append('g').selectAll('g').data(nd).join('g').call(d3.drag().on('start',function(e,d){if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',function(e,d){d.fx=e.x;d.fy=e.y}).on('end',function(e,d){if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
@@ -503,7 +503,7 @@ function openDetail(id){
   var p=PAPERS.find(function(x){return x.id===id});if(!p)return;
   var body=document.getElementById('detailBody');
   var a=p.authors.join(', ');
-  var ar=p.arxiv?'· <a href="https://arxiv.org/abs/'+p.arxiv+'" target="_blank" style="color:#58a6ff">arXiv:'+p.arxiv+'</a>':'';
+  var ar=p.arxiv?'· <a href="https://arxiv.org/abs/'+p.arxiv+'" target="_blank" style="color:#79c0ff">arXiv:'+p.arxiv+'</a>':'';
   var cn='';
   p.connections.forEach(function(c){cn+='<div>'+(c.type==='extends'?'Extends':'Extended by')+': <strong>'+c.target+'</strong> — '+c.text+'</div>'});
   function slugify(s){return s.replace(/[^\w一-鿿]+/g,'-').replace(/^-|-$/g,'')}
