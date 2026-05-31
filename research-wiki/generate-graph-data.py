@@ -393,6 +393,8 @@ text.sub{font-size:11px;fill:var(--text2);font-weight:400;pointer-events:none}
 .detail-content section h6{font-size:12px;font-weight:600;color:var(--text2);margin:8px 0 4px}
 .detail-content section p,.detail-content section li{font-size:13px;line-height:1.6;color:var(--text)}
 .detail-content section a{color:var(--accent)}
+.detail-content .MathJax{overflow-x:auto;overflow-y:hidden;max-width:100%}
+.detail-content mjx-container{overflow-x:auto;max-width:100%}
 .detail-content ul{padding-left:18px}
 .detail-content li{margin-bottom:4px}
 .detail-content .conn-detail{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;margin-top:8px}
@@ -558,12 +560,25 @@ function openDetail(id){
   var sh='',exKeys=['One-line thesis','Connections','Claims','Relevance to This Project'];
   Object.keys(p.sections||{}).forEach(function(k){
     if(exKeys.indexOf(k)!==-1)return;var v=p.sections[k];if(!v||!v.trim())return;
-    sh+='<section id="sec-'+slugify(k)+'"><h3>'+k+'</h3>'+v+'</section>'
+    sh+='<section><h3>'+k+'</h3>'+v+'</section>'
   });
-  body.innerHTML='<h2>'+p.short+': '+p.title+'</h2><div class="meta-line">'+a+' · '+p.venue+' '+p.year+' '+ar+'</div><section id="sec-thesis"><h3>One-line Thesis</h3><p>'+p.thesis+'</p></section>'+sh+'<section id="sec-connections"><h3>Knowledge Graph Connections</h3><div class="conn-detail">'+(cn||'(none)')+'</div></section>';
+  body.innerHTML='<h2>'+p.short+': '+p.title+'</h2><div class="meta-line">'+a+' · '+p.venue+' '+p.year+' '+ar+'</div><section><h3>One-line Thesis</h3><p>'+p.thesis+'</p></section>'+sh+'<section><h3>Knowledge Graph Connections</h3><div class="conn-detail">'+(cn||'(none)')+'</div></section>';
   body.style.scrollBehavior='smooth';
+  body.onclick=function(e){
+    var a=e.target.closest('a[href^="#sec-"]');
+    if(!a)return;
+    e.preventDefault();
+    var target=a.getAttribute('href').replace('#','');
+    var h3s=body.querySelectorAll('section h3');
+    for(var i=0;i<h3s.length;i++){
+      if(slugify(h3s[i].textContent)===target||('sec-'+slugify(h3s[i].textContent))===target){
+        h3s[i].parentElement.scrollIntoView({behavior:'smooth',block:'start'});
+        return;
+      }
+    }
+  };
   document.getElementById('detailModal').classList.add('open');
-  (function r(n){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([document.getElementById('detailBody')]).catch(console.error)}else if(n>0){setTimeout(function(){r(n-1)},200)}})(10);
+  (function r(n){if(window.MathJax&&MathJax.typesetPromise&&MathJax.typesetPromise.apply){MathJax.typesetPromise([document.getElementById('detailBody')]).catch(function(){});}else if(n>0){setTimeout(function(){r(n-1)},200)}})(25);
 }
 function closeDetail(){document.getElementById('detailModal').classList.remove('open')}
 document.getElementById('detailModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeDetail()});

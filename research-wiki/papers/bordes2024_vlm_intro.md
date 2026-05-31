@@ -96,7 +96,7 @@ $$p_\theta(x) = \frac{e^{-E_\theta(x)}}{Z_\theta}$$
 
 其中归一化因子 $Z_\theta = \sum_x e^{-E_\theta(x)}$。为了估计数据所来自的目标分布 $P_D$，我们原则上可以使用传统的最大似然目标：
 
-$$\arg\min_\theta \mathbb{E}_{x\sim P_D(x)}[-\log P_\theta(x)]$$
+$$\operatorname{argmin}_\theta \mathbb{E}_{x\sim P_D(x)}[-\log P_\theta(x)]$$
 
 其梯度为：
 
@@ -142,7 +142,7 @@ Federici et al. [2020] 首先表明 VLM 可以被理解为解决一个率-失真
 
 我们可以将相关的率-失真问题表述为 [Shwartz Ziv and LeCun, 2024]：
 
-$$\arg\min_{p(z|x)} I(f(X); Z) + \beta \cdot H(X|Z) \tag{3}$$
+$$\operatorname{argmin}_{p(z|x)} I(f(X); Z) + \beta \cdot H(X|Z) \tag{3}$$
 
 为了恢复掩码 VLM 目标，我们对公式 (3) 进行界定：
 
