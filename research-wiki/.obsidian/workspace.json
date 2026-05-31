@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "papers/bordes2024_vlm_intro.md",
-                "mode": "preview",
+                "file": "2026-05-31.md",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "bordes2024_vlm_intro"
+              "title": "2026-05-31"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "papers/bordes2024_vlm_intro.md",
+                "file": "2026-05-31.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "bordes2024_vlm_intro 的反向链接列表"
+              "title": "2026-05-31 的反向链接列表"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "papers/bordes2024_vlm_intro.md",
+                "file": "2026-05-31.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "bordes2024_vlm_intro 的出链列表"
+              "title": "2026-05-31 的出链列表"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "papers/bordes2024_vlm_intro.md",
+                "file": "2026-05-31.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "bordes2024_vlm_intro 的大纲"
+              "title": "2026-05-31 的大纲"
             }
           }
         ]
@@ -185,6 +185,17 @@
   },
   "active": "5e5e27bf8e44e04d",
   "lastOpenFiles": [
+    "images/Qformer.png",
+    "papers/Qformer.png",
+    "papers/image.png",
+    "gap_map.md",
+    "2026-05-31.md",
+    "index.md",
+    "log.md",
+    "query_pack.md",
+    "papers/bordes2024_vlm_intro.md",
+    "papers/llava_v1.pdf",
+    "papers/llava_1_5.pdf",
     "images/vlm_intro_ch2_p7_0.png"
   ]
 }

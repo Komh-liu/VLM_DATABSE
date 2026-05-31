@@ -2,6 +2,7 @@
 type: paper
 node_id: paper:bordes2024_vlm_intro
 title: "An Introduction to Vision-Language Modeling"
+short: "VLM Intro"
 authors: ["Florian Bordes", "Richard Yuanzhe Pang", "Anurag Ajay", "Alexander C. Li", "Adrien Bardes", "Suzanne Petryk", "Oscar Mañas", "Zhiqiu Lin", "Anas Mahmoud", "Banghua Zhu", "Sara Elkafrawy", "Kathy Zhu", "Yejin Choi", "Antoine Bosselut", "Saining Xie", "Yann LeCun", "Armand Joulin", "Kaiming He", "Hugo Touvron", "Piotr Dollár", "Liangliang Cao", "Hu Xu", "Zhe Gan", "Xi Yin", "Jianfeng Gao", "Lijuan Wang", "Jianwei Yang"]
 year: 2024
 venue: "arXiv"
@@ -42,7 +43,7 @@ A comprehensive tutorial and entry guide to vision-language models (VLMs), categ
 ## 目录结构（点击跳转）
 
 - **[1. 引言](#sec-引言-中文翻译)** — 背景、VLM 面临的挑战、本文定位
-- **[2. VLM 家族分类](#第二章vlm-家族分类)**
+- **[2. VLM 家族分类](#sec-第二章-VLM-家族分类)**
   - 2.1 基于 Transformer 的早期 VLM 工作（VisualBERT、ViLBERT）
   - 2.2 基于对比学习的 VLM（CLIP、SigLIP、Llip）+ 能量模型 / InfoNCE 理论
   - 2.3 基于掩码目标的 VLM（FLAVA、MaskVLM）+ 信息论视角

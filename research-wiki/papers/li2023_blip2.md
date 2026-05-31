@@ -24,6 +24,11 @@ BLIP-2 proposes a generic and compute-efficient vision-language pre-training str
 Vision-language pre-training (VLP) had become increasingly prohibitive due to end-to-end training of ever-larger models. Prior methods required expensive end-to-end training of both vision and language components. While leveraging frozen unimodal pre-trained models (image encoders, LLMs) was appealing, aligning their feature spaces — especially when the LLM has never seen images — remained a key challenge. Existing modular approaches (Frozen, Flamingo) used only image-to-text generation loss, which proved insufficient to bridge the modality gap.
 
 ## Method
+![QFormer](../images/Qformer.png)
+- 用一组可学习的query向量，从视觉token中学习到LLM需要的信息，然后使得下游的LLM能够理解图片中的内容
+- 对于是否匹配的二分类任务，图片和文本信息自由流动，完整的交互判断是否匹配。
+- 对于对齐训练，遮住相互之间的注意力使得模型只能关注到自己是什么，然后尽量让文本和图像在嵌入空间对齐
+- 对于text generation，使用自回归范式，需要遮住后文进行训练。
 
 BLIP-2 introduces a **Querying Transformer (Q-Former)** — a lightweight 188M parameter transformer with 32 learnable query tokens that acts as an information bottleneck between a frozen image encoder and a frozen LLM. The pre-training has two stages:
 
