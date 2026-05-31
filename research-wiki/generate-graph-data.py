@@ -151,6 +151,14 @@ def render_markdown_to_html(text):
             i += 1
             continue
 
+        # Heading: ### H3, #### H4, ##### H5, ###### H6
+        h_match = re.match(r'^(#{3,6})\s+(.+)$', stripped)
+        if h_match:
+            lvl = len(h_match.group(1))
+            result.append(f'<h{lvl}>{_render_inline(h_match.group(2))}</h{lvl}>')
+            i += 1
+            continue
+
         # Unordered list: - item  or  * item (but not **bold**)
         ul_match = re.match(r'^(\s*)[-*]\s+(.+)$', stripped)
         if ul_match and not re.match(r'^\s*\*\s*\*\*', stripped):
@@ -380,6 +388,9 @@ text.sub{font-size:11px;fill:var(--text2);font-weight:400;pointer-events:none}
 .detail-content .meta-line{font-size:13px;color:var(--text2);margin-bottom:16px}
 .detail-content section{margin-bottom:20px}
 .detail-content section h3{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)}
+.detail-content section h4{font-size:13px;font-weight:600;color:var(--text3);margin:12px 0 6px}
+.detail-content section h5{font-size:13px;font-weight:600;color:var(--text2);margin:10px 0 4px}
+.detail-content section h6{font-size:12px;font-weight:600;color:var(--text2);margin:8px 0 4px}
 .detail-content section p,.detail-content section li{font-size:13px;line-height:1.6;color:var(--text)}
 .detail-content section a{color:var(--accent)}
 .detail-content ul{padding-left:18px}
