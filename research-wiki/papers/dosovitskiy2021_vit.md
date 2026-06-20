@@ -55,7 +55,8 @@ ViT splits an image into fixed-size patches (e.g., 16x16), linearly embeds each 
 
 
 ## Limitations / Failure Modes
-
+<!--  ]`+
+`17
 - Requires large-scale pre-training data to outperform CNNs; on small data it underperforms due to lack of built-in inductive biases
 - Quadratic self-attention cost in sequence length limits high-resolution image processing
 - Position embedding interpolation at higher resolutions during fine-tuning is a heuristic
@@ -87,4 +88,4 @@ Attention机制在某些程度上可以起到和原来的CNN一样的感受能�
 ## Relevance to This Project
 
 Foundational architecture for modern vision-language models — both CLIP and BLIP-2 use ViT as a backbone image encoder. Understanding ViT is essential for any VLM research.
-[[bordes2024_vlm_intro]]]
+[[bordes2024_vlm_intro]]5]
