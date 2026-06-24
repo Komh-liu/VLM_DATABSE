@@ -278,6 +278,12 @@ var PAPERS = [
         "target": "VLM Intro",
         "targetId": "paper:bordes2024_vlm_intro",
         "text": "VLM Intro Section 2.2 将 CLIP 作为对比学习 VLM 的典范进行系统介绍"
+      },
+      {
+        "type": "extended_by",
+        "target": "Pivot",
+        "targetId": "paper:song2026_pivot",
+        "text": "PIVOT 在 CLIP 系列视觉编码器上应用 DPO 训练，以不到 1% 的计算成本显著提升其 MLLM 下游性能，证明预训练视觉编码器仍有巨大进化潜力"
       }
     ]
   },
@@ -392,6 +398,12 @@ var PAPERS = [
         "target": "VLM Intro",
         "targetId": "paper:bordes2024_vlm_intro",
         "text": "VLM Intro Section 2.5 将 Qwen-VL 列为预训练骨干 VLM 的重要工作"
+      },
+      {
+        "type": "extended_by",
+        "target": "Pivot",
+        "targetId": "paper:song2026_pivot",
+        "text": "PIVOT 使用 Qwen2.5-1.5B 作为 LLM-head 进行 DPO 训练，验证 RL 对视觉编码器的重塑效果"
       }
     ]
   },
@@ -489,6 +501,56 @@ var PAPERS = [
         "text": "VLM Intro Section 2.5 将 Qwen-VL 列为预训练骨干 VLM 的重要工作"
       }
     ]
+  },
+  {
+    "id": "paper:song2026_pivot",
+    "slug": "song2026_pivot",
+    "short": "Pivot",
+    "title": "RL makes MLLMs see better than SFT",
+    "authors": [
+      "Junha Song",
+      "Sangdoo Yun",
+      "Dongyoon Han",
+      "Jaegul Choo",
+      "Byeongho Heo"
+    ],
+    "year": 2026,
+    "venue": "ICLR 2026 Poster",
+    "arxiv": "2510.16333",
+    "tags": [
+      "RL",
+      "DPO",
+      "MLLM",
+      "vision-encoder",
+      "visual-representation",
+      "SFT",
+      "preference-optimization"
+    ],
+    "nodeColor": "#a371f7",
+    "thesis": "",
+    "sections": {
+      "一句话": "<p><strong>RL 训练不仅让 MLLM 答案更准，还能\"重写\"视觉编码器的内部表征</strong>。用 DPO 训练的视觉编码器产生比 SFT 更强、更局部化的视觉特征，以不到标准视觉预训练 1% 的计算成本超越更大型编码器。</p>",
+      "核心问题": "<p>MLLM 社区有一个隐含假设：MLLM 的能力主要来自 LLM backbone（参数最大、能力最强）。这导致<strong>没人认真研究视觉 encoder 在 SFT vs RL 训练中到底发生了什么变化</strong>。</p>\n<p>本文填补了这个空白：<strong>SFT 和 RL 对视觉 encoder 的影响到底有什么不同？</strong></p>",
+      "方法": "<h3>控制实验设计</h3>\n<p>在 Stage 2 后训练中，用<strong>相同数量的图文数据</strong>、分别用 SFT 和 DPO 训练，公平对比：</p>\n<p>```<br>LSFT = -log π(y_chosen | I, q)                        ← 标准微调<br>LDPO = -log σ(β·[log(π_θ(y_chosen)/π_ref(y_chosen))   ← 偏好优化</p>\n<ul>\n<li>log(π_θ(y_rejected)/π_ref(y_rejected))])</li>\n</ul>\n<p>```</p>\n<h3>核心发现</h3>\n<ol>\n<li><strong>RL > SFT 在视觉密集型任务上</strong>：DPO 在需要细粒度视觉理解的 VQA benchmark 上显著超越 SFT</li>\n</ol>\n<ol>\n<li><strong>RL 重写视觉表征</strong>：通过 ImageNet 分类、语义分割、<strong>梯度可视化</strong>等多种实验，证明 RL 的优化信号能传递回视觉 encoder，使其学到：</li>\n</ol>\n<ul>\n<li>更强的局部定位能力（物体在哪、边界在哪）</li>\n<li>更精确的细粒度信息（纹理、形状）</li>\n<li>SFT 则停留在 \"全局语义\" 层面</li>\n</ul>\n<ol>\n<li><strong>梯度可视化揭示</strong>：RL 训练中，视觉 encoder 浅层也收到显著梯度信号（SFT 几乎只更新高层），说明 RL 在\"重新训练\" 视觉 encoder 的基础特征</li>\n</ol>\n<h3>PIVOT 方法</h3>\n<p>把上述发现提炼为一个简单配方：</p>\n<ul>\n<li>用 DPO + 1.5B 小 LLM head 训练视觉 encoder</li>\n<li>训完后，增强过的视觉 encoder <strong>可以拆下来</strong>换到任意 MLLM 里</li>\n<li>18 小时 × 8×H100 → 不到标准视觉预训练的 1% 计算量</li>\n</ul>",
+      "核心结果": "<p>| 对比 | 结果 |<br>|------|------|<br>| SigLIP2-So/16 + PIVOT | <strong>超过</strong> SigLIP2-g/16（参数量大得多） |<br>| SigLIP1-So/14 + PIVOT | <strong>超过</strong> SigLIP2-So/16（下一代编码器） |<br>| 通用性 | 在 CLIP / DINOv2 / MAE / MoCo / Supervised ViT 上均有效 |<br>| MLLM 下游 | 装上 PIVOT encoder 的 MLLM 在 VQA 上显著提升 |</p>",
+      "关键洞察": "<p>> 视觉 encoder 在 MLLM 中有 <strong>\"进化潜力\"</strong>——即使 SOTA 编码器（SigLIP2）仍有巨大提升空间。RL 是解锁这个潜力的钥匙。</p>",
+      "局限": "<ul>\n<li>DPO 的偏好数据仍然需要人工或高质量数据构造</li>\n<li>实验主要基于 LLaVA-OneVision 框架，Qwen-VL / InternVL 等架构上的泛化性待验证</li>\n<li>PIVOT 对 LLM backbone 的反向影响未深入研究</li>\n</ul>",
+      "对你的意义": "<p>如果你做多模态 RL（GRPO/DPO 训练 MLLM），这篇论文给出了一个强有力的论点：<strong>RL 不只是让模型\"回答更准\"，它从根本上改变了模型 \"看\" 的方式。</strong> 这对 \"用 RL 优化 grounding\" 方向是直接支撑。</p>"
+    },
+    "connections": [
+      {
+        "type": "extends",
+        "target": "CLIP",
+        "targetId": "paper:radford2021_clip",
+        "text": "PIVOT 在 CLIP 系列视觉编码器上应用 DPO 训练，以不到 1% 的计算成本显著提升其 MLLM 下游性能，证明预训练视觉编码器仍有巨大进化潜力"
+      },
+      {
+        "type": "extends",
+        "target": "qwenvl",
+        "targetId": "paper:qwenvl",
+        "text": "PIVOT 使用 Qwen2.5-1.5B 作为 LLM-head 进行 DPO 训练，验证 RL 对视觉编码器的重塑效果"
+      }
+    ]
   }
 ];
 var EDGES = [
@@ -540,6 +602,20 @@ var EDGES = [
     "type": "extends",
     "evidence": "VLM Intro Section 2.5 将 Qwen-VL 列为预训练骨干 VLM 的重要工作",
     "added": "2026-06-02T06:10:00Z"
+  },
+  {
+    "from": "paper:song2026_pivot",
+    "to": "paper:radford2021_clip",
+    "type": "extends",
+    "evidence": "PIVOT 在 CLIP 系列视觉编码器上应用 DPO 训练，以不到 1% 的计算成本显著提升其 MLLM 下游性能，证明预训练视觉编码器仍有巨大进化潜力",
+    "added": "2026-06-22T00:00:00Z"
+  },
+  {
+    "from": "paper:song2026_pivot",
+    "to": "paper:qwenvl",
+    "type": "extends",
+    "evidence": "PIVOT 使用 Qwen2.5-1.5B 作为 LLM-head 进行 DPO 训练，验证 RL 对视觉编码器的重塑效果",
+    "added": "2026-06-22T00:00:00Z"
   }
 ];
 

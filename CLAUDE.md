@@ -15,12 +15,16 @@ research-wiki/
     li2023_blip2.md
     liu2021_swin.md
     radford2021_clip.md
+    qwenvl.md
+    bordes2024_vlm_intro.md
+    song2026_pivot.md
   graph/edges.jsonl  # Knowledge graph edges (JSONL)
   images/             # Image assets referenced by papers
   generate-graph-data.py  # Build script → generates knowledge-graph.html
   knowledge-graph.html    # Self-contained interactive D3 graph (auto-generated)
   graph-data.js       # Paper+edge data as JS variables (auto-generated)
   update.sh           # One-liner: generate + git add/commit/push
+  ToRead/             # 阅读清单: GRPO·DAPO·GSPO·OPD 论文 PDF + 笔记
 ```
 
 ### generate-graph-data.py
