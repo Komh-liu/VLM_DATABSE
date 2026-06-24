@@ -5,5 +5,3 @@
 {"from": "paper:bordes2024_vlm_intro", "to": "paper:radford2021_clip", "type": "extends", "evidence": "VLM Intro Section 2.2 将 CLIP 作为对比学习 VLM 的典范进行系统介绍", "added": "2026-06-02T06:10:00Z"}
 {"from": "paper:bordes2024_vlm_intro", "to": "paper:li2023_blip2", "type": "extends", "evidence": "VLM Intro Section 2.5 将 BLIP-2 作为预训练骨干 VLM 的代表，详述 Q-Former 信息瓶颈架构", "added": "2026-06-02T06:10:00Z"}
 {"from": "paper:bordes2024_vlm_intro", "to": "paper:qwenvl", "type": "extends", "evidence": "VLM Intro Section 2.5 将 Qwen-VL 列为预训练骨干 VLM 的重要工作", "added": "2026-06-02T06:10:00Z"}
-{"from": "paper:song2026_pivot", "to": "paper:radford2021_clip", "type": "extends", "evidence": "PIVOT 在 CLIP 系列视觉编码器上应用 DPO 训练，以不到 1% 的计算成本显著提升其 MLLM 下游性能，证明预训练视觉编码器仍有巨大进化潜力", "added": "2026-06-22T00:00:00Z"}
-{"from": "paper:song2026_pivot", "to": "paper:qwenvl", "type": "extends", "evidence": "PIVOT 使用 Qwen2.5-1.5B 作为 LLM-head 进行 DPO 训练，验证 RL 对视觉编码器的重塑效果", "added": "2026-06-22T00:00:00Z"}

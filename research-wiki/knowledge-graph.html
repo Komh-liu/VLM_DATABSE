@@ -278,12 +278,6 @@ var PAPERS = [
         "target": "VLM Intro",
         "targetId": "paper:bordes2024_vlm_intro",
         "text": "VLM Intro Section 2.2 将 CLIP 作为对比学习 VLM 的典范进行系统介绍"
-      },
-      {
-        "type": "extended_by",
-        "target": "Pivot",
-        "targetId": "paper:song2026_pivot",
-        "text": "PIVOT 在 CLIP 系列视觉编码器上应用 DPO 训练，以不到 1% 的计算成本显著提升其 MLLM 下游性能，证明预训练视觉编码器仍有巨大进化潜力"
       }
     ]
   },
@@ -398,12 +392,6 @@ var PAPERS = [
         "target": "VLM Intro",
         "targetId": "paper:bordes2024_vlm_intro",
         "text": "VLM Intro Section 2.5 将 Qwen-VL 列为预训练骨干 VLM 的重要工作"
-      },
-      {
-        "type": "extended_by",
-        "target": "Pivot",
-        "targetId": "paper:song2026_pivot",
-        "text": "PIVOT 使用 Qwen2.5-1.5B 作为 LLM-head 进行 DPO 训练，验证 RL 对视觉编码器的重塑效果"
       }
     ]
   },
@@ -537,20 +525,7 @@ var PAPERS = [
       "局限": "<ul>\n<li>DPO 的偏好数据仍然需要人工或高质量数据构造</li>\n<li>实验主要基于 LLaVA-OneVision 框架，Qwen-VL / InternVL 等架构上的泛化性待验证</li>\n<li>PIVOT 对 LLM backbone 的反向影响未深入研究</li>\n</ul>",
       "对你的意义": "<p>如果你做多模态 RL（GRPO/DPO 训练 MLLM），这篇论文给出了一个强有力的论点：<strong>RL 不只是让模型\"回答更准\"，它从根本上改变了模型 \"看\" 的方式。</strong> 这对 \"用 RL 优化 grounding\" 方向是直接支撑。</p>"
     },
-    "connections": [
-      {
-        "type": "extends",
-        "target": "CLIP",
-        "targetId": "paper:radford2021_clip",
-        "text": "PIVOT 在 CLIP 系列视觉编码器上应用 DPO 训练，以不到 1% 的计算成本显著提升其 MLLM 下游性能，证明预训练视觉编码器仍有巨大进化潜力"
-      },
-      {
-        "type": "extends",
-        "target": "qwenvl",
-        "targetId": "paper:qwenvl",
-        "text": "PIVOT 使用 Qwen2.5-1.5B 作为 LLM-head 进行 DPO 训练，验证 RL 对视觉编码器的重塑效果"
-      }
-    ]
+    "connections": []
   }
 ];
 var EDGES = [
@@ -602,20 +577,6 @@ var EDGES = [
     "type": "extends",
     "evidence": "VLM Intro Section 2.5 将 Qwen-VL 列为预训练骨干 VLM 的重要工作",
     "added": "2026-06-02T06:10:00Z"
-  },
-  {
-    "from": "paper:song2026_pivot",
-    "to": "paper:radford2021_clip",
-    "type": "extends",
-    "evidence": "PIVOT 在 CLIP 系列视觉编码器上应用 DPO 训练，以不到 1% 的计算成本显著提升其 MLLM 下游性能，证明预训练视觉编码器仍有巨大进化潜力",
-    "added": "2026-06-22T00:00:00Z"
-  },
-  {
-    "from": "paper:song2026_pivot",
-    "to": "paper:qwenvl",
-    "type": "extends",
-    "evidence": "PIVOT 使用 Qwen2.5-1.5B 作为 LLM-head 进行 DPO 训练，验证 RL 对视觉编码器的重塑效果",
-    "added": "2026-06-22T00:00:00Z"
   }
 ];
 
