@@ -269,12 +269,6 @@ var PAPERS = [
       },
       {
         "type": "extended_by",
-        "target": "BLIP-2",
-        "targetId": "paper:li2023_blip2",
-        "text": "BLIP-2 继承 CLIP 的冻结图像编码器和对比学习范式，通过 Q-Former 桥接视觉特征到 LLM 输入空间"
-      },
-      {
-        "type": "extended_by",
         "target": "VLM Intro",
         "targetId": "paper:bordes2024_vlm_intro",
         "text": "VLM Intro Section 2.2 将 CLIP 作为对比学习 VLM 的典范进行系统介绍"
@@ -319,22 +313,10 @@ var PAPERS = [
     },
     "connections": [
       {
-        "type": "extends",
-        "target": "CLIP",
-        "targetId": "paper:radford2021_clip",
-        "text": "BLIP-2 继承 CLIP 的冻结图像编码器和对比学习范式，通过 Q-Former 桥接视觉特征到 LLM 输入空间"
-      },
-      {
         "type": "extended_by",
         "target": "qwenvl",
         "targetId": "paper:qwenvl",
         "text": "Qwen-VL 继承 BLIP-2 冻结视觉编码器+可训练接口+LLM 的架构范式，用更简单的单层交叉注意力替代 Q-Former"
-      },
-      {
-        "type": "extended_by",
-        "target": "VLM Intro",
-        "targetId": "paper:bordes2024_vlm_intro",
-        "text": "VLM Intro Section 2.5 将 BLIP-2 作为预训练骨干 VLM 的代表，详述 Q-Former 信息瓶颈架构"
       }
     ]
   },
@@ -386,12 +368,6 @@ var PAPERS = [
         "target": "BLIP-2",
         "targetId": "paper:li2023_blip2",
         "text": "Qwen-VL 继承 BLIP-2 冻结视觉编码器+可训练接口+LLM 的架构范式，用更简单的单层交叉注意力替代 Q-Former"
-      },
-      {
-        "type": "extended_by",
-        "target": "VLM Intro",
-        "targetId": "paper:bordes2024_vlm_intro",
-        "text": "VLM Intro Section 2.5 将 Qwen-VL 列为预训练骨干 VLM 的重要工作"
       }
     ]
   },
@@ -475,18 +451,6 @@ var PAPERS = [
         "target": "CLIP",
         "targetId": "paper:radford2021_clip",
         "text": "VLM Intro Section 2.2 将 CLIP 作为对比学习 VLM 的典范进行系统介绍"
-      },
-      {
-        "type": "extends",
-        "target": "BLIP-2",
-        "targetId": "paper:li2023_blip2",
-        "text": "VLM Intro Section 2.5 将 BLIP-2 作为预训练骨干 VLM 的代表，详述 Q-Former 信息瓶颈架构"
-      },
-      {
-        "type": "extends",
-        "target": "qwenvl",
-        "targetId": "paper:qwenvl",
-        "text": "VLM Intro Section 2.5 将 Qwen-VL 列为预训练骨干 VLM 的重要工作"
       }
     ]
   },
@@ -537,13 +501,6 @@ var EDGES = [
     "added": "2026-05-29T08:26:38Z"
   },
   {
-    "from": "paper:li2023_blip2",
-    "to": "paper:radford2021_clip",
-    "type": "extends",
-    "evidence": "BLIP-2 继承 CLIP 的冻结图像编码器和对比学习范式，通过 Q-Former 桥接视觉特征到 LLM 输入空间",
-    "added": "2026-05-29T08:26:39Z"
-  },
-  {
     "from": "paper:liu2021_swin",
     "to": "paper:dosovitskiy2021_vit",
     "type": "extends",
@@ -562,20 +519,6 @@ var EDGES = [
     "to": "paper:radford2021_clip",
     "type": "extends",
     "evidence": "VLM Intro Section 2.2 将 CLIP 作为对比学习 VLM 的典范进行系统介绍",
-    "added": "2026-06-02T06:10:00Z"
-  },
-  {
-    "from": "paper:bordes2024_vlm_intro",
-    "to": "paper:li2023_blip2",
-    "type": "extends",
-    "evidence": "VLM Intro Section 2.5 将 BLIP-2 作为预训练骨干 VLM 的代表，详述 Q-Former 信息瓶颈架构",
-    "added": "2026-06-02T06:10:00Z"
-  },
-  {
-    "from": "paper:bordes2024_vlm_intro",
-    "to": "paper:qwenvl",
-    "type": "extends",
-    "evidence": "VLM Intro Section 2.5 将 Qwen-VL 列为预训练骨干 VLM 的重要工作",
     "added": "2026-06-02T06:10:00Z"
   }
 ];
