@@ -1,5 +1,6 @@
 ---
 type: paper
+short: "Qwen-VL"
 node_id: paper:qwenvl
 title: "Qwen-VL: A Versatile Vision-Language Model for Understanding, Localization, Text Reading, and Beyond"
 authors: ["Jinze Bai", "Shuai Bai", "Shusheng Yang", "Shijie Wang", "Sinan Tan", "Peng Wang", "Junyang Lin", "Chang Zhou", "Jingren Zhou"]
