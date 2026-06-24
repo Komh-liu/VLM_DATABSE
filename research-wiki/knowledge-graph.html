@@ -633,7 +633,7 @@ function init() {
   var nd=PAPERS.map(function(p){return Object.assign({},p)});
   var ld=EDGES.map(function(e){return{source:nd.findIndex(function(n){return n.id===e.from}),target:nd.findIndex(function(n){return n.id===e.to}),evidence:e.evidence}}).filter(function(d){return d.source>=0&&d.target>=0});
 
-  var sim=d3.forceSimulation(nd).force('link',d3.forceLink(ld).distance(200).strength(0.5)).force('charge',d3.forceManyBody().strength(-600)).force('center',d3.forceCenter(w/2,h/2)).force('collision',d3.forceCollide().radius(100));
+  var sim=d3.forceSimulation(nd).force('link',d3.forceLink(ld).distance(200).strength(0.5)).force('charge',d3.forceManyBody().strength(-400)).force('center',d3.forceCenter(w/2,h/2).strength(0.3)).force('x',d3.forceX(w/2).strength(0.05)).force('y',d3.forceY(h/2).strength(0.05)).force('collision',d3.forceCollide().radius(100));
 
   function getNodeColors(){
     var isLight=document.documentElement.getAttribute('data-theme')==='light';
@@ -650,7 +650,7 @@ function init() {
   defs.append('marker').attr('id','arrow').attr('viewBox','0 -5 10 10').attr('refX',48).attr('refY',0).attr('markerWidth',8).attr('markerHeight',8).attr('orient','auto').append('path').attr('d','M0,-4L10,0L0,4').attr('fill','#79c0ff').attr('opacity',0.6);
 
   var link=g.append('g').selectAll('line').data(ld).join('line').attr('stroke','#79c0ff').attr('stroke-width',2.5).attr('stroke-dasharray','6,3').attr('marker-end','url(#arrow)');
-  g.append('g').selectAll('text').data(ld).join('text').attr('font-size',10).attr('fill','#8b949e').attr('text-anchor','middle').attr('dy',-6).text('extends');
+  // Edge labels removed — kept minimal
 
   var node=g.append('g').selectAll('g').data(nd).join('g').call(d3.drag().on('start',function(e,d){if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',function(e,d){d.fx=e.x;d.fy=e.y}).on('end',function(e,d){if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
   node.append('circle').attr('r',42).attr('fill',function(d){return d.nodeColor}).attr('opacity',0.85).on('mouseover',function(e,d){showTooltip(e,d)}).on('mouseout',function(){hideTooltip()}).on('click',function(e,d){e.stopPropagation();openDetail(d.id)});
