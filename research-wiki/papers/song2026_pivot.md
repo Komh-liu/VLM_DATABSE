@@ -17,20 +17,31 @@ added: 2026-06-22T00:00:00Z
 
 ## 一句话
 
-**RL 训练不仅让 MLLM 答案更准，还能"重写"视觉编码器的内部表征**。用 DPO 训练的视觉编码器产生比 SFT 更强、更局部化的视觉特征，以不到标准视觉预训练 1% 的计算成本超越更大型编码器。
+**RL 训练不仅让 MLLM 答案更准，还能"重写"视觉编码器的内部表征**。用 DPO 训练的视觉编码器产生比 SFT 更强、更局部化的视觉特征，以不到标准视觉预训练 1% 的计算成本超越更大型编码器。作者的结论是RL使得视觉Encoder得到了一个更好的视觉表征
+## 阅读遇到问题
+
+第二面高亮处引用的论文，只是用DPO做后训练减少幻觉率，为什么和文章在做的DPO调整视觉表征能够联系起来？DPO在这些论文中的训练中发挥了什么作用？
+- RLHF-V: Towards Trustworthy MLLMs via Behavior Alignment from Fine-Grained Correctional Human Feedback 
+- OPA-DPO: Mitigating Hallucinations in LVLMs via DPO: On-Policy Data Hold the Key
+- CHiP: Cross-modal Hierarchical Direct Preference Optimization for MLLMs
+- 
+论文在clip MAE DINO都进行研究并且取得了一定的进展，后续把这些论文也看看
 
 ## 核心问题
 
 MLLM 社区有一个隐含假设：MLLM 的能力主要来自 LLM backbone（参数最大、能力最强）。这导致**没人认真研究视觉 encoder 在 SFT vs RL 训练中到底发生了什么变化**。
 
-本文填补了这个空白：**SFT 和 RL 对视觉 encoder 的影响到底有什么不同？**
+本文填补了这个空白：**SFT --用于指令遵循和 RL 用于调整人类偏好是如何调整Encoder表征的？**
 
 ## 方法
 
 ### 控制实验设计
 
-在 Stage 2 后训练中，用**相同数量的图文数据**、分别用 SFT 和 DPO 训练，公平对比：
-
+#### 训练过程
+- Stage 1 投影层的图文匹配训练
+只训练投影层，用图-文训练数据训练模型的投影层。
+- Stage 2 后训练中，用**相同数量的图文数据**、分别用 SFT 和 DPO 训练，公平对比：
+在VQA , 视觉Grounding任务 ， 图片查找任务上做全参数
 ```
 LSFT = -log π(y_chosen | I, q)                        ← 标准微调
 LDPO = -log σ(β·[log(π_θ(y_chosen)/π_ref(y_chosen))   ← 偏好优化
