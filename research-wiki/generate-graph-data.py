@@ -188,11 +188,43 @@ def render_markdown_to_html(text):
             result.append('</ol>')
             continue
 
+        # Markdown table: | col1 | col2 |
+        table_match = re.match(r'^\|.+\|$', stripped)
+        if table_match:
+            # collect all contiguous table rows
+            table_rows = []
+            while i < len(lines) and re.match(r'^\|.+\|$', lines[i].strip()):
+                table_rows.append(lines[i].strip())
+                i += 1
+
+            if len(table_rows) >= 2:
+                # parse header
+                header_cells = [c.strip() for c in table_rows[0].split('|')[1:-1]]
+                # skip separator row (|---|---|)
+                data_start = 1
+                if re.match(r'^[\|\s\-:]+$', table_rows[1]):
+                    data_start = 2
+
+                html = '<table><thead><tr>'
+                for h in header_cells:
+                    html += f'<th>{_render_inline(h)}</th>'
+                html += '</tr></thead><tbody>'
+                for row in table_rows[data_start:]:
+                    cells = [c.strip() for c in row.split('|')[1:-1]]
+                    html += '<tr>'
+                    for c in cells:
+                        html += f'<td>{_render_inline(c)}</td>'
+                    html += '</tr>'
+                html += '</tbody></table>'
+                result.append(html)
+            continue
+
         # Regular paragraph — collect consecutive non-empty, non-list lines
         para_lines = []
         while i < len(lines) and lines[i].strip() != '' \
                 and not re.match(r'^(\s*)[-*]\s+', lines[i].strip()) \
-                and not re.match(r'^(\s*)\d+\.\s+', lines[i].strip()):
+                and not re.match(r'^(\s*)\d+\.\s+', lines[i].strip()) \
+                and not re.match(r'^\|.+\|$', lines[i].strip()):
             para_lines.append(_render_inline(lines[i].strip()))
             i += 1
 
@@ -400,6 +432,11 @@ text.sub{font-size:11px;fill:var(--text2);font-weight:400;pointer-events:none}
 .detail-content mjx-container{overflow-x:auto;max-width:100%}
 .detail-content ul{padding-left:18px}
 .detail-content li{margin-bottom:4px}
+.detail-content table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+.detail-content thead{border-bottom:2px solid var(--border)}
+.detail-content th{text-align:left;padding:8px 12px;color:var(--text3);font-weight:600;white-space:nowrap}
+.detail-content td{padding:8px 12px;color:var(--text);border-bottom:1px solid var(--border2);vertical-align:top}
+.detail-content tbody tr:hover{background:var(--bg3)}
 .detail-content .conn-detail{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;margin-top:8px}
 .detail-content .conn-detail div{margin:4px 0;font-size:13px}
 @media(max-width:800px){.main{flex-direction:column}.side-panel{width:100%;border-left:none;border-top:1px solid var(--border);max-height:none}.graph-panel{min-height:400px}.header{padding:16px 20px}}
