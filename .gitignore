@@ -1,3 +1,5 @@
 # 忽略 research-wiki 下所有 PDF（文件太大，不推送至远程）
 research-wiki/ToRead/*.pdf
 research-wiki/papers/pdf/
+research-wiki/papers/ToRead/pdf/*.pdf
+research-wiki/papers/pivot_iclr2026.pdf
