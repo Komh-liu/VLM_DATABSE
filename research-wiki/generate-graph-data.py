@@ -288,6 +288,12 @@ def main():
         text = md_file.read_text(encoding='utf-8')
         fm, body = parse_frontmatter(text)
         sections = extract_sections(body)
+        # Normalize thesis key (handle case variations like "One-line Thesis")
+        for k in list(sections.keys()):
+            if k.lower().replace('-', '').replace(' ', '') == 'onelinothesis':
+                if k != 'One-line thesis':
+                    sections['One-line thesis'] = sections.pop(k)
+                break
         authors = fm.get('authors', [])
         if isinstance(authors, str):
             authors = [a.strip() for a in authors.split(',')]
