@@ -15,19 +15,21 @@ added: 2026-06-26T00:00:00Z
 
 # RLHF 完整讲解笔记：SFT → Reward Model → PPO → DPO
 
+## One-line thesis
+
+> RLHF（Reinforcement Learning from Human Feedback）用三阶段流水线解决"如何让模型学会人类认为好的回答"：SFT 让模型学会模仿，Reward Model 学会打分，PPO 用打分信号优化策略。DPO 则跳过 RM 和 PPO，直接从偏好数据中通过数学推导（拉格朗日乘数法 → 反解 reward → Bradley-Terry → 消去归一化常数）优化策略。
+
 ---
 
 ## 缘起：为什么需要 RLHF？
 
-纯预训练的大语言模型（LLM）能生成流畅文本，但不会遵循指令、不会对齐人类偏好。RLHF（Reinforcement Learning from Human Feedback）解决的问题就是：**如何让模型学会人类认为"好"的回答？**
+纯预训练的大语言模型（LLM）能生成流畅文本，但不会遵循指令、不会对齐人类偏好。RLHF 解决的问题就是：**如何让模型学会人类认为"好"的回答？**
 
 RLHF 给出的答案是一个三阶段流水线：
 
-```
-Stage 1: SFT            → 模型学会"模仿"（给定指令，生成正确答案）
-Stage 2: Reward Model   → 训练一个打分器（学会"判断"回答好坏）
-Stage 3: PPO            → 用打分器的信号优化策略（学会"产生"高分回答）
-```
+> **Stage 1: SFT** — 模型学会"模仿"（给定指令，生成正确答案）
+> **Stage 2: Reward Model** — 训练一个打分器（学会"判断"回答好坏）
+> **Stage 3: PPO** — 用打分器的信号优化策略（学会"产生"高分回答）
 
 DPO 则是 Stage 2 + Stage 3 的替代方案：**不需要显式训练 reward model，直接从偏好数据中优化策略**。
 

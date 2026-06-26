@@ -15,7 +15,7 @@ added: 2026-06-22T00:00:00Z
 
 # PIVOT: RL makes MLLMs see better than SFT
 
-## 一句话概括
+## One-line Thesis
 
 > **"RL produces stronger and more localized visual representations compared to SFT, boosting the ability of the vision encoder for MLLM."** (Page 1, Abstract)
 
