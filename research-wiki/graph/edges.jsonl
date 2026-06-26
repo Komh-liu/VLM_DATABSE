@@ -1,4 +1,5 @@
 {"from": "paper:radford2021_clip", "to": "paper:dosovitskiy2021_vit", "type": "extends", "evidence": "CLIP 将 ViT 从单模态视觉分类器扩展为跨模态视觉编码器，通过对比学习将 ViT 的图像特征对齐到文本空间", "added": "2026-05-29T08:26:38Z"}
-{"from": "paper:liu2021_swin", "to": "paper:dosovitskiy2021_vit", "type": "extends", "evidence": "Swin Transformer 直接解决 ViT 的单尺度和平方复杂度问题，通过层次化特征图和移位窗口注意力实现多尺度视觉表征", "added": "2026-05-29T16:00:00Z"}
+{"from": "paper:dosovitskiy2021_vit", "to": "paper:liu2021_swin", "type": "extends", "evidence": "Swin Transformer 在 ViT 基础上引入层次化特征图和移位窗口注意力，解决 ViT 的单尺度和平方复杂度问题，实现多尺度视觉表征", "added": "2026-05-29T16:00:00Z"}
 {"from": "paper:qwenvl", "to": "paper:li2023_blip2", "type": "extends", "evidence": "Qwen-VL 继承 BLIP-2 冻结视觉编码器+可训练接口+LLM 的架构范式，用更简单的单层交叉注意力替代 Q-Former", "added": "2026-06-02T06:01:47Z"}
 {"from": "paper:bordes2024_vlm_intro", "to": "paper:radford2021_clip", "type": "extends", "evidence": "VLM Intro Section 2.2 将 CLIP 作为对比学习 VLM 的典范进行系统介绍", "added": "2026-06-02T06:10:00Z"}
+{"from": "paper:song2026_pivot", "to": "paper:rlhf_note", "type": "extends", "evidence": "PIVOT 建立在 RLHF 和 DPO 的理论基础之上，核心发现的 Finding 2-4 直接验证了 DPO 优化不仅影响 LLM 输出，更反向传播重塑视觉编码器表征", "added": "2026-06-26T00:00:00Z"}

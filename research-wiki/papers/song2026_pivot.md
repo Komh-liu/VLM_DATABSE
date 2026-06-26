@@ -76,7 +76,7 @@ added: 2026-06-22T00:00:00Z
 
 ### Finding 3（Page 6）
 
-> "MLLM training not only adapts the language model but also reshapes the visual representations that determine how the model sees an image."
+> "MLLM training not only adapts the language model but also reshapes the visual representations that determine how the model sees an image." DPO不仅仅改变了调整了语言模型的遵从人类偏好能力，也调整了视觉表征。这可以从仅仅使用两个MLP层就能够在分类任务上表现更好得到证明。
 
 **支撑证据**（Section 4.2, Figure 6）：
 - ImageNet linear probing 显示 DPO 后编码器 Top-1 准确率比 SFT 高 +1.83%（SigLIP2-So/16 + Qwen-3B）

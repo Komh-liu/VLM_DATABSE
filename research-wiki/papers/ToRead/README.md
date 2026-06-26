@@ -1,7 +1,7 @@
 # PDF 清单
 
 > 以下 PDF 文件不在 git 中追踪，仅此清单记录
-> 全部来源：arXiv，22 篇
+> 全部来源：arXiv，26 篇
 
 | # | 文件名 | 会议 | 主题 | 已阅读 | 核心内容 |
 |---|--------|------|------|--------|----------|
@@ -20,13 +20,17 @@
 | 13 | `survey_perception_reason_2025.pdf` | 2025 | Survey: Perception & Reasoning | ⬜ | 91 页大型综述，覆盖 550+ 篇论文。按四阶段发展路线组织：感知驱动模块化推理 → 语言中心短推理（MCoT）→ 语言中心长推理（MM-O1/MM-R1）→ 原生大多模态推理模型（N-LMRM），是理解整个领域的最佳入口 |
 | 14 | `twostage_entropy_cvpr2026.pdf` | CVPR 2026 | Two-Stage Entropy | ⬜ | 针对真实标注含噪声的 RLVR 训练问题，提出两阶段 token 级熵优化：第一阶段熵最大化鼓励探索多样性、防止过拟合噪声标签；第二阶段熵最小化鼓励确定性输出、巩固所学。在 Qwen2-VL-2B/7B 和 Qwen2.5-VL-3B 上一致优于已有方法 |
 | 15 | `visualrft_iccv2025.pdf` | ICCV 2025 | VisualRFT | ⬜ | 将 DeepSeek-R1 的 GRPO + 可验证 reward 范式扩展到视觉感知任务（细粒度分类、小样本检测、推理定位、开放词汇检测）。设计任务专属 reward 函数（如检测用 IoU）。单样本细粒度分类 +24.3%，COCO 双样本检测 +21.9% |
-| 16 | `pivot_iclr2026.pdf` | ICLR 2026 | PIVOT | ⬜ | 核心发现：RL（DPO）训练不仅让 MLLM 答案更准，还能"重写"视觉编码器的内部表征。DPO 训练的视觉编码器产生比 SFT 更强、更局部化的视觉特征，以不到标准视觉预训练 1% 的计算成本超越更大型编码器。在 CLIP/MAE/DINO 三种视觉 backbone 上均验证有效，颠覆了"视觉能力主要由 LLM 继承"的假设 |
+| 16 | `pivot_iclr2026.pdf` | ICLR 2026 | PIVOT |  ✅ | 核心发现：RL（DPO）训练不仅让 MLLM 答案更准，还能"重写"视觉编码器的内部表征。DPO 训练的视觉编码器产生比 SFT 更强、更局部化的视觉特征，以不到标准视觉预训练 1% 的计算成本超越更大型编码器。在 CLIP/MAE/DINO 三种视觉 backbone 上均验证有效，颠覆了"视觉能力主要由 LLM 继承"的假设 |
 | 17 | `survey_sailing_by_stars_2025.pdf` | EMNLP 2025 Findings | Sailing by the Stars | ⬜ | 最全面的 RL 后训练综述。统一梳理 PPO → DPO → GRPO → RLVR 全链条：从 reward 来源（人类/自动）、reward model 设计（标量/批判/隐式）、学习策略（训练期 PPO/DPO/GRPO vs 推理期 Best-of-N/奖励引导解码/自修正）三个维度建立分类体系。附带持续更新的 GitHub 论文库 |
 | 18 | `survey_post_training_llm_2025.pdf` | 2025 | Post-Training Survey | ⬜ | 87 页大型综述，首篇系统覆盖 LLM 后训练五大范式：(1) 微调、(2) 对齐（RLHF/DPO/RLAIF）、(3) 推理（CoT/DeepSeek-R1）、(4) 效率（模型压缩/PEFT/知识蒸馏）、(5) 多模态集成与领域适配。追溯从 ChatGPT 对齐策略到 DeepSeek-R1 推理突破的完整演化脉络 |
 | 19 | `deepseekmath_grpo_2024.pdf` | 2024 | GRPO | ⬜ | **GRPO 原始论文**。提出 Group Relative Policy Optimization：去掉 critic 模型，用组内 reward 均值做 baseline 估计 advantage，大幅降低 RL 训练内存开销。同时提出 DeepSeekMath 7B（120B math tokens 预训练），MATH 51.7%。RL 后训练领域几乎所有后续工作（DAPO/GSPO/NoisyGRPO 等）均基于此 |
 | 20 | `dapo_neurips2025.pdf` | NeurIPS 2025 | DAPO | ⬜ | 字节跳动 & 清华 AIR 联合发布的开源大规模 LLM RL 系统。四项关键技巧修复 GRPO：(1) Clip-Higher 防止熵崩溃；(2) 动态采样过滤低分 rollout；(3) Token 级 policy gradient loss 对长 CoT 至关重要；(4) 超长惩罚 shaping 减少 reward 噪声。Qwen2.5-32B 达 AIME 50 分，超越 DeepSeek-R1-Zero-Qwen-32B（47 分），训练步数仅其 50% |
 | 21 | `gspo_qwen_2025.pdf` | 2025.07 | GSPO | ⬜ | 通义千问团队提出 Group Sequence Policy Optimization。核心修正：将 GRPO 的 token 级 importance ratio 替换为**序列级**（几何平均 + 长度归一化），从理论上修复了 GRPO 中 importance sampling 误用导致的高方差噪声和不可逆模型崩溃。MoE 训练天然稳定，无需 Routing Replay。Qwen3 系列的关键训练算法 |
 | 22 | `opd_rethinking_2026.pdf` | ICML 2026 Workshop | OPD | ⬜ | 清华 THUNLP 系统性研究 On-Policy Distillation 机制。两大成功条件：(1) Thinking-Pattern Consistency——师生模型必须共享思维模式而非仅看分数；(2) New Knowledge Requirement——教师必须提供学生未见过的能力。发现 OPD 本质是 teacher log-prob 作为 token 级稠密 reward 替代 RL 的稀疏信号，但随着轨迹变长性能退化
+| 23 | `instructgpt_neurips2022.pdf` | NeurIPS 2022 | InstructGPT | ⬜ | **RLHF 开山之作**。定义 SFT → Reward Model → PPO 三阶段范式，reward model 作为人类偏好代理（proxy）的核心角色由此确立。理解 reward model 在 RLHF 管线中的位置和 reward hacking 问题的根源 |
+| 24 | `rewardbench_2024.pdf` | 2024 | RewardBench | ⬜ | 当前最通用的 RM 评测基准，定义了评估 reward model 的标准协议。VL-RewardBench（多模态版本）是其扩展。理解 RM 评估维度（overoptimization、偏好一致性等）的最佳入口 |
+| 25 | `secrets_ppo_2024.pdf` | 2024 | Secrets of PPO | ⬜ | 实操层面深入讲解 RM 训练的细节：reward model overoptimization、数据质量影响、训练不稳定性等。StableReinforce 解决的多项问题在这里有先行讨论 |
+| 26 | `vl_rewardbench_cvpr2025.pdf` | CVPR 2025 | VL-RewardBench | ⬜ | 多模态 RM 的标准化评测基准（1250 偏好对），涵盖 General（14.7%）、Hallucination Detection（59.9%）、Complex Reasoning（25.4%）三类任务。性能与下游 Best-of-N 采样的 Pearson r > 0.9 |
 
 ---
 
@@ -67,4 +71,12 @@ RL 算法基础
 分析视角
   4.Hallucination RL (幻觉在 RL 中的反直觉角色，CVPR 2026)
 ═══════════════════════════════════════════════════════════
+Foundation（Reward Model 基础）
+  23.InstructGPT (RLHF 范式起源 · reward model 角色)
+  2.DPO (隐式 reward model · 理解对比 R1-Reward 的前提)
+  24.RewardBench (RM 评估标准)
+  25.Secrets of PPO (RM 训练实操细节)
+  26.VL-RewardBench (多模态 RM 评测)
+  10.R1-Reward (用 RL 训练显式 MRM)
+  1.BaseReward (MRM 系统化构建指南)
 ```
