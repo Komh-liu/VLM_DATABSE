@@ -154,6 +154,19 @@ def render_markdown_to_html(text):
             i += 1
             continue
 
+        # Multi-line MathJax block: $$ ... $$ (spans multiple lines)
+        if stripped == '$$':
+            math_lines = ['$$']
+            i += 1
+            while i < len(lines):
+                math_lines.append(lines[i])
+                if lines[i].strip() == '$$':
+                    i += 1
+                    break
+                i += 1
+            result.append(f'<p>{"<br>".join(math_lines)}</p>')
+            continue
+
         # Heading: ### H3, #### H4, ##### H5, ###### H6
         h_match = re.match(r'^(#{3,6})\s+(.+)$', stripped)
         if h_match:
