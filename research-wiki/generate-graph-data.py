@@ -317,7 +317,7 @@ def main():
             'arxiv': arxiv,
             'tags': tags if isinstance(tags, list) else [],
             'nodeColor': slug_color(slug),
-            'thesis': sections.get('One-line thesis', '').strip(),
+            'thesis': render_markdown_to_html(sections.get('One-line thesis', '').strip()),
             'sections': {k: render_markdown_to_html(embed_section_images(v, md_file)) for k, v in sections.items() if k != 'Connections'},
         })
 
@@ -483,6 +483,7 @@ text.sub{font-size:11px;fill:var(--text2);font-weight:400;pointer-events:none}
     <div class="search-bar"><input type="text" id="searchInput" placeholder="Search papers, authors, tags, content..." autofocus><span class="search-count" id="searchCount"></span></div>
   </div>
   <button class="theme-btn" id="themeToggle" title="Switch theme"><span class="icon">☀️</span> Light</button>
+  <a href="https://papernotes.org/" target="_blank" class="theme-btn" title="PaperNotes 论文笔记平台" style="text-decoration:none">📝 PaperNotes</a>
 </div>
 <div class="main">
   <div class="graph-panel" id="graph">

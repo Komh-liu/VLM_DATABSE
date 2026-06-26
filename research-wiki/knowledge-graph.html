@@ -120,6 +120,7 @@ text.sub{font-size:11px;fill:var(--text2);font-weight:400;pointer-events:none}
     <div class="search-bar"><input type="text" id="searchInput" placeholder="Search papers, authors, tags, content..." autofocus><span class="search-count" id="searchCount"></span></div>
   </div>
   <button class="theme-btn" id="themeToggle" title="Switch theme"><span class="icon">☀️</span> Light</button>
+  <a href="https://papernotes.org/" target="_blank" class="theme-btn" title="PaperNotes 论文笔记平台" style="text-decoration:none">📝 PaperNotes</a>
 </div>
 <div class="main">
   <div class="graph-panel" id="graph">
@@ -165,7 +166,7 @@ var PAPERS = [
       "scaling"
     ],
     "nodeColor": "#3fb950",
-    "thesis": "A pure Transformer architecture applied directly to sequences of image patches can achieve state-of-the-art image classification when pre-trained at sufficient scale, outperforming convolutional networks with lower pre-training cost.\n\nViT挑战了CNN的“归纳偏置”。简单来说，归纳偏置就是模型为了让学习问题变得可行，而提前内置在算法中的“先验知识”或“默认假设”。CNN的先验知识就是假设图像具有局部性和平移等变性",
+    "thesis": "<p>A pure Transformer architecture applied directly to sequences of image patches can achieve state-of-the-art image classification when pre-trained at sufficient scale, outperforming convolutional networks with lower pre-training cost.</p>\n<p>ViT挑战了CNN的“归纳偏置”。简单来说，归纳偏置就是模型为了让学习问题变得可行，而提前内置在算法中的“先验知识”或“默认假设”。CNN的先验知识就是假设图像具有局部性和平移等变性</p>",
     "sections": {
       "One-line thesis": "<p>A pure Transformer architecture applied directly to sequences of image patches can achieve state-of-the-art image classification when pre-trained at sufficient scale, outperforming convolutional networks with lower pre-training cost.</p>\n<p>ViT挑战了CNN的“归纳偏置”。简单来说，归纳偏置就是模型为了让学习问题变得可行，而提前内置在算法中的“先验知识”或“默认假设”。CNN的先验知识就是假设图像具有局部性和平移等变性</p>",
       "Assumptions": "<ol>\n<li>Sufficient pre-training data is available (at least 14M images) — the model does not generalize well on small data</li>\n<li>Patch size and position embedding interpolation are sufficient spatial inductive bias; the model assumes 2D structure can be learned from data</li>\n<li>Standard Transformer architecture transfers directly from NLP to vision with minimal modification</li>\n</ol>\n<p>之前的视觉问题无论如何解决不了对CNN的依赖，研究证明对CNN的依赖不是必要的（直接使用序列方法）。在大量数据上进行预训练并迁移到多个中型或小型图像识别基准时表现很好。<br>在小的数据集上表现要略低于ResNets，作者的观点是因为这缺乏了某些先验假设<br>这也是为什么ViT在小尺寸表现不好（作者认为小尺寸更关注局部信息，这对全局处理的架构没有很大帮助）但是扩展到大尺寸的图片表现优于传统CNN</p>",
@@ -204,7 +205,7 @@ var PAPERS = [
     "arxiv": "2103.14030",
     "tags": [],
     "nodeColor": "#da3633",
-    "thesis": "- Swin Transformer introduces a hierarchical Transformer architecture with shifted window self-attention that achieves linear computational complexity with respect to image size, enabling it to serve as a general-purpose backbone for both image classification and dense prediction tasks (detection, segmentation).\n- 使用滑动窗口，减轻了不重叠的窗口之间可能包含的信息，增强了对多窗口信息之间联系的理解。具有良好的scale up能力，并且降低计算复杂度到线性。（ViT关注的是全局注意力，Swin Transformer的先验假设是小窗口内的需要优先关注，然后再是大的）",
+    "thesis": "<ul>\n<li>Swin Transformer introduces a hierarchical Transformer architecture with shifted window self-attention that achieves linear computational complexity with respect to image size, enabling it to serve as a general-purpose backbone for both image classification and dense prediction tasks (detection, segmentation).</li>\n<li>使用滑动窗口，减轻了不重叠的窗口之间可能包含的信息，增强了对多窗口信息之间联系的理解。具有良好的scale up能力，并且降低计算复杂度到线性。（ViT关注的是全局注意力，Swin Transformer的先验假设是小窗口内的需要优先关注，然后再是大的）</li>\n</ul>",
     "sections": {
       "One-line thesis": "<ul>\n<li>Swin Transformer introduces a hierarchical Transformer architecture with shifted window self-attention that achieves linear computational complexity with respect to image size, enabling it to serve as a general-purpose backbone for both image classification and dense prediction tasks (detection, segmentation).</li>\n<li>使用滑动窗口，减轻了不重叠的窗口之间可能包含的信息，增强了对多窗口信息之间联系的理解。具有良好的scale up能力，并且降低计算复杂度到线性。（ViT关注的是全局注意力，Swin Transformer的先验假设是小窗口内的需要优先关注，然后再是大的）</li>\n</ul>",
       "Problem / Gap": "<p>Previous vision Transformers (ViT) produce single-resolution feature maps and have quadratic self-attention complexity with respect to image size. This makes them unsuitable for dense prediction tasks like object detection and semantic segmentation, where multi-scale features are essential and high-resolution inputs exacerbate the quadratic cost. ViT also struggles to capture visual elements at varying scales. The challenge was to design a Transformer backbone that can serve as a general-purpose vision backbone like CNNs (ResNet) do, compatible with existing dense prediction frameworks such as FPN and U-Net.</p>\n<ul>\n<li>图片信息在规模和分别率上有很大不同，先前的工作使用一个统一的scale，对不同场景下的目标检测任务效果不好。这种改进是的图像适用于多样化的分辨率问题</li>\n</ul>",
@@ -255,7 +256,7 @@ var PAPERS = [
       "image-text"
     ],
     "nodeColor": "#79c0ff",
-    "thesis": "Pre-training an image encoder and text encoder jointly with a contrastive objective on 400 million (image, text) pairs yields transferable visual representations that enable zero-shot classification on diverse downstream tasks without task-specific training.",
+    "thesis": "<p>Pre-training an image encoder and text encoder jointly with a contrastive objective on 400 million (image, text) pairs yields transferable visual representations that enable zero-shot classification on diverse downstream tasks without task-specific training.</p>",
     "sections": {
       "One-line thesis": "<p>Pre-training an image encoder and text encoder jointly with a contrastive objective on 400 million (image, text) pairs yields transferable visual representations that enable zero-shot classification on diverse downstream tasks without task-specific training.</p>",
       "Problem / Gap": "<p>Computer vision systems were traditionally trained to predict fixed predetermined object categories, limiting their generality. Learning from raw text about images was a promising direction but had demonstrated much lower performance than supervised approaches. Prior attempts at natural language supervision for vision either used small datasets (MS-COCO, Visual Genome, YFCC100M) or complex generative objectives; scaling to web-scale data was underexplored.</p>",
@@ -306,7 +307,7 @@ var PAPERS = [
       "efficient-pretraining"
     ],
     "nodeColor": "#da3633",
-    "thesis": "BLIP-2 proposes a generic and compute-efficient vision-language pre-training strategy that bootstraps from frozen pre-trained image encoders and frozen LLMs via a lightweight Querying Transformer (Q-Former), achieving state-of-the-art results with far fewer trainable parameters.",
+    "thesis": "<p>BLIP-2 proposes a generic and compute-efficient vision-language pre-training strategy that bootstraps from frozen pre-trained image encoders and frozen LLMs via a lightweight Querying Transformer (Q-Former), achieving state-of-the-art results with far fewer trainable parameters.</p>",
     "sections": {
       "One-line thesis": "<p>BLIP-2 proposes a generic and compute-efficient vision-language pre-training strategy that bootstraps from frozen pre-trained image encoders and frozen LLMs via a lightweight Querying Transformer (Q-Former), achieving state-of-the-art results with far fewer trainable parameters.</p>",
       "Problem / Gap": "<p>Vision-language pre-training (VLP) had become increasingly prohibitive due to end-to-end training of ever-larger models. Prior methods required expensive end-to-end training of both vision and language components. While leveraging frozen unimodal pre-trained models (image encoders, LLMs) was appealing, aligning their feature spaces — especially when the LLM has never seen images — remained a key challenge. Existing modular approaches (Frozen, Flamingo) used only image-to-text generation loss, which proved insufficient to bridge the modality gap.</p>",
@@ -356,7 +357,7 @@ var PAPERS = [
       "Qwen"
     ],
     "nodeColor": "#3fb950",
-    "thesis": "Qwen-VL 是一系列大规模视觉语言模型（LVLM），以 Qwen-7B LLM 为基础，配备 ViT-bigG 视觉编码器和单层交叉注意力投影器，通过三阶段训练管线，在图像描述、视觉问答、视觉定位和文本阅读等任务上达到了同规模模型的 SOTA 水平。",
+    "thesis": "<p>Qwen-VL 是一系列大规模视觉语言模型（LVLM），以 Qwen-7B LLM 为基础，配备 ViT-bigG 视觉编码器和单层交叉注意力投影器，通过三阶段训练管线，在图像描述、视觉问答、视觉定位和文本阅读等任务上达到了同规模模型的 SOTA 水平。</p>",
     "sections": {
       "One-line thesis": "<p>Qwen-VL 是一系列大规模视觉语言模型（LVLM），以 Qwen-7B LLM 为基础，配备 ViT-bigG 视觉编码器和单层交叉注意力投影器，通过三阶段训练管线，在图像描述、视觉问答、视觉定位和文本阅读等任务上达到了同规模模型的 SOTA 水平。</p>",
       "Problem / Gap": "<p>已有的视觉语言模型通常在单一任务上优化，缺乏在图像理解、定位和文本阅读等多维度能力的统一。如何在单一模型中同时实现：常规图文理解、细粒度视觉定位（grounding）、以及图像中的文字识别（text reading），是该领域的核心挑战。</p>",
@@ -434,7 +435,7 @@ var PAPERS = [
       "data-curation"
     ],
     "nodeColor": "#f0883e",
-    "thesis": "A comprehensive tutorial and entry guide to vision-language models (VLMs), categorizing training paradigms into four types — contrastive, masked, generative, and pretrained-backbone-based — while providing practical training guidance, responsible evaluation practices, and a discussion of extending VLMs to video.",
+    "thesis": "<p>A comprehensive tutorial and entry guide to vision-language models (VLMs), categorizing training paradigms into four types — contrastive, masked, generative, and pretrained-backbone-based — while providing practical training guidance, responsible evaluation practices, and a discussion of extending VLMs to video.</p>",
     "sections": {
       "摘要（中文翻译）": "<p>随着大语言模型（LLM）的近期流行，许多尝试将其扩展到视觉领域。从能够引导我们穿越陌生环境的视觉助手，到仅凭高层次文本描述生成图像的生成模型，视觉-语言模型（VLM）的应用将深刻影响我们与技术的关系。然而，要提高这些模型的可靠性，仍有许多挑战需要解决。语言是离散的，而视觉存在于一个更高维度的空间中，其中的概念并不总能被轻易离散化。为了更好地理解将视觉映射到语言的机制，我们撰写了这篇 VLM 导论，希望能帮助任何想要进入该领域的人。首先，我们介绍 VLM 是什么、它们如何工作以及如何训练它们。然后，我们介绍并讨论评估 VLM 的方法。虽然本文主要关注将图像映射到语言，但我们也讨论了将 VLM 扩展到视频领域。</p>",
       "One-line thesis": "<p>A comprehensive tutorial and entry guide to vision-language models (VLMs), categorizing training paradigms into four types — contrastive, masked, generative, and pretrained-backbone-based — while providing practical training guidance, responsible evaluation practices, and a discussion of extending VLMs to video.</p>",
@@ -480,7 +481,7 @@ var PAPERS = [
       "tutorial"
     ],
     "nodeColor": "#3fb950",
-    "thesis": "> RLHF（Reinforcement Learning from Human Feedback）用三阶段流水线解决\"如何让模型学会人类认为好的回答\"：SFT 让模型学会模仿，Reward Model 学会打分，PPO 用打分信号优化策略。DPO 则跳过 RM 和 PPO，直接从偏好数据中通过数学推导（拉格朗日乘数法 → 反解 reward → Bradley-Terry → 消去归一化常数）优化策略。\n\n---",
+    "thesis": "<blockquote><p>RLHF（Reinforcement Learning from Human Feedback）用三阶段流水线解决\"如何让模型学会人类认为好的回答\"：SFT 让模型学会模仿，Reward Model 学会打分，PPO 用打分信号优化策略。DPO 则跳过 RM 和 PPO，直接从偏好数据中通过数学推导（拉格朗日乘数法 → 反解 reward → Bradley-Terry → 消去归一化常数）优化策略。</p></blockquote>\n<hr>",
     "sections": {
       "One-line thesis": "<blockquote><p>RLHF（Reinforcement Learning from Human Feedback）用三阶段流水线解决\"如何让模型学会人类认为好的回答\"：SFT 让模型学会模仿，Reward Model 学会打分，PPO 用打分信号优化策略。DPO 则跳过 RM 和 PPO，直接从偏好数据中通过数学推导（拉格朗日乘数法 → 反解 reward → Bradley-Terry → 消去归一化常数）优化策略。</p></blockquote>\n<hr>",
       "缘起：为什么需要 RLHF？": "<p>纯预训练的大语言模型（LLM）能生成流畅文本，但不会遵循指令、不会对齐人类偏好。RLHF 解决的问题就是：<strong>如何让模型学会人类认为\"好\"的回答？</strong></p>\n<p>RLHF 给出的答案是一个三阶段流水线：</p>\n<blockquote><p><strong>Stage 1: SFT</strong> — 模型学会\"模仿\"（给定指令，生成正确答案）<br><strong>Stage 2: Reward Model</strong> — 训练一个打分器（学会\"判断\"回答好坏）<br><strong>Stage 3: PPO</strong> — 用打分器的信号优化策略（学会\"产生\"高分回答）</p></blockquote>\n<p>DPO 则是 Stage 2 + Stage 3 的替代方案：<strong>不需要显式训练 reward model，直接从偏好数据中优化策略</strong>。</p>\n<hr>",
@@ -536,7 +537,7 @@ var PAPERS = [
       "preference-optimization"
     ],
     "nodeColor": "#1f6feb",
-    "thesis": "将 reward modeling 重新定义为 rule-based RL 任务——模型给定问题+两个答案，用 `<think>` 格式推理哪个更好，以答案是否匹配 ground truth 作为 reward。针对 RL 训练不稳定提出 StableReinforce 算法（Pre-Clip + 3-sigma Advantage Filter + Consistency Reward 三项修复），在 VL Reward-Bench、Multimodal Reward Bench 上超越此前 SOTA。与 BaseReward 为同一团队先后工作，BaseReward 在此基础上进一步改进。\n\n---",
+    "thesis": "<p>将 reward modeling 重新定义为 rule-based RL 任务——模型给定问题+两个答案，用 <code><think></code> 格式推理哪个更好，以答案是否匹配 ground truth 作为 reward。针对 RL 训练不稳定提出 StableReinforce 算法（Pre-Clip + 3-sigma Advantage Filter + Consistency Reward 三项修复），在 VL Reward-Bench、Multimodal Reward Bench 上超越此前 SOTA。与 BaseReward 为同一团队先后工作，BaseReward 在此基础上进一步改进。</p>\n<hr>",
     "sections": {
       "One-line thesis": "<p>将 reward modeling 重新定义为 rule-based RL 任务——模型给定问题+两个答案，用 <code><think></code> 格式推理哪个更好，以答案是否匹配 ground truth 作为 reward。针对 RL 训练不稳定提出 StableReinforce 算法（Pre-Clip + 3-sigma Advantage Filter + Consistency Reward 三项修复），在 VL Reward-Bench、Multimodal Reward Bench 上超越此前 SOTA。与 BaseReward 为同一团队先后工作，BaseReward 在此基础上进一步改进。</p>\n<hr>",
       "核心研究问题": "<blockquote><p>留给你写</p></blockquote>\n<hr>",
@@ -578,7 +579,7 @@ var PAPERS = [
       "preference-optimization"
     ],
     "nodeColor": "#a371f7",
-    "thesis": "> **\"RL produces stronger and more localized visual representations compared to SFT, boosting the ability of the vision encoder for MLLM.\"** (Page 1, Abstract)\n\n论文通过系统对比 SFT 和 DPO 对 MLLM 中视觉编码器的影响，发现 RL 训练不仅优化了模型输出，更从根本上重塑了视觉编码器的内部表征，使其产生更强、更局部化的视觉特征。基于此发现，作者提出 PIVOT（Preference-Instructed Vision OpTimization）配方，用 <1% 标准视觉预训练的计算成本，使小型编码器超越更大规模的 SOTA 编码器。\n\n---",
+    "thesis": "<blockquote><p><strong>\"RL produces stronger and more localized visual representations compared to SFT, boosting the ability of the vision encoder for MLLM.\"</strong> (Page 1, Abstract)</p></blockquote>\n<p>论文通过系统对比 SFT 和 DPO 对 MLLM 中视觉编码器的影响，发现 RL 训练不仅优化了模型输出，更从根本上重塑了视觉编码器的内部表征，使其产生更强、更局部化的视觉特征。基于此发现，作者提出 PIVOT（Preference-Instructed Vision OpTimization）配方，用 <1% 标准视觉预训练的计算成本，使小型编码器超越更大规模的 SOTA 编码器。</p>\n<hr>",
     "sections": {
       "核心研究问题": "<blockquote><p>\"The field lacks a systematic comparison within MLLMs between SFT for instruction-following and RL for preference alignment... leaving a significant void in our understanding of how SFT and RL differ in reshaping visual representations.\" (Page 2, Introduction)</p></blockquote>\n<p>研究问题：SFT 和 RL（以 DPO 为代表）在 MLLM 后训练中对<strong>视觉编码器的表征</strong>分别产生了什么影响？社区长期以来以 LLM 为中心的假设导致对这一问题的系统性研究缺失。</p>\n<hr>",
       "实验设计": "<h3>训练流程（Section 3.1 + Section E.1）</h3>\n<table><thead><tr><th>阶段</th><th>内容</th><th>数据</th></tr></thead><tbody><tr><td>Stage 1</td><td>投影层预训练 + 端到端预训练</td><td>BLIP_LAION_CC_SBU_558K + LLaVA-OV-3.2M</td></tr><tr><td>Stage 2 后训练</td><td>分别用 SFT 或 DPO 全参训练，<strong>公平对比</strong></td><td>MPO 数据集，随机采样 20K</td></tr></tbody></table>\n<p><strong>关键设计</strong>：SFT 和 DPO 使用<strong>完全相同的数据量</strong>，仅在损失函数上不同，以隔离训练策略的影响。</p>\n<p><strong>Loss 定义</strong>（Equation 1, Page 3）：</p>\n<ul>\n<li>SFT: 最大化 $y_i^c$ 的似然</li>\n<li>DPO: $\\mathcal{L}_{\\text{DPO}} = -\\log \\sigma(\\beta \\cdot [\\log(\\pi_\\theta(y_c)/\\pi_{\\text{ref}}(y_c)) - \\log(\\pi_\\theta(y_r)/\\pi_{\\text{ref}}(y_r))])$</li>\n</ul>\n<p><strong>评测基准</strong>（Section 3.1）：Cambrian 评测套件，覆盖 16 个任务，分 4 类：General、Knowledge、OCR & Chart、Vision-Centric VQA。</p>\n<hr>",
