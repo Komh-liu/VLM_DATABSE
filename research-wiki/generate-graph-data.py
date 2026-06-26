@@ -290,7 +290,7 @@ def main():
         sections = extract_sections(body)
         # Normalize thesis key (handle case variations like "One-line Thesis")
         for k in list(sections.keys()):
-            if k.lower().replace('-', '').replace(' ', '') == 'onelinothesis':
+            if k.lower().replace('-', '').replace(' ', '') == 'onelinethesis':
                 if k != 'One-line thesis':
                     sections['One-line thesis'] = sections.pop(k)
                 break
