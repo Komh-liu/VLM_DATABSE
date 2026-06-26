@@ -622,10 +622,116 @@ var PAPERS = [
     },
     "connections": [
       {
+        "type": "extends",
+        "target": "Qwen3-VL",
+        "targetId": "paper:qwen3vl_2025",
+        "text": "Qwen3-VL 在 Qwen2.5-VL 基础上全面升级：新增 Dense + MoE 双架构（6 种规模，最大 235B-A22B），Interleaved-MRoPE 增强跨模态位置建模，DeepStack 多级 ViT 特征融合，256K 原生长上下文，文本时间戳对齐提升视频理解"
+      },
+      {
         "type": "extended_by",
         "target": "Qwen2-VL",
         "targetId": "paper:qwen2vl_2024",
         "text": "Qwen2.5-VL 在 Qwen2-VL 基础上进一步升级：从零训练原生动态分辨率 ViT + Window Attention，绝对时间编码支持小时级视频，新增计算机/手机操控 agent 能力，文档图表理解超越 GPT-4o 和 Claude 3.5"
+      }
+    ]
+  },
+  {
+    "id": "paper:qwen3vl_2025",
+    "slug": "qwen3vl_2025",
+    "short": "Qwen3-VL",
+    "title": "Qwen3-VL Technical Report",
+    "authors": [
+      "Shuai Bai",
+      "Yuxuan Cai",
+      "Ruizhe Chen",
+      "Keqin Chen",
+      "Xionghui Chen",
+      "Zesen Cheng",
+      "Lianghao Deng",
+      "Wei Ding",
+      "Chang Gao",
+      "Chunjiang Ge",
+      "Wenbin Ge",
+      "Zhifang Guo",
+      "Qidong Huang",
+      "Jie Huang",
+      "Fei Huang",
+      "Binyuan Hui",
+      "Shutong Jiang",
+      "Zhaohai Li",
+      "Mingsheng Li",
+      "Mei Li",
+      "Kaixin Li",
+      "Zicheng Lin",
+      "Junyang Lin",
+      "Xuejing Liu",
+      "Jiawei Liu",
+      "Chenglong Liu",
+      "Yang Liu",
+      "Dayiheng Liu",
+      "Shixuan Liu",
+      "Dunjie Lu",
+      "Ruilin Luo",
+      "Chenxu Lv",
+      "Rui Men",
+      "Lingchen Meng",
+      "Xuancheng Ren",
+      "Xingzhang Ren",
+      "Sibo Song",
+      "Yuchong Sun",
+      "Jun Tang",
+      "Jianhong Tu",
+      "Jianqiang Wan",
+      "Peng Wang",
+      "Pengfei Wang",
+      "Qiuyue Wang",
+      "Yuxuan Wang",
+      "Tianbao Xie",
+      "Yiheng Xu",
+      "Haiyang Xu",
+      "Jin Xu",
+      "Zhibo Yang",
+      "Mingkun Yang",
+      "Jianxin Yang",
+      "An Yang",
+      "Bowen Yu",
+      "Fei Zhang",
+      "Hang Zhang",
+      "Xi Zhang",
+      "Bo Zheng",
+      "Humen Zhong",
+      "Jingren Zhou",
+      "Fan Zhou",
+      "Jing Zhou",
+      "Yuanzhi Zhu",
+      "Ke Zhu"
+    ],
+    "year": 2025,
+    "venue": "arXiv",
+    "arxiv": "2511.21631",
+    "tags": [
+      "VLM",
+      "MoE",
+      "long-context",
+      "interleaved-MRoPE",
+      "DeepStack",
+      "Qwen"
+    ],
+    "nodeColor": "#3fb950",
+    "thesis": "<blockquote><p>Qwen3-VL 是 Qwen 视觉语言系列的第四代，推出 Dense（2B/4B/8B/32B）和 MoE（30B-A3B/235B-A22B）两种架构共 6 种规模，原生支持 256K token 长上下文，引入 interleaved-MRoPE 和 DeepStack 增强视觉-语言对齐，纯文本和多模态能力均超越同规模的前代模型。</p></blockquote>",
+    "sections": {
+      "One-line thesis": "<blockquote><p>Qwen3-VL 是 Qwen 视觉语言系列的第四代，推出 Dense（2B/4B/8B/32B）和 MoE（30B-A3B/235B-A22B）两种架构共 6 种规模，原生支持 256K token 长上下文，引入 interleaved-MRoPE 和 DeepStack 增强视觉-语言对齐，纯文本和多模态能力均超越同规模的前代模型。</p></blockquote>",
+      "架构改进（相对于 Qwen2.5-VL）": "<h3>1. 双架构路线：Dense + MoE</h3>\n<p>Qwen3-VL 首次提供两种架构选择：</p>\n<table><thead><tr><th>系列</th><th>模型规模</th><th>激活参数</th><th>特点</th></tr></thead><tbody><tr><td><strong>Dense</strong></td><td>2B / 4B / 8B / 32B</td><td>全部</td><td>高效紧凑，适合部署</td></tr><tr><td><strong>MoE</strong></td><td>30B-A3B / 235B-A22B</td><td>3B / 22B</td><td>超大容量，稀疏激活</td></tr></tbody></table>\n<p><strong>235B-A22B MoE 模型</strong>的总参数量达 235B，但每次推理仅激活 22B 参数，在控制推理成本的同时提供接近密集 235B 模型的容量。</p>\n<h3>2. Interleaved-MRoPE</h3>\n<p>在 Qwen2.5-VL 的 M-RoPE（时间+高度+宽度）基础上，升级为 <strong>interleaved-MRoPE</strong>，增强跨模态的位置交互：</p>\n<ul>\n<li>三维位置编码不再独立作用，而是在注意力计算中交叉交互</li>\n<li>对于多图输入（如对比两张图片），能更好地建模图与图之间的空间关系</li>\n<li>对视频帧间的时间一致性建模更强</li>\n</ul>\n<h3>3. DeepStack 集成</h3>\n<p>DeepStack 是一组多层 ViT 特征增强技术：</p>\n<ul>\n<li>从 ViT 的多个层级提取特征（而非仅最后一层）</li>\n<li>浅层特征保留细粒度空间信息（边缘、纹理）</li>\n<li>深层特征蕴含语义信息（物体类别、场景）</li>\n<li>通过可学习的融合机制整合多级特征</li>\n</ul>\n<p>在需要细粒度定位和检测的任务上特别有效。</p>\n<h3>4. 256K 原生长上下文</h3>\n<p>Qwen3-VL 原生支持 256K token 的上下文窗口，适用于：</p>\n<ul>\n<li>长视频理解（数十分钟到数小时）</li>\n<li>多图对比推理（同时输入几十张图片）</li>\n<li>图文交错的长文档理解</li>\n<li>基于大量帧进行事件检测和推理</li>\n</ul>\n<h3>5. 文本时间对齐（Text-based Time Alignment）</h3>\n<p>Qwen2.5-VL 使用绝对时间编码来处理视频时间信息。Qwen3-VL 进一步演进，引入显式<strong>文本化时间戳</strong>：</p>\n<ul>\n<li>视频帧的时间位置不再仅由位置编码表达</li>\n<li>在文本 token 中显式嵌入时间戳描述（如 \"Frame at 00:01:35\"）</li>\n<li>模型可以基于时间文本进行推理，更自然地理解时间顺序</li>\n</ul>",
+      "模型家族对比": "<table><thead><tr><th>维度</th><th>Qwen2.5-VL</th><th>Qwen3-VL</th></tr></thead><tbody><tr><td>架构</td><td>仅 Dense</td><td>Dense + MoE</td></tr><tr><td>规模数</td><td>3 种</td><td>6 种</td></tr><tr><td>最大参数量</td><td>72B</td><td>235B-A22B</td></tr><tr><td>上下文长度</td><td>32K</td><td><strong>256K</strong></td></tr><tr><td>位置编码</td><td>M-RoPE</td><td><strong>Interleaved-MRoPE</strong></td></tr><tr><td>视觉特征</td><td>单层 ViT 输出</td><td><strong>DeepStack（多层融合）</strong></td></tr><tr><td>视频时间建模</td><td>绝对时间编码</td><td>文本时间戳对齐</td></tr><tr><td>纯文本能力</td><td>依赖 Qwen2.5 LLM</td><td>超越同尺寸文本 backbone</td></tr></tbody></table>",
+      "核心能力提升": "<h3>1. 纯文本理解</h3>\n<p>Qwen3-VL 的一个独特之处在于：它的纯文本能力在多项 benchmark 上<strong>超过了同尺寸的纯文本 backbone</strong>（一般的 VLM 因为视觉训练导致文本能力下降）。这得益于更好的多模态训练策略。</p>\n<h3>2. 长上下文多模态理解</h3>\n<p>原生 256K token 上下文窗口带来的能力跃升：</p>\n<ul>\n<li>支持同时输入数十张图像进行综合推理</li>\n<li>长视频（>1 小时）的关键事件检索和总结</li>\n<li>图文交错的大型文档（几百页 PDF）的全局理解</li>\n</ul>\n<h3>3. 多模态推理</h3>\n<ul>\n<li>单图像推理：在 MMMU、MathVista 等复杂推理 benchmark 上持续领先</li>\n<li>多图像推理：支持对比、排序、差异查找等跨图像推理任务</li>\n<li>视频推理：长视频事件定位和时间顺序推理达到新水平</li>\n</ul>\n<h3>4. 视觉 Agent 能力延续</h3>\n<p>继承并增强了 Qwen2.5-VL 的 agent 能力，MoE 大模型在复杂多步操作任务上表现更好。</p>",
+      "局限": "<ul>\n<li>MoE 模型（235B-A22B）推理部署需要专门的 MoE 推理框架支持</li>\n<li>DeepStack 增加了视觉编码的计算量</li>\n<li>长上下文（256K）的实际利用率仍在探索中</li>\n<li>部分 agent 任务上成功率仍有提升空间</li>\n</ul>"
+    },
+    "connections": [
+      {
+        "type": "extended_by",
+        "target": "Qwen2.5-VL",
+        "targetId": "paper:qwen2_5vl_2025",
+        "text": "Qwen3-VL 在 Qwen2.5-VL 基础上全面升级：新增 Dense + MoE 双架构（6 种规模，最大 235B-A22B），Interleaved-MRoPE 增强跨模态位置建模，DeepStack 多级 ViT 特征融合，256K 原生长上下文，文本时间戳对齐提升视频理解"
       }
     ]
   },
@@ -819,6 +925,13 @@ var EDGES = [
     "to": "paper:qwen2_5vl_2025",
     "type": "extends",
     "evidence": "Qwen2.5-VL 在 Qwen2-VL 基础上进一步升级：从零训练原生动态分辨率 ViT + Window Attention，绝对时间编码支持小时级视频，新增计算机/手机操控 agent 能力，文档图表理解超越 GPT-4o 和 Claude 3.5",
+    "added": "2026-06-26T00:00:00Z"
+  },
+  {
+    "from": "paper:qwen2_5vl_2025",
+    "to": "paper:qwen3vl_2025",
+    "type": "extends",
+    "evidence": "Qwen3-VL 在 Qwen2.5-VL 基础上全面升级：新增 Dense + MoE 双架构（6 种规模，最大 235B-A22B），Interleaved-MRoPE 增强跨模态位置建模，DeepStack 多级 ViT 特征融合，256K 原生长上下文，文本时间戳对齐提升视频理解",
     "added": "2026-06-26T00:00:00Z"
   }
 ];

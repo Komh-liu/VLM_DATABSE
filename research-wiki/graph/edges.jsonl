@@ -5,3 +5,4 @@
 {"from": "paper:rlhf_note", "to": "paper:song2026_pivot", "type": "extends", "evidence": "PIVOT 建立在 RLHF 和 DPO 的理论基础之上，核心发现的 Finding 2-4 直接验证了 DPO 优化不仅影响 LLM 输出，更反向传播重塑视觉编码器表征", "added": "2026-06-26T00:00:00Z"}
 {"from": "paper:qwenvl", "to": "paper:qwen2vl_2024", "type": "extends", "evidence": "Qwen2-VL 在 Qwen-VL 基础上全面升级：Naive Dynamic Resolution 支持任意分辨率输入，M-RoPE 统一图文视频位置编码，推出 2B/8B/72B 三档，72B 达到 GPT-4o 水平", "added": "2026-06-26T00:00:00Z"}
 {"from": "paper:qwen2vl_2024", "to": "paper:qwen2_5vl_2025", "type": "extends", "evidence": "Qwen2.5-VL 在 Qwen2-VL 基础上进一步升级：从零训练原生动态分辨率 ViT + Window Attention，绝对时间编码支持小时级视频，新增计算机/手机操控 agent 能力，文档图表理解超越 GPT-4o 和 Claude 3.5", "added": "2026-06-26T00:00:00Z"}
+{"from": "paper:qwen2_5vl_2025", "to": "paper:qwen3vl_2025", "type": "extends", "evidence": "Qwen3-VL 在 Qwen2.5-VL 基础上全面升级：新增 Dense + MoE 双架构（6 种规模，最大 235B-A22B），Interleaved-MRoPE 增强跨模态位置建模，DeepStack 多级 ViT 特征融合，256K 原生长上下文，文本时间戳对齐提升视频理解", "added": "2026-06-26T00:00:00Z"}
