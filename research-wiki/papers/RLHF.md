@@ -293,6 +293,78 @@ $$
 
 ---
 
+## 插曲：GRPO（Group Relative Policy Optimization）——去掉 Critic 的 PPO
+
+### 为什么需要 GRPO？
+
+PPO 需要维护一个 **critic 网络**来估计 value function（baseline）。这有两个问题：
+
+1. **额外参数量和训练成本**：critic 网络和策略网络一样大，训练时要同时维护两份参数
+2. **训练不稳定**：critic 的预测误差会传导到 advantage 估计中，影响策略更新质量
+
+**GRPO 的核心想法**：能不能不用 critic，直接用采样得到的 reward 来估计 advantage？
+
+### GRPO 的核心机制
+
+对于同一个 prompt $x$，用当前策略 $\pi_\theta$ 采样 $G$ 个回答 $\{y_1, y_2, ..., y_G\}$。用 reward model $r_\phi$ 给每个回答打分，得到 $\{r_1, r_2, ..., r_G\}$。
+
+**组内归一化代替 critic：**
+
+$$
+\hat{r}_i = \frac{r_i - \mu_G}{\sigma_G}, \quad \mu_G = \frac{1}{G}\sum_{j=1}^G r_j,\quad \sigma_G^2 = \frac{1}{G}\sum_{j=1}^G (r_j - \mu_G)^2
+$$
+
+归一化后的 $\hat{r}_i$ 直接作为 advantage $A_i$ 使用。这假设了：**对于同一个 prompt，回答的相对好坏就是"比组内平均好多少"**——这和 PPO 中 $A = R - \text{baseline}$ 在直觉上是一致的，只是 baseline 从 critic 预测变成了组内均值。
+
+### GRPO 的目标函数
+
+与 PPO 相同的 clipping 机制和重要性采样：
+
+$$
+\boxed{L_{\text{GRPO}}(\theta) = -\frac{1}{G} \sum_{i=1}^G \mathbb{E}_{x \sim \mathcal{D}} \Big[ \min\big( \text{ratio}_i \cdot \hat{r}_i, \; \text{clip}(\text{ratio}_i, 1-\epsilon, 1+\epsilon) \cdot \hat{r}_i \big) \Big]}
+$$
+
+其中 $\text{ratio}_i = \frac{\pi_\theta(y_i|x)}{\pi_{\theta_{\text{old}}}(y_i|x)}$，与 PPO 完全相同。
+
+**KL 散度约束在 GRPO 中的处理：** GRPO 不把 KL 项放在 reward 内部，而是直接在目标函数中减去 KL 散度：
+
+$$
+L_{\text{GRPO}}(\theta) = L_{\text{clip}}(\theta) - \beta \cdot \mathbb{D}_{\text{KL}}(\pi_\theta \parallel \pi_{\text{ref}})
+$$
+
+### GRPO 与 PPO 的对比
+
+| 维度 | PPO（InstructGPT） | GRPO（DeepSeekMath） |
+|------|-------------------|---------------------|
+| **Baseline / Advantage** | Critic 网络预测 value | 组内 reward 均值归一化 |
+| **需要的额外网络** | 一个完整大小的 critic | ❌ 不需要 |
+| **每个 prompt 采样数** | 任意（通常 1 个） | 固定 $G$ 个（通常 64~256） |
+| **多步更新** | ✅ 采样一次、更新 K 次 | ✅ 同样继承 |
+| **梯度方差控制** | Clipping + critic 误差 | Clipping + 组内归一化 |
+| **适用场景** | 有 critic 训练资源 | 可以一次多采样的场景 |
+| **代表工作** | InstructGPT、Llama 2 | DeepSeekMath、DeepSeek-R1 |
+
+### 💡 直观理解
+
+GRPO 的 trade-off 很清晰：
+
+- **放弃 critic** → 省下参数量和训练复杂度
+- **代价** → 每个 prompt 必须采样 $G$ 个回答，$G$ 越大组均值越可靠，但采样成本也越高
+- **为什么 GRPO 有效？** 在数学推理等可验证的场景中，reward 信号很明确（答案对/错），组内归一化足以区分好坏，不需要 critic 的复杂估计
+
+### GRPO 在多模态 RL 中的广泛应用
+
+GRPO 经过了 DeepSeek-R1 的验证后，在多模态 RL 领域被广泛采用。本文档的 PDF 清单中的大量工作都是基于 GRPO 或其变体：
+
+- **NoisyGRPO**（NeurIPS 2025）：GRPO + 高斯噪声注入 + 贝叶斯 advantage 估计
+- **DAPO**（NeurIPS 2025）：四项技巧修复 GRPO（Clip-Higher、动态采样、Token 级 loss、超长惩罚）
+- **GSPO**（Qwen 2025）：将 token 级 importance ratio 替换为序列级 ratio，修复 GRPO 的噪声问题
+- **VisualRFT**（ICCV 2025）：GRPO + 可验证 reward 扩展到视觉检测/分类任务
+- **R1VL**（ICCV 2025）：StepGRPO，step 级 reward 替代粗粒度 answer-level reward
+- **MMUPT**（NeurIPS 2025）：无监督 GRPO + self-rewarding 机制
+
+---
+
 ## 第四阶段：DPO（直接偏好优化）
 
 ### 问题

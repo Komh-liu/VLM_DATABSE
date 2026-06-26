@@ -18,66 +18,82 @@ added: 2026-06-02T06:01:26Z
 
 ## One-line thesis
 
-Qwen-VL 是一系列大规模视觉语言模型（LVLM），以 Qwen-7B LLM 为基础，配备 ViT-bigG 视觉编码器和单层交叉注意力投影器，通过三阶段训练管线，在图像描述、视觉问答、视觉定位和文本阅读等任务上达到了同规模模型的 SOTA 水平。
+> Qwen-VL 以 Qwen-7B LLM 为基础，搭配 OpenCLIP ViT-bigG 视觉编码器和单层交叉注意力投影器，通过三阶段训练（预训练→多任务→指令微调），在一个统一框架中同时实现图像描述、视觉问答、细粒度视觉定位（grounding）和图像文字阅读（text reading），在同规模通用模型中达到了 SOTA。
 
-## Problem / Gap
+## 架构设计
 
-已有的视觉语言模型通常在单一任务上优化，缺乏在图像理解、定位和文本阅读等多维度能力的统一。如何在单一模型中同时实现：常规图文理解、细粒度视觉定位（grounding）、以及图像中的文字识别（text reading），是该领域的核心挑战。
+### 整体架构
 
-## Method
+Qwen-VL 的整体架构遵循"视觉编码器 → 模态连接器 → LLM"的经典范式：
 
-1. **视觉编码器**：使用 OpenClip 的 ViT-bigG@448 作为视觉受体，将图像压缩为 256 个 token
-2. **输入-输出接口**：单层交叉注意力（cross-attention）将视觉 token 投影到 LLM 输入空间，图像分辨率支持 448×448
-3. **三阶段训练管线**：
-   - 阶段一：大规模图文对预训练（1.4B 样本），冻结 LLM，仅训练视觉编码器和交叉注意力层
-   - 阶段二：多任务训练（~50M 样本），引入更高分辨率和定位数据，训练视觉编码器+交叉注意力
-   - 阶段三：指令微调，生成 Qwen-VL-Chat 变体，支持多轮对话交互
-4. **定位能力**：通过将边界框坐标 token 化实现 grounding 和 text reading 的统一训练
-5. **多语言语料**：构建了多语言多模态清洗语料库
+- **视觉编码器**：OpenCLIP 的 ViT-bigG，分辨率为 448×448
+- **模态连接器**：单层交叉注意力（cross-attention，约 0.08B 参数），将 256 个视觉 token 投影到 LLM 的输入空间
+- **LLM**：Qwen-7B（7.7B 参数）
 
-## Key Results
+与 BLIP-2 的 Q-Former（12 层 transformer）不同，Qwen-VL 的感知器采用**单层交叉注意力**，直接连接视觉编码器和 LLM，大幅简化了桥接模块，减少了计算开销。
 
-- 在图像描述、VQA、视觉定位等多项 benchmark 上刷新同规模模型的 SOTA
-- Qwen-VL-Chat 在真实对话 benchmark 上优于已有的视觉对话模型
-- 支持 zero-shot 和 few-shot 设置，泛化能力突出
-- 在 text reading 任务上（如 OCR、文档理解）表现优异
+### 三阶段训练管线
 
-## Assumptions
+| 阶段 | 内容 | 训练数据量 | 冻结参数 | 可训练参数 |
+|------|------|-----------|----------|-----------|
+| **阶段一：预训练** | 大规模图文对训练 | 1.4B 样本（从 5B 清洗得到） | LLM | ViT + 交叉注意力 |
+| **阶段二：多任务训练** | 引入高分辨率、定位、text reading 数据 | ~50M 样本 | 无 | 全部参数 |
+| **阶段三：指令微调** | 多轮对话交互 | ~350K 对话样本 | 无 | 全部参数 |
 
-- ViT-bigG 特征空间可被 Qwen-7B 有效利用
-- 单层交叉注意力足以桥接视觉和语言模态
-- 三阶段训练策略优于端到端联合训练
+**阶段一**的核心目标是学习视觉编码器与 LLM 之间的对齐。使用大规模中英文混合图文对数据，在冻结 LLM 的条件下训练 ViT 和交叉注意力层。
 
-## Limitations / Failure Modes
+**阶段二**采用 448×448 分辨率（阶段一的 2 倍），引入多种任务格式的数据：
+- 纯图文描述数据
+- 视觉问答数据
+- **视觉定位数据**：将边界框坐标 token 化为 `(x1, y1, x2, y2)` 格式，在训练中让模型同时看到图像区域和对应的文本描述
+- **Text reading 数据**：检测和识别图像中的文字
 
-- 视频理解能力未在论文中涉及
-- 高分辨率场景（如超大图像、密集文本）可能受限
-- 模型偏见和幻觉问题未充分评估
+**阶段三**构建了约 350K 多轮对话数据，将第二阶段模型转化为能够多轮交互的 Qwen-VL-Chat。
 
-## Reusable Ingredients
+## 核心能力提升
 
-- 三阶段训练管线（预训练→多任务→指令微调）可泛化到其他 VLM
-- ViT-bigG + 单层交叉注意力的简单架构设计思路
-- 定位和 text reading 的统一 token 化方案
+### 1. 视觉理解（Comprehension）
 
-## Open Questions
+- 在 **ImageNet-1K** 零样本分类任务上达到 75.5% 的 top-1 准确率，显著超过其他同规模 VLM（如 LLaVA-1.5 为 70.7%）
+- **VQAv2** test-dev 集上达到 78.8%，超过 LLaVA-1.5-13B（78.5%），以 7B 基座超越 13B 级模型
 
-- Qwen-VL 系列后续版本（Qwen2-VL）的性能提升情况
-- 对于技术报告而言，重要的不是技术报告中能够学习到什么，而是知道这个工作选用这个技术成功的原因。如果benchmark或者选用技术不了解，应该去阅读引用的原文而不是钻研技术报告
+### 2. 通用视觉问答（VQA）
 
-## Claims
+| Benchmark | Qwen-VL | Qwen-VL-Chat | LLaVA-1.5-13B | InstructBLIP-13B |
+|-----------|---------|-------------|---------------|-----------------|
+| **VQAv2** (test-dev) | 78.8 | 76.3 | 78.5 | — |
+| **OKVQA** (val) | 58.6 | 56.6 | 56.2 | 54.0 |
+| **GQA** (test) | 59.3 | 58.4 | 61.0 | 60.4 |
+| **TextVQA** (val) | 61.5 | 60.5 | 52.1 | 54.5 |
 
-_TODO._
+在 **TextVQA** 上 Qwen-VL 的表现特别突出（61.5 vs LLaVA-1.5 的 52.1），得益于阶段二引入了大量 text reading 数据。
 
-## Connections
+### 3. 视觉定位（Grounding）
 
-_Edges are recorded in `graph/edges.jsonl`; summarize here for human readers._
+Qwen-VL 的定位能力是最具区分度的创新点之一：
 
-## Relevance to This Project
+- **RefCOCO** testA：75.9%（Qwen-VL-Chat 指令微调后：86.3%）
+- **RefCOCO** testB：67.6%（指令微调后：77.4%）
+- 以一般模型的参数规模达到了专用定位模型的效果
 
-- Qwen-VL 是 VLM 领域的重要工作，展示了如何以相对简单的架构（单层交叉注意力 vs Q-Former）实现多功能 VLM。其定位和 text reading 的统一训练方案对后续研究有重要参考价值。
+实现方式是通过**统一 token 化**：边界框坐标作为文本 token 在训练中出现，让模型通过语言建模学习区域与语言之间的对应关系。这对于后 续像 GRIT（在推理链中交替生成文本和 bbox）等工作的出现提供了重要基础。
 
+### 4. 文本阅读（Text Reading）
 
-## Abstract (original)
+Qwen-VL 在 OCR 和文档理解任务上表现优异：
+- **TextVQA** 61.5%，在同规模模型中领先
+- **DocVQA** 文档级文字识别能力显著
+- 支持横排和竖排文字、手写和印刷体
 
-> In this work, we introduce the Qwen-VL series, a set of large-scale vision-language models (LVLMs) designed to perceive and understand both texts and images. Starting from the Qwen-LM as a foundation, we endow it with visual capacity by the meticulously designed (i) visual receptor, (ii) input-output interface, (iii) 3-stage training pipeline, and (iv) multilingual multimodal cleaned corpus. Beyond the conventional image description and question-answering, we implement the grounding and text-reading ability of Qwen-VLs by aligning image-caption-box tuples. The resulting models, including Qwen-VL and Qwen-VL-Chat, set new records for generalist models under similar model scales on a broad range of visual-centric benchmarks (e.g., image captioning, question answering, visual grounding) and different settings (e.g., zero-shot, few-shot). Moreover, on real-world dialog benchmarks, our instruction-tuned Qwen-VL-Chat also demonstrates superiority compared to existing vision-language chatbots. Code, demo and models are available at https://github.com/QwenLM/Qwen-VL.
+### 5. 对话交互
+
+Qwen-VL-Chat 在真实对话 benchmark 上的表现：
+- 在开放域多模态对话中生成了更自然、更符合语境的回复
+- 支持多轮图文对话、基于图片的推理对话
+- 能够理解用户问题指向的图像区域并进行精准回答
+
+## 局限
+
+- 视频理解能力未覆盖（后续 Qwen2-VL 补齐）
+- 部分复杂推理场景仍有困难
+- 高分辨率密集文本场景可能受限

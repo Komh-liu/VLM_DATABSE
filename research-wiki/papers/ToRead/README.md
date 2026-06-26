@@ -1,7 +1,7 @@
 # PDF 清单
 
 > 以下 PDF 文件不在 git 中追踪，仅此清单记录
-> 全部来源：arXiv，26 篇
+> 全部来源：arXiv，29 篇
 
 | # | 文件名 | 会议 | 主题 | 已阅读 | 核心内容 |
 |---|--------|------|------|--------|----------|
@@ -31,6 +31,9 @@
 | 24 | `rewardbench_2024.pdf` | 2024 | RewardBench | ⬜ | 当前最通用的 RM 评测基准，定义了评估 reward model 的标准协议。VL-RewardBench（多模态版本）是其扩展。理解 RM 评估维度（overoptimization、偏好一致性等）的最佳入口 |
 | 25 | `secrets_ppo_2024.pdf` | 2024 | Secrets of PPO | ⬜ | 实操层面深入讲解 RM 训练的细节：reward model overoptimization、数据质量影响、训练不稳定性等。StableReinforce 解决的多项问题在这里有先行讨论 |
 | 26 | `vl_rewardbench_cvpr2025.pdf` | CVPR 2025 | VL-RewardBench | ⬜ | 多模态 RM 的标准化评测基准（1250 偏好对），涵盖 General（14.7%）、Hallucination Detection（59.9%）、Complex Reasoning（25.4%）三类任务。性能与下游 Best-of-N 采样的 Pearson r > 0.9 |
+| 27 | `qwenvl_2023.pdf` | arXiv 2023 | Qwen-VL | ⬜ | 第一代 Qwen 视觉语言模型。Qwen-7B + ViT-bigG + 单层交叉注意力。三阶段训练（预训练→多任务→指令微调）。支持视觉定位（RefCOCO 75.9% → Chat 86.3%）、text reading（TextVQA 61.5%）和通用 VQA（VQAv2 78.8%），同规模通用模型 SOTA |
+| 28 | `qwen2vl_2024.pdf` | arXiv 2024 | Qwen2-VL | ⬜ | 第二代 Qwen 视觉模型。Naive Dynamic Resolution（原生比例切图），M-RoPE（时间+高度+宽度三维位置编码），统一图像与视频处理。2B/8B/72B 三档。72B 在 ChartQA（88.2）、DocVQA（95.5）上超越 GPT-4o |
+| 29 | `qwen2_5vl_2025.pdf` | arXiv 2025 | Qwen2.5-VL | ⬜ | 第三代旗舰。从零训练原生动态分辨率 ViT + Window Attention，绝对时间编码支持小时级视频定位。新增计算机/手机操控 agent 能力。文档图表理解全面超越 GPT-4o（DocVQA 96.5、ChartQA 90.1、InfoVQA 84.3）|
 
 ---
 
