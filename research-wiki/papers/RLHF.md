@@ -17,7 +17,7 @@ added: 2026-06-26T00:00:00Z
 
 ---
 
-## 缘起：为什么需要 RLHF？
+## One-line thesis
 
 纯预训练的大语言模型（LLM）能生成流畅文本，但不会遵循指令、不会对齐人类偏好。RLHF（Reinforcement Learning from Human Feedback）解决的问题就是：**如何让模型学会人类认为"好"的回答？**
 
@@ -497,40 +497,33 @@ $$
 
 ### 完整关系图
 
-```
-传统 RLHF 方案:
-  SFT → Reward Model → PPO
-  (学模仿)   (学打分)    (学优化)
-
-DPO 方案:
-  SFT → DPO
-  (学模仿)   (直接学偏好，跳过 RM + PPO)
-
-公式链路:
-  SFT:        L = -log π_θ(y_c | x)
-  RM:         L = -log σ(r_φ(x, y_c) - r_φ(x, y_r))
-  PPO:        L = -E[min(ratio·A, clip(ratio)·A)]
-  DPO:        L = -E[log σ(β·log(π_θ(y_c)/π_ref(y_c)) - β·log(π_θ(y_r)/π_ref(y_r)))]
-              ↑ 从 RLHF 目标解最优策略 → 反解 r → 代入 BT → 消去 Z(x) → 得到
-```
+> 传统 RLHF 方案:  SFT → Reward Model → PPO（学模仿 → 学打分 → 学优化）
+>
+> DPO 方案:  SFT → DPO（学模仿 → 直接学偏好，跳过 RM + PPO）
+>
+> 公式链路:
+> $$ \begin{aligned}
+> \text{SFT:}&\quad L = -\log \pi_\theta(y_c | x) \\
+> \text{RM:}&\quad L = -\log \sigma(r_\phi(x, y_c) - r_\phi(x, y_r)) \\
+> \text{PPO:}&\quad L = -\mathbb{E}[\min(\text{ratio} \cdot A, \text{clip}(\text{ratio}) \cdot A)] \\
+> \text{DPO:}&\quad L = -\mathbb{E}[\log \sigma(\beta \log \frac{\pi_\theta(y_c)}{\pi_{\text{ref}}(y_c)} - \beta \log \frac{\pi_\theta(y_r)}{\pi_{\text{ref}}(y_r)})]
+> \end{aligned} $$
+>
+> ↑ DPO 从 RLHF 目标解最优策略 → 反解 r → 代入 BT → 消去 Z(x) → 得到
 
 ### DPO 推导全链路
 
-```
-Step 1: 写出 RLHF 目标
-  max E[r(x,y)] - β·KL(π || π_ref)
-
-Step 2: 拉格朗日求解最优策略（详细推导见 4.2 节）
-  π*(y|x) = (1/Z(x)) · π_ref(y|x) · exp(r(x,y)/β)
-
-Step 3: 反解出 r(x,y)
-  r(x,y) = β · log(π*(y|x)/π_ref(y|x)) + β·log Z(x)
-
-Step 4: 代入 Bradley-Terry
-  P(y_c ≻ y_r | x) = σ(r(x,y_c) - r(x,y_r))
-                    = σ(β·log(π*(y_c)/π_ref(y_c)) - β·log(π*(y_r)/π_ref(y_r)))
-                    ↑ Z(x) 抵消！
-
-Step 5: 用 π_θ 近似 π*
-  L_DPO = -E[log σ(β·log(π_θ(y_c)/π_ref(y_c)) - β·log(π_θ(y_r)/π_ref(y_r)))]
-```
+> **Step 1**: 写出 RLHF 目标
+> $$ \max_\pi \mathbb{E}[r(x,y)] - \beta \cdot \text{KL}(\pi \| \pi_{\text{ref}}) $$
+>
+> **Step 2**: 拉格朗日求解最优策略
+> $$ \pi^*(y|x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y|x) \exp\left(\frac{r(x,y)}{\beta}\right) $$
+>
+> **Step 3**: 反解出 $r(x,y)$
+> $$ r(x,y) = \beta \log \frac{\pi^*(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x) $$
+>
+> **Step 4**: 代入 Bradley-Terry（$Z(x)$ 抵消！）
+> $$ P(y_c \succ y_r | x) = \sigma\left( \beta \log \frac{\pi^*(y_c)}{\pi_{\text{ref}}(y_c)} - \beta \log \frac{\pi^*(y_r)}{\pi_{\text{ref}}(y_r)} \right) $$
+>
+> **Step 5**: 用 $\pi_\theta$ 近似 $\pi^*$
+> $$ L_{\text{DPO}} = -\mathbb{E}\left[ \log \sigma\left( \beta \log \frac{\pi_\theta(y_c)}{\pi_{\text{ref}}(y_c)} - \beta \log \frac{\pi_\theta(y_r)}{\pi_{\text{ref}}(y_r)} \right) \right] $$

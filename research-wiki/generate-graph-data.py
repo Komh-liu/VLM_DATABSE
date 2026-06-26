@@ -368,7 +368,7 @@ window.MathJax = {
   startup: {pageReady: function() {return MathJax.startup.defaultPageReady();}}
 };
 </script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"></script>
 <style>
 :root{
   --bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;--bg4:#0d1117;
