@@ -17,7 +17,7 @@ added: 2026-06-26T00:00:00Z
 
 ---
 
-## One-line thesis
+## 缘起：为什么需要 RLHF？
 
 纯预训练的大语言模型（LLM）能生成流畅文本，但不会遵循指令、不会对齐人类偏好。RLHF（Reinforcement Learning from Human Feedback）解决的问题就是：**如何让模型学会人类认为"好"的回答？**
 
