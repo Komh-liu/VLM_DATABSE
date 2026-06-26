@@ -219,12 +219,35 @@ def render_markdown_to_html(text):
                 result.append(html)
             continue
 
-        # Regular paragraph — collect consecutive non-empty, non-list lines
+        # Horizontal rule: ---, ***, ___
+        hr_match = re.match(r'^(-{3,}|\*{3,}|_{3,})$', stripped)
+        if hr_match:
+            result.append('<hr>')
+            i += 1
+            continue
+
+        # Blockquote: > text (handle multi-line blockquotes)
+        bq_match = re.match(r'^>\s?(.*)$', stripped)
+        if bq_match:
+            bq_lines = []
+            while i < len(lines):
+                bq_m = re.match(r'^>\s?(.*)$', lines[i].strip())
+                if not bq_m:
+                    break
+                bq_lines.append(_render_inline(bq_m.group(1)))
+                i += 1
+            bq_content = '<br>'.join(bq_lines) if len(bq_lines) > 1 else bq_lines[0]
+            result.append(f'<blockquote><p>{bq_content}</p></blockquote>')
+            continue
+
+        # Regular paragraph — collect consecutive non-empty, non-list, non-bq, non-hr lines
         para_lines = []
         while i < len(lines) and lines[i].strip() != '' \
                 and not re.match(r'^(\s*)[-*]\s+', lines[i].strip()) \
                 and not re.match(r'^(\s*)\d+\.\s+', lines[i].strip()) \
-                and not re.match(r'^\|.+\|$', lines[i].strip()):
+                and not re.match(r'^\|.+\|$', lines[i].strip()) \
+                and not re.match(r'^(-{3,}|\*{3,}|_{3,})$', lines[i].strip()) \
+                and not re.match(r'^>\s?', lines[i].strip()):
             para_lines.append(_render_inline(lines[i].strip()))
             i += 1
 
@@ -421,6 +444,9 @@ text.sub{font-size:11px;fill:var(--text2);font-weight:400;pointer-events:none}
 .detail-close:hover{color:var(--text3)}
 .detail-content h2{font-size:20px;color:var(--text3);margin-bottom:4px}
 .detail-content .meta-line{font-size:13px;color:var(--text2);margin-bottom:16px}
+.detail-content blockquote{background:var(--bg);border-left:3px solid var(--accent);margin:12px 0;padding:8px 14px;border-radius:0 6px 6px 0;font-size:13px;line-height:1.6;color:var(--text2)}
+.detail-content blockquote p{margin:0}
+.detail-content hr{border:none;border-top:1px solid var(--border2);margin:20px 0}
 .detail-content section{margin-bottom:20px}
 .detail-content section h3{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)}
 .detail-content section h4{font-size:13px;font-weight:600;color:var(--text3);margin:12px 0 6px}
