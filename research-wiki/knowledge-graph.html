@@ -297,6 +297,64 @@ var PAPERS = [
     ]
   },
   {
+    "id": "paper:instructgpt_neurips2022",
+    "slug": "instructgpt_neurips2022",
+    "short": "InstructGPT",
+    "title": "Training Language Models to Follow Instructions with Human Feedback",
+    "authors": [
+      "Long Ouyang",
+      "Jeff Wu",
+      "Xu Jiang",
+      "Diogo Almeida",
+      "Carroll L. Wainwright",
+      "Pamela Mishkin",
+      "Chong Zhang",
+      "Sandhini Agarwal",
+      "Katarina Slama",
+      "Alex Ray",
+      "John Schulman",
+      "Jacob Hilton",
+      "Fraser Kelton",
+      "Luke Miller",
+      "Maddie Simens",
+      "Amanda Askell",
+      "Peter Welinder",
+      "Paul Christiano",
+      "Jan Leike",
+      "Ryan Lowe"
+    ],
+    "year": 2022,
+    "venue": "NeurIPS 2022",
+    "arxiv": "2203.02155",
+    "tags": [
+      "RLHF",
+      "alignment",
+      "instruction-following",
+      "PPO",
+      "reward-model",
+      "SFT"
+    ],
+    "nodeColor": "#f0883e",
+    "thesis": "<blockquote><p>更大的模型不会自动更听话——用人类反馈微调，1.3B 的 InstructGPT 比 175B 的 GPT-3 更被人类偏好。</p></blockquote>\n<p><strong>RLHF 开山之作</strong>，定义了 SFT → Reward Model → PPO 三阶段对齐范式。这是 ChatGPT 背后的方法论基础。</p>\n<hr>",
+    "sections": {
+      "核心贡献": "<p>首次将 <strong>RLHF（Reinforcement Learning from Human Feedback）</strong> 系统化、规模化地应用于指令跟随问题：证明全量微调下，RLHF 可以让小模型（1.3B）在人类偏好上显著超越大模型（175B GPT-3）。</p>\n<blockquote><p>RLHF 本身并非本文发明（此前用于风格对齐等任务），本文的核心贡献在于将其从零星的实验扩展为可复现的工业级 pipeline。</p></blockquote>\n<hr>",
+      "Method": "<h3>三阶段流水线</h3>\n<table><thead><tr><th>Stage</th><th>做什么</th><th>数据量</th><th>算力</th><th>学到了什么</th></tr></thead><tbody><tr><td><strong>Stage 1: SFT</strong></td><td>标注者手写 demo（真人）</td><td>13k prompts</td><td>~5 petaflops/days</td><td>模仿正确答案</td></tr><tr><td><strong>Stage 2: RM</strong></td><td>标注者对多回答排序</td><td>31k prompts</td><td>pairwise ranking</td><td>判断哪个回答更好</td></tr><tr><td><strong>Stage 3: PPO</strong></td><td>RM 打分 + KL 约束</td><td>33k prompts</td><td>~60 petaflops/days</td><td>产生高分回答</td></tr></tbody></table>\n<p><strong>流程</strong>: SFT → RM → PPO，三个阶段串行，前一阶段的输出是后一阶段的输入。</p>\n<h3>Stage 1: SFT（Supervised Fine-Tuning）</h3>\n<ul>\n<li><strong>数据</strong>：标注者手写的 (prompt, ideal response) 对，13k 条</li>\n<li><strong>方法</strong>：标准语言模型交叉熵损失，<strong>全量微调</strong></li>\n<li><strong>局限</strong>：只学会模仿，不理解\"为什么好\"——模型只见过\"唯一正确答案\"</li>\n</ul>\n<h3>Stage 2: Reward Model（RM）</h3>\n<ul>\n<li><strong>数据</strong>：31k prompts，每个 prompt 多个回答由标注者排序，取所有 $\\binom{K}{2}$ 对做 pairwise ranking loss</li>\n<li><strong>目标</strong>：训练一个标量打分器，作为\"人类偏好\"的代理（proxy）</li>\n<li><strong>Bradley-Terry 建模</strong>：$P(y_c \\succ y_r \\mid x) = \\sigma(r_\\phi(x, y_c) - r_\\phi(x, y_r))$</li>\n<li><strong>关键细节</strong>：所有 pairwise comparisons 在同一 prompt 内做 loss 平均，减少过拟合</li>\n<li>⚠️ <strong>隐患</strong>：RM 只是 proxy，不是真正的\"好\"——reward hacking 的根源</li>\n<li>使用6B的SFT模型去掉unembedding层，用投影层替代，得到对输入的一个打分。RM对学习率不敏感但是对训练轮次敏感，多轮训练之后很快崩塌</li>\n</ul>\n<h3>Stage 3: PPO（Proximal Policy Optimization）</h3>\n<ul>\n<li><strong>数据</strong>：33k prompts（只用 prompt，不需人工标注），<strong>全量微调</strong></li>\n<li><strong>Reward 修正</strong>：$R(x, y) = r_\\phi(x, y) - \\beta \\cdot \\text{KL}(\\pi_\\theta \\parallel \\pi_{\\text{SFT}})$</li>\n<li><strong>注意</strong>：KL 参照的是 SFT 模型 $\\pi_{\\text{SFT}}$，而非原始 GPT-3 $\\pi_{\\text{base}}$</li>\n<li><strong>PPO-ptx 变体</strong>：混合预训练损失，缓解 alignment tax</li>\n<li>$\\mathcal{L}_{\\text{PPO-ptx}} = \\mathcal{L}_{\\text{PPO}} + \\gamma \\cdot \\mathcal{L}_{\\text{pretrain}}$</li>\n<li><strong>Clipping</strong>：ratio 限制在 [0.8, 1.2]，防止策略崩塌</li>\n<li><strong>最终模型</strong>：InstructGPT = PPO-ptx</li>\n</ul>\n<hr>",
+      "关键结果": "<table><thead><tr><th>指标</th><th>结果</th></tr></thead><tbody><tr><td>人类偏好胜率</td><td>1.3B InstructGPT > 175B GPT-3（~73% 胜率）</td></tr><tr><td>TruthfulQA</td><td>GPT-3 ~21% → InstructGPT ~38%（true + informative）</td></tr><tr><td>Toxicity（RealToxicityPrompts）</td><td>无诱导时显著降低，但被故意诱导时可能更毒</td></tr><tr><td>公共 NLP benchmark</td><td>轻微退化，PPO-ptx 缓解了 alignment tax</td></tr><tr><td>泛化</td><td>对训练中未见过的标注者、语言（96% 英文训练数据）、编程任务均有效</td></tr><tr><td>Bias（社会偏见）</td><td>相比 GPT-3 <strong>无显著改善</strong>——RLHF 优化 helpfulness，未校正预训练数据偏见</td></tr></tbody></table>\n<hr>",
+      "标注细节": "<ul>\n<li>标注者来自 <strong>Upwork</strong> 和 <strong>ScaleAI</strong>，均为真人，经过仔细筛选</li>\n<li>训练/验证/测试按 <strong>user ID</strong> 划分，防止信息泄露</li>\n<li>标注者间一致率约 <strong>73–77%</strong></li>\n<li>评测标注者来自 withheld set（未参与训练）</li>\n</ul>\n<hr>",
+      "局限": "<ol>\n<li><strong>错误前提</strong>：当 prompt 包含错误前提时，模型倾向于当作真命题处理</li>\n<li><strong>过度推诿</strong>：频繁说\"作为 AI 语言模型我不能……\"而非直接回答简单问题</li>\n<li><strong>多约束退化</strong>：当指令包含多个明确约束时性能下降</li>\n<li><strong>对抗性有害</strong>：被明确诱导时可能比 GPT-3 产生更多有害内容</li>\n<li><strong>简单错误</strong>：仍有低级错误</li>\n</ol>\n<hr>",
+      "历史意义": "<ul>\n<li>这是 <strong>ChatGPT 背后的方法论基础</strong></li>\n<li>开创了 <strong>SFT + RM + PPO</strong> 三阶段范式，至今仍是 alignment 领域的标准框架</li>\n<li>RLHF 本身并非本文发明（此前用于风格对齐），本文贡献是将 RLHF 系统化、规模化</li>\n</ul>\n<hr>",
+      "One-line thesis": "<blockquote><p>更大的模型不会自动更听话——用人类反馈微调，1.3B 的 InstructGPT 比 175B 的 GPT-3 更被人类偏好。</p></blockquote>\n<p><strong>RLHF 开山之作</strong>，定义了 SFT → Reward Model → PPO 三阶段对齐范式。这是 ChatGPT 背后的方法论基础。</p>\n<hr>"
+    },
+    "connections": [
+      {
+        "type": "extends",
+        "target": "RLHF",
+        "targetId": "paper:rlhf_note",
+        "text": "RLHF 笔记系统讲解 InstructGPT 定义的 SFT→RM→PPO 三阶段框架，并延伸至 DPO 的完整数学推导"
+      }
+    ]
+  },
+  {
     "id": "paper:li2023_blip2",
     "slug": "li2023_blip2",
     "short": "BLIP-2",
@@ -752,6 +810,12 @@ var PAPERS = [
         "target": "Pivot",
         "targetId": "paper:song2026_pivot",
         "text": "PIVOT 建立在 RLHF 和 DPO 的理论基础之上，核心发现的 Finding 2-4 直接验证了 DPO 优化不仅影响 LLM 输出，更反向传播重塑视觉编码器表征"
+      },
+      {
+        "type": "extended_by",
+        "target": "InstructGPT",
+        "targetId": "paper:instructgpt_neurips2022",
+        "text": "RLHF 笔记系统讲解 InstructGPT 定义的 SFT→RM→PPO 三阶段框架，并延伸至 DPO 的完整数学推导"
       }
     ]
   },
@@ -803,30 +867,6 @@ var PAPERS = [
         "text": "PIVOT 建立在 RLHF 和 DPO 的理论基础之上，核心发现的 Finding 2-4 直接验证了 DPO 优化不仅影响 LLM 输出，更反向传播重塑视觉编码器表征"
       }
     ]
-  },
-  {
-    "id": "paper:instructgpt_neurips2022",
-    "slug": "instructgpt_neurips2022",
-    "short": "instructgpt_",
-    "title": "instructgpt_neurips2022",
-    "authors": [],
-    "year": null,
-    "venue": "",
-    "arxiv": null,
-    "tags": [],
-    "nodeColor": "#f0883e",
-    "thesis": "",
-    "sections": {
-      "核心贡献": "<p><strong>RLHF 开山之作</strong>，定义了 SFT → Reward Model → PPO 三阶段对齐范式。这是 ChatGPT 背后的方法论基础。</p>\n<hr>",
-      "三阶段流水线": "<p>```<br>Stage 1: SFT               Stage 2: Reward Model         Stage 3: PPO<br>┌──────────────────┐       ┌──────────────────┐       ┌──────────────────┐<br>│ 标注者写 demo      │  →   │ 标注者排偏好对      │  →   │ RM 打分 + KL 约束  │<br>│ 13k prompts       │       │ 31k prompts       │       │ 33k prompts       │<br>│ ~5 petaflops/days │       │ pairwise ranking  │       │ ~60 petaflops/days│<br>└──────────────────┘       └──────────────────┘       └──────────────────┘<br>学\"模仿正确答案\"             学\"判断哪个更好\"              学\"产生高分回答\"<br>```</p>\n<h3>Stage 1: SFT（Supervised Fine-Tuning）</h3>\n<ul>\n<li><strong>数据</strong>：标注者手写的 (prompt, ideal response) 对，13k 条</li>\n<li><strong>方法</strong>：标准语言模型交叉熵损失</li>\n<li><strong>局限</strong>：只学会模仿，不理解\"为什么好\"——模型只见过\"唯一正确答案\"</li>\n</ul>\n<h3>Stage 2: Reward Model（RM）</h3>\n<ul>\n<li><strong>数据</strong>：31k prompts，每个多个回答由标注者排序，取所有 $\\binom{K}{2}$ 对做 pairwise ranking loss</li>\n<li><strong>目标</strong>：训练一个标量打分器，作为\"人类偏好\"的代理（proxy）</li>\n<li><strong>Bradley-Terry 建模</strong>：$P(y_c \\succ y_r | x) = \\sigma(r_\\phi(x, y_c) - r_\\phi(x, y_r))$</li>\n<li><strong>关键细节</strong>：所有 pairwise comparisons 在同一 prompt 内做 loss 平均，减少过拟合</li>\n<li>⚠️ <strong>隐患</strong>：RM 只是 proxy，不是真正的\"好\"——reward hacking 的根源</li>\n</ul>\n<h3>Stage 3: PPO（Proximal Policy Optimization）</h3>\n<ul>\n<li><strong>数据</strong>：33k prompts（只用 prompt，不需人工标注）</li>\n<li><strong>Reward 修正</strong>：$R(x, y) = r_\\phi(x, y) - \\beta \\cdot \\text{KL}(\\pi_\\theta \\| \\pi_{\\text{SFT}})$</li>\n<li><strong>PPO-ptx 变体</strong>：混合预训练损失，缓解 alignment tax</li>\n<li><strong>Clipping</strong>：ratio 限制在 [0.8, 1.2]，防止策略崩塌</li>\n<li><strong>最终模型</strong>：InstructGPT = PPO-ptx</li>\n</ul>\n<hr>",
-      "关键结果": "<table><thead><tr><th>指标</th><th>结果</th></tr></thead><tbody><tr><td>人类偏好胜率</td><td>1.3B InstructGPT > 175B GPT-3（~73% 胜率）</td></tr><tr><td>TruthfulQA</td><td>GPT-3 ~21% → InstructGPT ~38%（true + informative）</td></tr><tr><td>Toxicity（RealToxicityPrompts）</td><td>无诱导时显著降低，但被故意诱导时可能更毒</td></tr><tr><td>公共 NLP benchmark</td><td>轻微退化，PPO-ptx 缓解了 alignment tax</td></tr><tr><td>泛化</td><td>对训练中未见过的标注者、语言（96% 英文训练数据）、编程任务均有效</td></tr><tr><td>Bias</td><td>相比 GPT-3 无显著改善</td></tr></tbody></table>\n<hr>",
-      "论文自述的局限": "<ol>\n<li><strong>错误前提</strong>：当 prompt 包含错误前提时，模型倾向于当作真命题处理</li>\n<li><strong>过度推诿</strong>：频繁说\"作为 AI 语言模型我不能……\"而非直接回答简单问题</li>\n<li><strong>多约束退化</strong>：当指令包含多个明确约束时性能下降</li>\n<li><strong>对抗性有害</strong>：被明确诱导时可能比 GPT-3 产生更多有害内容</li>\n<li><strong>简单错误</strong>：仍有低级错误</li>\n</ol>\n<hr>",
-      "标注细节": "<ul>\n<li>标注者来自 Upwork 和 ScaleAI，经过仔细筛选</li>\n<li>训练/验证/测试按 <strong>user ID</strong> 划分，防止信息泄露</li>\n<li>标注者间一致率 ~73–77%</li>\n<li>评测标注者来自 withheld set（未参与训练）</li>\n</ul>\n<hr>",
-      "历史意义": "<ul>\n<li>这是 <strong>ChatGPT 背后的方法论基础</strong></li>\n<li>RLHF 本身并非本文发明（此前用于风格对齐），本文的贡献是将 RLHF <strong>系统化、规模化</strong>地应用于指令跟随问题</li>\n<li>开创了\"SFT + RM + PPO\"三阶段范式，至今仍是 alignment 领域的标准框架</li>\n</ul>\n<hr>",
-      "阅读状态": "<p>⬜ 待阅读</p>\n<hr>",
-      "关联论文": "<table><thead><tr><th>论文</th><th>关系</th></tr></thead><tbody><tr><td>DPO (NeurIPS 2023 Oral)</td><td>跳过 RM + PPO，隐式 RM 替代路线</td></tr><tr><td>GRPO (DeepSeekMath 2024)</td><td>去掉 critic 的 PPO 变体</td></tr><tr><td>Secrets of PPO (2024)</td><td>RM 训练实操细节、overoptimization 讨论</td></tr><tr><td>RLHF.md</td><td>本项目 RLHF 全链路数学推导笔记</td></tr><tr><td>reward_model_reading.md</td><td>以 RM 为主线的 6 篇阅读路径</td></tr></tbody></table>"
-    },
-    "connections": []
   }
 ];
 var EDGES = [
@@ -857,6 +897,13 @@ var EDGES = [
     "type": "extends",
     "evidence": "VLM Intro Section 2.2 将 CLIP 作为对比学习 VLM 的典范进行系统介绍",
     "added": "2026-06-02T06:10:00Z"
+  },
+  {
+    "from": "paper:instructgpt_neurips2022",
+    "to": "paper:rlhf_note",
+    "type": "extends",
+    "evidence": "RLHF 笔记系统讲解 InstructGPT 定义的 SFT→RM→PPO 三阶段框架，并延伸至 DPO 的完整数学推导",
+    "added": "2026-06-27T00:00:00Z"
   },
   {
     "from": "paper:rlhf_note",
