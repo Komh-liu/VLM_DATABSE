@@ -198,7 +198,8 @@ var PAPERS = [
         "targetId": "paper:radford2021_clip",
         "text": "CLIP 将 ViT 从单模态视觉分类器扩展为跨模态视觉编码器，通过对比学习将 ViT 的图像特征对齐到文本空间"
       }
-    ]
+    ],
+    "edgeCount": 3
   },
   {
     "id": "paper:liu2021_swin",
@@ -236,7 +237,8 @@ var PAPERS = [
         "targetId": "paper:dosovitskiy2021_vit",
         "text": "Swin Transformer 在 ViT 基础上引入层次化特征图和移位窗口注意力，解决 ViT 的单尺度和平方复杂度问题，实现多尺度视觉表征"
       }
-    ]
+    ],
+    "edgeCount": 2
   },
   {
     "id": "paper:radford2021_clip",
@@ -294,7 +296,8 @@ var PAPERS = [
         "targetId": "paper:bordes2024_vlm_intro",
         "text": "VLM Intro Section 2.2 将 CLIP 作为对比学习 VLM 的典范进行系统介绍"
       }
-    ]
+    ],
+    "edgeCount": 2
   },
   {
     "id": "paper:instructgpt_neurips2022",
@@ -351,8 +354,15 @@ var PAPERS = [
         "target": "RLHF",
         "targetId": "paper:rlhf_note",
         "text": "RLHF 笔记系统讲解 InstructGPT 定义的 SFT→RM→PPO 三阶段框架，并延伸至 DPO 的完整数学推导"
+      },
+      {
+        "type": "extends",
+        "target": "RewardBench",
+        "targetId": "paper:rewardbench_2024",
+        "text": "RewardBench 对 InstructGPT RLHF 管线中的 RM 组件进行了首次系统化评测：覆盖 80+ 个 RM（分类器/DPO 隐式/LLM-as-a-Judge），揭示 DPO 泛化不足、参考模型依赖、三类 refusal 行为等关键发现"
       }
-    ]
+    ],
+    "edgeCount": 2
   },
   {
     "id": "paper:li2023_blip2",
@@ -397,7 +407,8 @@ var PAPERS = [
         "targetId": "paper:qwenvl",
         "text": "Qwen-VL 继承 BLIP-2 冻结视觉编码器+可训练接口+LLM 的架构范式，用更简单的单层交叉注意力替代 Q-Former"
       }
-    ]
+    ],
+    "edgeCount": 1
   },
   {
     "id": "paper:qwenvl",
@@ -453,7 +464,8 @@ var PAPERS = [
         "targetId": "paper:dosovitskiy2021_vit",
         "text": "Qwen-VL 使用 ViT-bigG（OpenCLIP 版本）作为视觉编码器，继承了 ViT 将图像分割为 patch 序列并通过 Transformer 编码的核心理念"
       }
-    ]
+    ],
+    "edgeCount": 3
   },
   {
     "id": "paper:bordes2024_vlm_intro",
@@ -536,7 +548,8 @@ var PAPERS = [
         "targetId": "paper:radford2021_clip",
         "text": "VLM Intro Section 2.2 将 CLIP 作为对比学习 VLM 的典范进行系统介绍"
       }
-    ]
+    ],
+    "edgeCount": 1
   },
   {
     "id": "paper:qwen2vl_2024",
@@ -597,7 +610,63 @@ var PAPERS = [
         "targetId": "paper:qwenvl",
         "text": "Qwen2-VL 在 Qwen-VL 基础上全面升级：Naive Dynamic Resolution 支持任意分辨率输入，M-RoPE 统一图文视频位置编码，推出 2B/8B/72B 三档，72B 达到 GPT-4o 水平"
       }
-    ]
+    ],
+    "edgeCount": 2
+  },
+  {
+    "id": "paper:rewardbench_2024",
+    "slug": "rewardbench_2024",
+    "short": "RewardBench",
+    "title": "RewardBench",
+    "authors": [
+      "Nathan Lambert",
+      "Valentina Pyatkin",
+      "Jacob Morrison",
+      "LJ Miranda",
+      "Bill Yuchen Lin",
+      "Khyathi Chandu",
+      "Nouha Dziri",
+      "Sachin Kumar",
+      "Tom Zick",
+      "Yejin Choi",
+      "Noah A. Smith",
+      "Hannaneh Hajishirzi"
+    ],
+    "year": 2024,
+    "venue": "NeurIPS 2024 Track on Datasets and Benchmarks",
+    "arxiv": "2403.13787",
+    "tags": [
+      "reward-model",
+      "benchmark",
+      "RLHF",
+      "evaluation",
+      "preference-optimization"
+    ],
+    "nodeColor": "#da3633",
+    "thesis": "<blockquote><p>RewardBench 是首个专门评估 reward model（RM）的综合 benchmark，覆盖 Chat / Reasoning / Safety 三类任务共 20K+ prompt-chosen-rejected 三元组，评测了 80+ 个 RM（包括分类器式的显式 RM 和 DPO 训练中的隐式 RM），系统揭示了 DPO 模型的 scaling benefit、分类器 RM 与生成式 RM 间的持久差距、以及三类不同的 refusal 行为模式。</p></blockquote>",
+    "sections": {
+      "One-line thesis": "<blockquote><p>RewardBench 是首个专门评估 reward model（RM）的综合 benchmark，覆盖 Chat / Reasoning / Safety 三类任务共 20K+ prompt-chosen-rejected 三元组，评测了 80+ 个 RM（包括分类器式的显式 RM 和 DPO 训练中的隐式 RM），系统揭示了 DPO 模型的 scaling benefit、分类器 RM 与生成式 RM 间的持久差距、以及三类不同的 refusal 行为模式。</p></blockquote>",
+      "核心研究问题": "<blockquote><p>设计了一个评估多种不同架构的奖励模型的框架。同时评估DPO虽然简单但是无法泛化到流行的偏好数据测试集。对于之前的数据集，存在两种问题。一种是旧的数据集人类自己也无法达成一致，所以模型的测试天花板存在上限，无法很好的区分模型是否能够很好的解决问题。（对于reward model的benchmark，我们的目的是RM能够完全近似人类偏好，但是人类自己也无法判断更偏好哪个的数据集不能用来测RM）后续的新数据集有训练集但是没有测试集，意味着模型训练完之后不知道是否能够达成一个很好的proxy效果。</p></blockquote>\n<hr>\n<h3>两种不同的RM策略</h3>",
+      "实验设计": "<h3>数据集构成</h3>\n<p>RewardBench 的核心是一个包含 prompt-chosen-rejected 三元组的评测集，覆盖四大类别：</p>\n<table><thead><tr><th>类别</th><th>来源数据集</th><th>评测维度</th></tr></thead><tbody><tr><td><strong>Chat</strong></td><td>AlpacaEval、MT Bench 变体</td><td>对话质量、指令遵循</td></tr><tr><td><strong>Reasoning</strong></td><td>LLMBar、PRM Math、HumanEvalPack</td><td>数学推理、代码、逻辑</td></tr><tr><td><strong>Safety</strong></td><td>XSTest、Do Not Answer</td><td>拒绝回答、安全边界</td></tr><tr><td><strong>Prior Sets</strong></td><td>Anthropic HH、SHP、Summarize</td><td>经典偏好数据的分布外测试</td></tr></tbody></table>\n<p>每个类别的样本都经过精心筛选，确保 chosen 和 rejected 之间有<strong>细粒度、可验证的差异</strong>（如存在 bug、事实错误、逻辑矛盾等），而不是模糊的主观偏好。</p>\n<h3>评测指标</h3>\n<p>核心指标：<strong>分类准确率</strong>——RM 是否正确识别了 chosen 回答优于 rejected 回答。</p>\n<p>此外还分析了：</p>\n<ul>\n<li>Calibration（RM 的分数是否校准）</li>\n<li>Refusal 行为分类</li>\n<li>不同数据分布下的泛化能力</li>\n</ul>",
+      "核心发现": "<blockquote><p>特定训练的classifier（拆掉unenbedding层换成投影层），与DPO训练的模型反推偏好概率做对比（DPO后推导出回答的概率-DPO前推导出回答的概率）。发现RM会在更广泛的场景表现比DPO场景好（泛化性？）。基于这个，作者比较了scaling law，测试推理能力，突出三种refusal行为。</p></blockquote>\n<ul>\n<li>通过一个框架测试不同架构的奖励模型。并且发布了评估时用的不同数据。</li>\n<li>RewardBench 对专职RM和DPO模型的评估方式有着本质不同。对于专职RM（传统分类器），评估过程非常直接：将“提示词+回答”输入模型，模型直接输出一个标量分数，RewardBench通过比较两个回答的分数高低来计算准确率。而对于DPO模型，由于它本身并不输出分数，RewardBench需要额外加载训练时所用的参考模型，通过公式 $$r(x, y) = \\beta \\log(\\pi / \\pi_{ref}) $$ 反推出一个“隐式奖励分数”，然后再用这个反推的分数去比大小、算准确率。虽然两者最终都能得出一个准确率用于排行榜排名，但分数的来源和质量截然不同。</li>\n<li>DPO 隐式奖励极度依赖参考模型：论文实验了换一个\"错误的\" reference model，DPO RM 的性能直接崩到随机水平。</li>\n<li>从多个维度展示RM的全景。很少有RM在REWARDBENCH数据集上的分数呈高斯分布，更少的RM以0奖励为中心，且测试的没有一个是中心高斯分布。未来的工作应确定为下游RL训练首选的RM输出分布</li>\n<li>展示现有偏好数据集的局限性。</li>\n</ul>\n<h3>Finding 1：DPO 的 scaling benefit</h3>\n<ul>\n<li>随着 DPO 模型参数量增大（7B → 13B → 70B），其隐式 RM 的质量持续提升</li>\n<li>表明 DPO 从更大的 backbone 中受益，不仅在生成能力上，也在 implicit reward modeling 上</li>\n</ul>\n<h3>Finding 2：三类 RM 的分数对比</h3>\n<p>RewardBench 评测了三类模型：Sequence Classifier（显式分类器 RM）、DPO 隐式 RM、Generative RM（LLM-as-a-Judge，通过 prompt 生成判断）。</p>\n<ul>\n<li>显式训练的<strong>分类器 RM</strong>（如 ArmoRM、Starling）在 RewardBench 总分上整体最优</li>\n<li><strong>DPO 隐式 RM</strong>在大多数子集上表现尚可，但在 <strong>Prior Sets</strong>（前人偏好数据的 test set，属分布外评测）上分数很低——论文结论是 DPO \"fail to generalize\" 到这些经典偏好测试集</li>\n<li><strong>LLM-as-a-Judge</strong>（如 Meta-Llama-3-70B-Instruct、prometheus-8x7b-v2.0）得分低于分类器 RM（Tab. 8 原文：<em>\"the best classifier RMs outperform the best generative reward models\"</em>）</li>\n<li>DPO 隐式奖励极度依赖参考模型：换一个 reference model 性能直接崩到随机水平</li>\n</ul>\n<h3>Finding 3：三类 refusal 行为</h3>\n<p>RM 在面对不安全/有害输入时表现出三种不同的拒绝行为：</p>\n<ol>\n<li><strong>过度拒绝</strong>：安全但合理的回答也被拒绝</li>\n<li><strong>适当拒绝</strong>：仅对不安全内容拒绝</li>\n<li><strong>拒绝缺失</strong>：不安全内容通过了 RM 的打分</li>\n</ol>\n<p>不同 RM 在这三种行为上差异显著，揭示了 reward model 的安全对齐特性。</p>\n<h3>Finding 4：现有偏好数据 test set 的局限</h3>\n<p>发现已有的偏好评测集（如 Anthropic HH test set）存在：</p>\n<ul>\n<li>数据泄露（与训练集分布过于接近）</li>\n<li>区分度不足（大多数 RM 都能达到高准确率）</li>\n<li>缺乏细粒度、可验证的挑战性样本</li>\n</ul>\n<p>RewardBench 通过构建\"hard subset\"来解决这些问题。</p>",
+      "与 VL-RewardBench 的关系": "<p>VL-RewardBench（Li et al., CVPR 2025）是 RewardBench 的多模态扩展，将评测从纯文本扩展到视觉-语言场景，涵盖 General Multimodal Queries、Visual Hallucination Detection、Complex Multimodal Reasoning 三类任务。两者在方法论上一脉相承，都是设计有细粒度区别的 preference pair 来评测 RM 的真实能力。</p>",
+      "对你的意义": "<blockquote><p>了解RM是怎么工作的，对于表现不好的RM有哪些场景的不足。</p></blockquote>"
+    },
+    "connections": [
+      {
+        "type": "extends",
+        "target": "VL-RewardBench",
+        "targetId": "paper:vl_rewardbench_cvpr2025",
+        "text": "VL-RewardBench 是 RewardBench 的多模态扩展，将 RM 评测从纯文本扩展到视觉-语言场景，沿用 prompt-chosen-rejected 格式，聚焦视觉感知瓶颈这一文本 RM 评测中不存在的维度"
+      },
+      {
+        "type": "extended_by",
+        "target": "InstructGPT",
+        "targetId": "paper:instructgpt_neurips2022",
+        "text": "RewardBench 对 InstructGPT RLHF 管线中的 RM 组件进行了首次系统化评测：覆盖 80+ 个 RM（分类器/DPO 隐式/LLM-as-a-Judge），揭示 DPO 泛化不足、参考模型依赖、三类 refusal 行为等关键发现"
+      }
+    ],
+    "edgeCount": 2
   },
   {
     "id": "paper:qwen2_5vl_2025",
@@ -673,7 +742,8 @@ var PAPERS = [
         "targetId": "paper:liu2021_swin",
         "text": "Qwen2.5-VL 在 ViT 中引入 Window Attention 机制，其局部窗口自注意力设计受 Swin Transformer 的分层窗口注意力启发，在保持高分辨率处理的同时控制计算复杂度"
       }
-    ]
+    ],
+    "edgeCount": 3
   },
   {
     "id": "paper:qwen3vl_2025",
@@ -773,7 +843,61 @@ var PAPERS = [
         "targetId": "paper:qwen2_5vl_2025",
         "text": "Qwen3-VL 在 Qwen2.5-VL 基础上全面升级：新增 Dense + MoE 双架构（6 种规模，最大 235B-A22B），Interleaved-MRoPE 增强跨模态位置建模，DeepStack 多级 ViT 特征融合，256K 原生长上下文，文本时间戳对齐提升视频理解"
       }
-    ]
+    ],
+    "edgeCount": 1
+  },
+  {
+    "id": "paper:vl_rewardbench_cvpr2025",
+    "slug": "vl_rewardbench_cvpr2025",
+    "short": "VL-RewardBench",
+    "title": "VL-RewardBench",
+    "authors": [
+      "Lei Li",
+      "Yuancheng Wei",
+      "Zhihui Xie",
+      "Xuqing Yang",
+      "Chenxin An",
+      "Tianyu Liu",
+      "Yifan Song",
+      "Peiyi Wang",
+      "Sujian Li",
+      "Bill Yuchen Lin",
+      "Lingpeng Kong",
+      "Qi Liu"
+    ],
+    "year": 2025,
+    "venue": "CVPR 2025",
+    "arxiv": "2411.17451",
+    "tags": [
+      "reward-model",
+      "benchmark",
+      "VL-GenRM",
+      "LLM-as-a-Judge",
+      "multimodal",
+      "evaluation",
+      " hallucination",
+      "RLHF"
+    ],
+    "nodeColor": "#3fb950",
+    "thesis": "<blockquote><p>VL-RewardBench 是 RewardBench 的多模态扩展，专门评测视觉-语言生成式奖励模型（VL-GenRM，即 LVLM-as-a-Judge 范式）。涵盖 General Multimodal / Hallucination Detection / Complex Reasoning 三类任务共 1,250 个高质量样本，评估 16 个模型，揭示视觉感知是核心瓶颈、推理时 scaling 效果因模型而异、critic training 可大幅提升判断能力（+14.7%）三个关键发现。</p></blockquote>",
+    "sections": {
+      "One-line thesis": "<blockquote><p>VL-RewardBench 是 RewardBench 的多模态扩展，专门评测视觉-语言生成式奖励模型（VL-GenRM，即 LVLM-as-a-Judge 范式）。涵盖 General Multimodal / Hallucination Detection / Complex Reasoning 三类任务共 1,250 个高质量样本，评估 16 个模型，揭示视觉感知是核心瓶颈、推理时 scaling 效果因模型而异、critic training 可大幅提升判断能力（+14.7%）三个关键发现。</p></blockquote>",
+      "核心研究问题": "<blockquote><p>当前 VL-GenRM（用 LVLM 作为评判器）的评估方法存在两个问题：AI 标注偏好引入系统性偏差，传统学术基准任务过于简单无法区分快速迭代的 LVLM。本文提出 VL-RewardBround truth 标签的基准。</p></blockquote>\n<hr>\n<h3>当前研究现状</h3>\n<p>在VL RewardBench被提出的时候，最好用的还是llm as judge。然后论文发现如果针对性进行critic训练效果会更好。</p>\n<ol>\n<li>模型在视觉任务失败的比推理任务多</li>\n<li>模型“推理时拓展”的能力提升受scaling影响</li>\n<li>训练VL-genRM评分能够提升模型作为rewardmodel的能力。</li>\n<li>RM是数据飞轮的重要步骤，能够将模型生成的数据进行打分之后调整模型的输出，使得模型不断能够改进自己的输出。</li>\n</ol>\n<h4>先前的VL-GenRMs的工作</h4>\n<ol>\n<li>依赖AI生成的偏好，例如使用GPT4V做注释进行评估</li>\n<li>调整传统的学术benchmark和预先定义好的表现，主要关注于VL对齐任务如图片捕捉。</li>\n</ol>",
+      "实验设计": "<ol>\n<li>真实场景的多模态查询</li>\n<li>视觉幻觉检测任务（细粒度或者Grounding）</li>\n<li>多模态知识和数学推理（兼顾推理）</li>\n</ol>\n<h3>数据集构建</h3>\n<p>VL-RewardBench 从 7 个数据源中精选 1,250 个偏好对，覆盖三类任务：</p>\n<table><thead><tr><th>类别</th><th>数据源</th><th>样本数</th><th>标注方式</th></tr></thead><tbody><tr><td><strong>General Multimodal</strong></td><td>VLFeedback, WildVision</td><td>183</td><td>已有偏好标签 + 小模型集成过滤</td></tr><tr><td><strong>Hallucination Detection</strong></td><td>POVID, RLAIF-V, RLHF-V</td><td>749</td><td>已有偏好标签 + 小模型集成过滤</td></tr><tr><td><strong>Complex Reasoning</strong></td><td>MMMU-Pro, MathVerse</td><td>318</td><td>无偏好标签 → AI 生成候选回答 + 人工验证</td></tr></tbody></table>\n<p><strong>集成过滤策略</strong>：用 LLaVA-1.5-7B、LLaVA-1.6-7B、LLaVA-OneVision-7B-si、Qwen</p>\n<p>2-VL-7B 四个小模型组成集成，识别所有小模型一致判错的样本作为\"挑战集\"。三位研究生标注 + 两位审核，每样本约 65 秒，标注者间 Cohen's κ 平均 0.70。</p>\n<p><strong>错误类别标注</strong>：Existence（存在性，59.3%）、Recognition（识别，20.6%）、Attribute（属性，7.7%）、Counting（计数，6.7%）、Other（5.7%）。</p>\n<h3>评测协议</h3>\n<ul>\n<li>每个偏好对评估 K=5 次，随机化回答顺序消除位置偏差</li>\n<li>多数投票决定最终偏好</li>\n<li>固定解码参数（temperature=0.2, top-p=0.2）</li>\n<li>整体准确率 + 宏平均准确率（缓解任务类别不均衡）</li>\n</ul>\n<hr>",
+      "核心发现": "<h3>Finding 1：视觉感知是核心瓶颈</h3>\n<ul>\n<li>存在性/识别类任务的错误率 > 67%，而推理类任务平均错误率仅 41.8%</li>\n<li>即使是 GPT-4o-mini，在 Existence 任务上错误率仍高达 67.9%；Qwen2-VL-7B 在 Recognition 任务上错误率 80.9%</li>\n<li><strong>结论</strong>：当前 VL-GenRM 的高层推理能力远强于基础视觉感知，首要改进方向是提升视觉感知</li>\n</ul>\n<h3>Finding 2：推理时 scaling 效果因模型而异</h3>\n<ul>\n<li>GPT-4o：K=1→7 时宏平均准确率从 60.3% 提升到 62.7%，传统 scaling 有效</li>\n<li>GPT-4o-mini：K 增加无明显变化</li>\n<li>开源模型 Qwen2-VL-72B、Molmo-72B：K 增加反而性能下降（-1.7 ~ -2.6 pp）</li>\n<li><strong>结论</strong>：文本领域的推理时 scaling 不能直接迁移到 VL-GenRM，需要专门设计</li>\n</ul>\n<h3>Finding 3：Critic Training 大幅提升判断能力</h3>\n<ul>\n<li>LLaVA-OneVision-7B-ov 经过 critic training 后：</li>\n<li>Pointwise critic：+14.7%（52.9%）</li>\n<li>Pairwise critic：+9.2%（47.4%）</li>\n<li>Pointwise 在幻觉子集上更好（+9.1% over pairwise），Pairwise 在推理任务上更好（60.0%）</li>\n<li><strong>结论</strong>：训练 VL-GenRM \"学会判断\"是提升评测能力的可靠路径</li>\n</ul>\n<h3>Downstream Correlation</h3>\n<ul>\n<li>VL-RewardBench 上的表现与 MMMU-Pro 的 Best-of-N 采样提升呈强相关（Pearson r > 0.9 for both Qwen2-VL-7B and LLaVA-OneVision-7B-ov）</li>\n<li>验证了 VL-RewardBench 能预测 RM 在下游对齐任务中的实际效用</li>\n</ul>\n<hr>",
+      "主实验结果": "<table><thead><tr><th>模型</th><th>General</th><th>Hallucination</th><th>Reasoning</th><th>Macro Avg</th></tr></thead><tbody><tr><td>GPT-4o</td><td>49.1</td><td>67.6</td><td>70.5</td><td><strong>62.4</strong></td></tr><tr><td>Gemini-1.5-Pro</td><td>50.8</td><td>72.5</td><td>64.2</td><td><strong>62.5</strong></td></tr><tr><td>Claude-3.5-Sonnet</td><td>43.4</td><td>55.0</td><td>62.3</td><td>53.6</td></tr><tr><td>GPT-4o-mini</td><td>41.7</td><td>34.5</td><td>58.2</td><td>44.8</td></tr><tr><td>Llama-3.2-90B</td><td>42.6</td><td>57.3</td><td>61.7</td><td>53.9</td></tr><tr><td>Qwen2-VL-72B</td><td>32.8</td><td>38.4</td><td>58.0</td><td>43.0</td></tr><tr><td>Qwen2-VL-7B</td><td>19.1</td><td>22.4</td><td>51.1</td><td>33.9</td></tr></tbody></table>\n<ul>\n<li>即使是 GPT-4o 也仅 62.4%，开源 72B+ 模型大多在随机水平附近挣扎</li>\n<li>消融实验：同样任务分布的随机采样对，Gemini 系列可达 95%+，证明集成过滤策略有效识别了真正有挑战性的样本</li>\n</ul>\n<hr>",
+      "与 RewardBench 的关系": "<blockquote><p>VL-RewardBench 是 RewardBench（Lambert et al., NeurIPS 2024）的多模态扩展：两者都采用 prompt-chosen-rejected 三元组格式，通过设计细粒度、可验证的偏好差异来评测 RM。VL-RewardBench 将评测从纯文本扩展到视觉-语言场景，重点关注视觉感知瓶颈（这是纯文本 RM 评测中不存在的维度）。</p></blockquote>",
+      "对你的意义": "<blockquote><p>VL-GenRM 的不靠谱 + critic training 的有效性 → 说明当前直接用 LVLM 做 judge 风险很大，需要用专门训练的评判模型替代。这与 BaseReward 论文的结论一致：需要专门的 multimodal reward model，不能直接拿通用 LVLM 当评判器用。</p></blockquote>"
+    },
+    "connections": [
+      {
+        "type": "extended_by",
+        "target": "RewardBench",
+        "targetId": "paper:rewardbench_2024",
+        "text": "VL-RewardBench 是 RewardBench 的多模态扩展，将 RM 评测从纯文本扩展到视觉-语言场景，沿用 prompt-chosen-rejected 格式，聚焦视觉感知瓶颈这一文本 RM 评测中不存在的维度"
+      }
+    ],
+    "edgeCount": 1
   },
   {
     "id": "paper:rlhf_note",
@@ -817,7 +941,8 @@ var PAPERS = [
         "targetId": "paper:instructgpt_neurips2022",
         "text": "RLHF 笔记系统讲解 InstructGPT 定义的 SFT→RM→PPO 三阶段框架，并延伸至 DPO 的完整数学推导"
       }
-    ]
+    ],
+    "edgeCount": 2
   },
   {
     "id": "paper:song2026_pivot",
@@ -866,7 +991,8 @@ var PAPERS = [
         "targetId": "paper:rlhf_note",
         "text": "PIVOT 建立在 RLHF 和 DPO 的理论基础之上，核心发现的 Finding 2-4 直接验证了 DPO 优化不仅影响 LLM 输出，更反向传播重塑视觉编码器表征"
       }
-    ]
+    ],
+    "edgeCount": 1
   }
 ];
 var EDGES = [
@@ -946,6 +1072,20 @@ var EDGES = [
     "type": "extends",
     "evidence": "Qwen2.5-VL 在 ViT 中引入 Window Attention 机制，其局部窗口自注意力设计受 Swin Transformer 的分层窗口注意力启发，在保持高分辨率处理的同时控制计算复杂度",
     "added": "2026-06-26T00:00:00Z"
+  },
+  {
+    "from": "paper:instructgpt_neurips2022",
+    "to": "paper:rewardbench_2024",
+    "type": "extends",
+    "evidence": "RewardBench 对 InstructGPT RLHF 管线中的 RM 组件进行了首次系统化评测：覆盖 80+ 个 RM（分类器/DPO 隐式/LLM-as-a-Judge），揭示 DPO 泛化不足、参考模型依赖、三类 refusal 行为等关键发现",
+    "added": "2026-06-28T00:00:00Z"
+  },
+  {
+    "from": "paper:rewardbench_2024",
+    "to": "paper:vl_rewardbench_cvpr2025",
+    "type": "extends",
+    "evidence": "VL-RewardBench 是 RewardBench 的多模态扩展，将 RM 评测从纯文本扩展到视觉-语言场景，沿用 prompt-chosen-rejected 格式，聚焦视觉感知瓶颈这一文本 RM 评测中不存在的维度",
+    "added": "2026-06-28T00:00:00Z"
   }
 ];
 

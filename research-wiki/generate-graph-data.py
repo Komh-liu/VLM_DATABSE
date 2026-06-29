@@ -369,6 +369,7 @@ def main():
             p['connections'].append({'type': 'extends', 'target': c['target'], 'targetId': c['targetId'], 'text': c['text']})
         for c in p['_extendedBy']:
             p['connections'].append({'type': 'extended_by', 'target': c['target'], 'targetId': c['targetId'], 'text': c['text']})
+        p['edgeCount'] = len(p['_extends']) + len(p['_extendedBy'])
         del p['_extends']
         del p['_extendedBy']
 

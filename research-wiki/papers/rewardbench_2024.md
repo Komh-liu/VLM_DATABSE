@@ -1,7 +1,8 @@
 ---
 type: paper
 node_id: paper:rewardbench_2024
-title: "RewardBench: Evaluating Reward Models for Language Modeling"
+title: "RewardBench"
+short: "RewardBench"
 authors: ["Nathan Lambert", "Valentina Pyatkin", "Jacob Morrison", "LJ Miranda", "Bill Yuchen Lin", "Khyathi Chandu", "Nouha Dziri", "Sachin Kumar", "Tom Zick", "Yejin Choi", "Noah A. Smith", "Hannaneh Hajishirzi"]
 year: 2024
 venue: "NeurIPS 2024 Track on Datasets and Benchmarks"
@@ -21,12 +22,12 @@ added: 2026-06-26T00:00:00Z
 
 ## 核心研究问题
 
-> 设计了一个评估多种不同架构的奖励模型的框架。同时评估DPO虽然简单但是无法泛化到流行的偏好数据测试集。
+> 设计了一个评估多种不同架构的奖励模型的框架。同时评估DPO虽然简单但是无法泛化到流行的偏好数据测试集。对于之前的数据集，存在两种问题。一种是旧的数据集人类自己也无法达成一致，所以模型的测试天花板存在上限，无法很好的区分模型是否能够很好的解决问题。（对于reward model的benchmark，我们的目的是RM能够完全近似人类偏好，但是人类自己也无法判断更偏好哪个的数据集不能用来测RM）后续的新数据集有训练集但是没有测试集，意味着模型训练完之后不知道是否能够达成一个很好的proxy效果。
 
 ---
+### 两种不同的RM策略
 
 ## 实验设计
-
 ### 数据集构成
 
 RewardBench 的核心是一个包含 prompt-chosen-rejected 三元组的评测集，覆盖四大类别：
@@ -51,18 +52,27 @@ RewardBench 的核心是一个包含 prompt-chosen-rejected 三元组的评测�
 
 ## 核心发现
 
-> 留给你写
+> 特定训练的classifier（拆掉unenbedding层换成投影层），与DPO训练的模型反推偏好概率做对比（DPO后推导出回答的概率-DPO前推导出回答的概率）。发现RM会在更广泛的场景表现比DPO场景好（泛化性？）。基于这个，作者比较了scaling law，测试推理能力，突出三种refusal行为。
+
+- 通过一个框架测试不同架构的奖励模型。并且发布了评估时用的不同数据。
+- RewardBench 对专职RM和DPO模型的评估方式有着本质不同。对于专职RM（传统分类器），评估过程非常直接：将“提示词+回答”输入模型，模型直接输出一个标量分数，RewardBench通过比较两个回答的分数高低来计算准确率。而对于DPO模型，由于它本身并不输出分数，RewardBench需要额外加载训练时所用的参考模型，通过公式 $$r(x, y) = \beta \log(\pi / \pi_{ref}) $$ 反推出一个“隐式奖励分数”，然后再用这个反推的分数去比大小、算准确率。虽然两者最终都能得出一个准确率用于排行榜排名，但分数的来源和质量截然不同。
+- DPO 隐式奖励极度依赖参考模型：论文实验了换一个"错误的" reference model，DPO RM 的性能直接崩到随机水平。
+- 从多个维度展示RM的全景。很少有RM在REWARDBENCH数据集上的分数呈高斯分布，更少的RM以0奖励为中心，且测试的没有一个是中心高斯分布。未来的工作应确定为下游RL训练首选的RM输出分布
+- 展示现有偏好数据集的局限性。 
 
 ### Finding 1：DPO 的 scaling benefit
 
 - 随着 DPO 模型参数量增大（7B → 13B → 70B），其隐式 RM 的质量持续提升
 - 表明 DPO 从更大的 backbone 中受益，不仅在生成能力上，也在 implicit reward modeling 上
 
-### Finding 2：分类器 RM vs 生成式 RM 的差距
+### Finding 2：三类 RM 的分数对比
 
-- 显式训练的**分类器 RM**（如 UltraRM、Starling）在 RewardBench 上整体优于 **DPO 隐式 RM**
-- 但在分布外场景下，差距会缩小甚至反转
-- 生成式 RM（LLM-as-a-Judge 范式）虽然灵活，但在标准化评测中不如分类器 RM 稳定
+RewardBench 评测了三类模型：Sequence Classifier（显式分类器 RM）、DPO 隐式 RM、Generative RM（LLM-as-a-Judge，通过 prompt 生成判断）。
+
+- 显式训练的**分类器 RM**（如 ArmoRM、Starling）在 RewardBench 总分上整体最优
+- **DPO 隐式 RM**在大多数子集上表现尚可，但在 **Prior Sets**（前人偏好数据的 test set，属分布外评测）上分数很低——论文结论是 DPO "fail to generalize" 到这些经典偏好测试集
+- **LLM-as-a-Judge**（如 Meta-Llama-3-70B-Instruct、prometheus-8x7b-v2.0）得分低于分类器 RM（Tab. 8 原文：*"the best classifier RMs outperform the best generative reward models"*）
+- DPO 隐式奖励极度依赖参考模型：换一个 reference model 性能直接崩到随机水平
 
 ### Finding 3：三类 refusal 行为
 
@@ -82,9 +92,6 @@ RM 在面对不安全/有害输入时表现出三种不同的拒绝行为：
 
 RewardBench 通过构建"hard subset"来解决这些问题。
 
-## 局限
-
-> 留给你写
 
 ## 与 VL-RewardBench 的关系
 
@@ -92,4 +99,4 @@ VL-RewardBench（Li et al., CVPR 2025）是 RewardBench 的多模态扩展，将
 
 ## 对你的意义
 
-> 留给你写
+> 了解RM是怎么工作的，对于表现不好的RM有哪些场景的不足。
