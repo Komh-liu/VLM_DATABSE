@@ -289,6 +289,33 @@ def infer_short(slug):
     return ' '.join(w.capitalize() for w in name.split())[:15]
 
 
+def arxiv_to_date(arxiv_id):
+    """Convert arxiv ID (YYMM.NNNNN) → YYYY-MM string. Returns None on failure or null."""
+    if not arxiv_id:
+        return None
+    m = re.match(r'^(\d{2})(\d{2})\.\d+$', str(arxiv_id))
+    if m:
+        return f"20{m.group(1)}-{m.group(2)}"
+    return None
+
+
+def date_to_sort_key(date_str, year):
+    """YYYY-MM → sortable integer (months since 2020-01). Falls back to year if no date."""
+    if date_str:
+        y, m = date_str.split('-')
+        return (int(y) - 2020) * 12 + (int(m) - 1)
+    if year and isinstance(year, int):
+        return (year - 2020) * 12  # default to January of that year
+    return 0
+
+
+def date_idx_to_label(idx):
+    """Convert month index back to YYYY-MM display string."""
+    y = 2020 + idx // 12
+    m = (idx % 12) + 1
+    return f"{y}-{m:02d}"
+
+
 def main():
     papers_dir = WIKI_ROOT / 'papers'
     graph_file = WIKI_ROOT / 'graph' / 'edges.jsonl'
@@ -319,6 +346,7 @@ def main():
             arxiv = ext.get('arxiv')
         if not arxiv:
             arxiv = fm.get('arxiv')
+        arxiv_date = arxiv_to_date(arxiv)
         papers.append({
             'id': fm.get('node_id', f'paper:{slug}'),
             'slug': slug,
@@ -328,6 +356,8 @@ def main():
             'year': fm.get('year'),
             'venue': fm.get('venue', ''),
             'arxiv': arxiv,
+            'arxivDate': arxiv_date,
+            'dateIdx': date_to_sort_key(arxiv_date, fm.get('year')),
             'tags': tags if isinstance(tags, list) else [],
             'nodeColor': slug_color(slug),
             'thesis': render_markdown_to_html(sections.get('One-line thesis', '').strip()),
@@ -335,7 +365,7 @@ def main():
         })
 
 
-    papers.sort(key=lambda p: (p['year'] or 9999, p['slug']))
+    papers.sort(key=lambda p: (p['dateIdx'], p['slug']))
 
     # Load edges
     edges = []
@@ -427,6 +457,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .search-bar input:focus{border-color:var(--accent)}
 .search-bar input::placeholder{color:var(--text4)}
 .search-bar .search-count{font-size:12px;color:var(--text2);white-space:nowrap;min-width:50px}
+.time-filter{display:flex;align-items:center;gap:10px;margin-top:12px;max-width:420px;flex-wrap:wrap}
+.time-filter .time-label{font-size:12px;color:var(--text2);white-space:nowrap;font-weight:500}
+.time-filter input[type=number]{width:72px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text3);outline:none;text-align:center;-moz-appearance:textfield;transition:border-color .2s}
+.time-filter input[type=number]::-webkit-inner-spin-button,.time-filter input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.time-filter input[type=number]:focus{border-color:var(--accent)}
+.time-filter .time-sep{font-size:12px;color:var(--text4)}
 .main{display:flex;min-height:calc(100vh - 160px)}
 .graph-panel{flex:1;position:relative;min-height:500px}
 .graph-panel svg{width:100%;height:100%;display:block}
@@ -495,6 +531,7 @@ text.sub{font-size:11px;fill:var(--text2);font-weight:400;pointer-events:none}
     <div class="subtitle" id="headerSubtitle">Loading...</div>
     <div class="stats-bar" id="statsBar"></div>
     <div class="search-bar"><input type="text" id="searchInput" placeholder="Search papers, authors, tags, content..." autofocus><span class="search-count" id="searchCount"></span></div>
+    <div class="time-filter" id="timeFilter"><span class="time-label">⏱ Year:</span><input type="number" id="yearFrom" min="2020" max="2026" value="2020" placeholder="From"><span class="time-sep">–</span><input type="number" id="yearTo" min="2020" max="2026" value="2026" placeholder="To"><button id="timeResetBtn" style="font-size:11px;padding:2px 8px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);border-radius:4px;cursor:pointer;white-space:nowrap">↺ Reset</button></div>
   </div>
   <button class="theme-btn" id="themeToggle" title="Switch theme"><span class="icon">☀️</span> Light</button>
   <a href="https://papernotes.org/" target="_blank" class="theme-btn" title="PaperNotes 论文笔记平台" style="text-decoration:none">📝 PaperNotes</a>
@@ -545,7 +582,7 @@ function init() {
   PAPERS.forEach(function(p){
     var c=document.createElement('div');c.className='node-card';
     var a=p.authors.length?p.authors[0]+' et al.':'';
-    var m=[a,p.venue,p.year].filter(Boolean).join(' · ')+((p.arxiv)?' · arXiv:'+p.arxiv:'');
+    var m=[a,p.venue,p.arxivDate||p.year].filter(Boolean).join(' · ')+((p.arxiv)?' · arXiv:'+p.arxiv:'');
     var tg=p.tags.map(function(t){return'<span class="tag" style="background:'+p.nodeColor+'18;color:'+p.nodeColor+';border-color:'+p.nodeColor+'33">'+t+'</span>'}).join('');
     var cn=p.connections.map(function(c){return'<div class="'+(c.type==='extends'?'ext':'extby')+'">'+(c.type==='extends'?'→ Extends':'← Extended by')+': '+c.target+'</div>'}).join('');
     c.innerHTML='<h3>'+p.short+': '+p.title.replace(/:/g,':<wbr>')+'</h3><div class="meta">'+m+'</div><div class="thesis">'+p.thesis+'</div><div class="tags">'+tg+'</div><div class="conn">'+cn+'</div>';
@@ -555,8 +592,42 @@ function init() {
 
   // Search
   var si=document.getElementById('searchInput');
-  si.addEventListener('input',function(){searchPapers(this.value)});
-  searchPapers(si.value);
+  si.addEventListener('input',function(){applyFilters()});
+  // Year filter
+  var years=PAPERS.map(function(p){return p.year}).filter(Boolean);
+  window._minYear=years.length?Math.min.apply(null,years):2020;
+  window._maxYear=years.length?Math.max.apply(null,years):2026;
+  var yf=document.getElementById('yearFrom'),yt=document.getElementById('yearTo');
+  yf.min=window._minYear;yf.max=window._maxYear;yf.value=window._minYear;
+  yt.min=window._minYear;yt.max=window._maxYear;yt.value=window._maxYear;
+  yf.addEventListener('input',function(){
+    var fv=parseInt(yf.value)||window._minYear;
+    if(fv<window._minYear)yv=window._minYear;
+    if(parseInt(yt.value)<fv)yt.value=fv;
+    applyFilters();
+  });
+  yf.addEventListener('change',function(){
+    var fv=parseInt(yf.value)||window._minYear;
+    if(fv<window._minYear){yf.value=window._minYear;}
+    if(fv>window._maxYear){yf.value=window._maxYear;}
+    if(parseInt(yt.value)<parseInt(yf.value))yt.value=yf.value;
+    applyFilters();
+  });
+  yt.addEventListener('input',function(){
+    var tv=parseInt(yt.value)||window._maxYear;
+    if(tv>window._maxYear)tv=window._maxYear;
+    if(parseInt(yf.value)>tv)yf.value=tv;
+    applyFilters();
+  });
+  yt.addEventListener('change',function(){
+    var tv=parseInt(yt.value)||window._maxYear;
+    if(tv<window._minYear){yt.value=window._minYear;}
+    if(tv>window._maxYear){yt.value=window._maxYear;}
+    if(parseInt(yf.value)>parseInt(yt.value))yf.value=yt.value;
+    applyFilters();
+  });
+  document.getElementById('timeResetBtn').addEventListener('click',resetTimeFilter);
+  applyFilters();
 
   // D3 force graph
   var el=document.getElementById('graph');
@@ -585,12 +656,13 @@ function init() {
   defs.append('marker').attr('id','arrow').attr('viewBox','0 -5 10 10').attr('refX',48).attr('refY',0).attr('markerWidth',8).attr('markerHeight',8).attr('orient','auto').append('path').attr('d','M0,-4L10,0L0,4').attr('fill','#79c0ff').attr('opacity',0.6);
 
   var link=g.append('g').selectAll('line').data(ld).join('line').attr('stroke','#79c0ff').attr('stroke-width',2.5).attr('stroke-dasharray','6,3').attr('marker-end','url(#arrow)');
+  window._linkSel=link;
   // Edge labels removed — kept minimal
 
   var node=g.append('g').selectAll('g').data(nd).join('g').call(d3.drag().on('start',function(e,d){if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',function(e,d){d.fx=e.x;d.fy=e.y}).on('end',function(e,d){if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
   node.append('circle').attr('r',42).attr('fill',function(d){return d.nodeColor}).attr('opacity',0.85).on('mouseover',function(e,d){showTooltip(e,d)}).on('mouseout',function(){hideTooltip()}).on('click',function(e,d){e.stopPropagation();openDetail(d.id)});
   node.append('text').attr('dy',-6).attr('fill',clText).attr('class','lbl-name').attr('text-anchor','middle').attr('pointer-events','none').text(function(d){return d.short});
-  node.append('text').attr('dy',10).attr('class','sub').attr('fill',clMuted).attr('text-anchor','middle').attr('pointer-events','none').text(function(d){return d.year});
+  node.append('text').attr('dy',10).attr('class','sub').attr('fill',clMuted).attr('text-anchor','middle').attr('pointer-events','none').text(function(d){return d.arxivDate||d.year});
   window._nodeSel=node;
 
 
@@ -602,26 +674,39 @@ function init() {
   window.addEventListener('resize',function(){var cw=el.clientWidth,ch=Math.max(500,window.innerHeight-200);svg.attr('width',cw).attr('height',ch);sim.force('center',d3.forceCenter(cw/2,ch/2)).alpha(0.3).restart()});
 }
 
-function searchPapers(query){
-  var q=query.toLowerCase().trim();
+function applyFilters(){
+  var q=document.getElementById('searchInput').value.toLowerCase().trim();
+  var yFrom=parseInt(document.getElementById('yearFrom').value)||window._minYear;
+  var yTo=parseInt(document.getElementById('yearTo').value)||window._maxYear;
   var cards=document.getElementById('sidePanel').children;
-  var count=PAPERS.length;
+  var count=0;
   var matches={};
-  if(q){
-    count=0;
-    PAPERS.forEach(function(p,i){
-      var haystack=[p.title,p.short,p.authors.join(' '),p.tags.join(' '),p.thesis,p.venue,String(p.year||''),p.slug];
-      var match=haystack.join(' ').toLowerCase().indexOf(q)!==-1;
-      matches[p.id]=match;
-      if(match)count++;
-      if(cards[i])cards[i].style.display=match?'':'none';
-    });
-  }else{PAPERS.forEach(function(p,i){matches[p.id]=true;if(cards[i])cards[i].style.display=''})}
-  document.getElementById('searchCount').textContent=q?(count+'/'+PAPERS.length+' results'):'';
+  PAPERS.forEach(function(p,i){
+    var textMatch=true;
+    if(q){
+      var haystack=[p.title,p.short,p.authors.join(' '),p.tags.join(' '),p.thesis,p.venue,String(p.year||''),p.slug,p.arxivDate||''];
+      textMatch=haystack.join(' ').toLowerCase().indexOf(q)!==-1;
+    }
+    var timeMatch=p.year!=null&&p.year>=yFrom&&p.year<=yTo;
+    var match=textMatch&&timeMatch;
+    matches[p.id]=match;
+    if(match)count++;
+    if(cards[i])cards[i].style.display=match?'':'none';
+  });
+  document.getElementById('searchCount').textContent=q?(count+'/'+PAPERS.length+' results'):(count<PAPERS.length?count+'/'+PAPERS.length+' in range':'');
   if(window._nodeSel){
-    window._nodeSel.select('circle').attr('opacity',function(d){return matches[d.id]?0.85:0.15});
-    window._nodeSel.selectAll('text').attr('opacity',function(d){return matches[d.id]?1:0.15});
+    window._nodeSel.select('circle').attr('opacity',function(d){return matches[d.id]?0.85:0});
+    window._nodeSel.selectAll('text').attr('opacity',function(d){return matches[d.id]?1:0});
+    window._nodeSel.style('pointer-events',function(d){return matches[d.id]?'auto':'none'});
   }
+  if(window._linkSel){
+    window._linkSel.attr('opacity',function(d){return matches[d.source.id]&&matches[d.target.id]?0.6:0});
+  }
+}
+function resetTimeFilter(){
+  document.getElementById('yearFrom').value=window._minYear;
+  document.getElementById('yearTo').value=window._maxYear;
+  applyFilters();
 }
 function showTooltip(e,d){
   var tip=document.getElementById('tooltip');
@@ -629,7 +714,8 @@ function showTooltip(e,d){
   var exBy=d.connections.filter(function(c){return c.type==='extended_by'}).map(function(c){return c.target}).join(', ');
   var a=d.authors.length?d.authors[0]+' et al.':'';
   var ar=d.arxiv?' · arXiv:'+d.arxiv:'';
-  tip.innerHTML='<strong>'+d.short+': '+d.title+'</strong><br>'+a+' · '+d.venue+' '+d.year+ar+'<br><br>'+d.thesis+'<br><br>'+(ex?'→ Extends: '+ex+'<br>':'')+(exBy?'← Extended by: '+exBy:'');
+  var ad=d.arxivDate?' · '+d.arxivDate:'';
+  tip.innerHTML='<strong>'+d.short+': '+d.title+'</strong><br>'+a+' · '+d.venue+' '+d.year+ar+ad+'<br><br>'+d.thesis+'<br><br>'+(ex?'→ Extends: '+ex+'<br>':'')+(exBy?'← Extended by: '+exBy:'');
   var r=document.getElementById('graph').getBoundingClientRect();
   tip.style.left=(e.pageX-r.left+12)+'px';tip.style.top=(e.pageY-r.top-10)+'px';
   tip.classList.add('visible');
@@ -649,7 +735,7 @@ function openDetail(id){
     if(exKeys.indexOf(k)!==-1)return;var v=p.sections[k];if(!v||!v.trim())return;
     sh+='<section><h3>'+k+'</h3>'+v+'</section>'
   });
-  body.innerHTML='<h2>'+p.short+': '+p.title+'</h2><div class="meta-line">'+a+' · '+p.venue+' '+p.year+' '+ar+'</div><section><h3>One-line Thesis</h3><p>'+p.thesis+'</p></section>'+sh+'<section><h3>Knowledge Graph Connections</h3><div class="conn-detail">'+(cn||'(none)')+'</div></section>';
+  body.innerHTML='<h2>'+p.short+': '+p.title+'</h2><div class="meta-line">'+a+' · '+p.venue+' '+(p.arxivDate||p.year)+' '+ar+'</div><section><h3>One-line Thesis</h3><p>'+p.thesis+'</p></section>'+sh+'<section><h3>Knowledge Graph Connections</h3><div class="conn-detail">'+(cn||'(none)')+'</div></section>';
   body.style.scrollBehavior='smooth';
   body.onclick=function(e){
     var a=e.target.closest('a[href^="#sec-"]');

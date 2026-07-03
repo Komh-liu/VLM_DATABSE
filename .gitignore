@@ -1,2 +1,29 @@
-# 忽略 research-wiki 下所有 PDF（文件太大，不推送至远程）
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Experiment: downloaded model weights (re-download on new machines)
+experiment/models/
+
+# Experiment: downloaded datasets (re-download on new machines)
+experiment/data/
+
+# Experiment: trained adapter weights/checkpoints (regenerate)
+experiment/probes/adapters/
+
+# Experiment: generated cached images and training extracts
+experiment/probes/cache_images/
+experiment/probes/lora_train_images/
+experiment/probes/lora_data/
+
+# Experiment: generated probe results from the pilot runs
+experiment/probes/*.jsonl
+
+# Research wiki: large PDFs
 research-wiki/**/*.pdf
+
+# OS
+.DS_Store
+Thumbs.db

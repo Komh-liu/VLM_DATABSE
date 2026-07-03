@@ -1,372 +1,295 @@
-# 多模态 PRM 细粒度 VQA 研究步骤
+# Capability-Decoupled Supervision for Multi-Teacher VLM Distillation
 
-## 研究问题
+**状态:** Go 信号确认 — 先导实验通过，进入完整实验阶段
+**目标:** ICML 2027（Jan 2027 deadline，剩余 ~6.5 个月）
 
-关注点：
+---
 
-> 使用多模态 PRM 对细粒度 VQA 问题做稠密推理监督；同时考虑不同模型的推理过程不同，寻找统一或高度可复用的监督信号。
+## 一、Go / No-Go 结果
 
-建议把问题收窄为：
+### 实验设置
 
-> 多模态细粒度 VQA 中，能否把不同模型各自不同的 CoT，投影到一套统一的“可验证中间状态”上，再用 PRM 学习这些状态的质量？
-
-核心假设：
-
-> Fine-grained multimodal reasoning does not require model-specific chain-of-thought supervision. A reusable PRM can be learned by supervising model-agnostic visual evidence states, where each reasoning step is validated by grounding, operation correctness, and consistency with the final answer.
-
-换句话说，不直接监督“某个模型应该怎么写推理链”，而是监督更抽象、更可复用的中间视觉证据状态。
-
-## 统一监督信号
-
-推荐把自然语言 CoT 转成结构化 evidence tuple：
-
-```text
-(subquestion, visual_evidence, operation, intermediate_answer, validity)
+```
+模型:   Qwen2.5-VL-3B-Instruct
+数据:   A-OKVQA 80 条 + V*Bench 40 条 = 120 条
+教师:   Visual LoRA r8 (V*Bench, 60 steps) + Knowledge LoRA r8 (A-OKVQA, 45 steps)
+指标:   Logit-space KL gradient cosine（content / function / marker / punct / subword / space）
 ```
 
-字段含义：
+### 核心数字
 
-| 字段 | 含义 |
-|---|---|
-| `subquestion` | 当前步骤要解决的子问题 |
-| `visual_evidence` | 支持该步骤的视觉证据，如 bbox、region、OCR 文本、图表元素、对象属性 |
-| `operation` | 当前推理操作，如定位、计数、比较、OCR、属性识别、关系判断、数学计算 |
-| `intermediate_answer` | 当前步骤得到的中间结论 |
-| `validity` | 该步骤是否被图像和上下文支持 |
+```
+Same teacher baseline:
+  content-token gradient cosine: 1.000
+  negative rate:                 0.0%         ← sanity check 通过
 
-示例：
+Different capability, same style (visual vs knowledge):
+  content-token mean cosine:     0.327
+  content negative rate:         30.4%        ← Problem 1 支持
 
-```text
-问题: 左边第二个人手里拿的是什么？
+Same capability, different style:
+  content-token mean cosine:     0.429
+  content negative rate:         25.2%        ← Problem 2 支持
 
-step 1:
-  subquestion: 定位“左边第二个人”
-  visual_evidence: person bbox / region
-  operation: grounding
-  intermediate_answer: 左侧第二个人区域
-  validity: valid
-
-step 2:
-  subquestion: 识别该人物手部附近物体
-  visual_evidence: hand-near object region
-  operation: object recognition
-  intermediate_answer: umbrella
-  validity: valid
-
-step 3:
-  subquestion: 将中间答案映射到最终回答
-  visual_evidence: step 1 + step 2
-  operation: answer synthesis
-  intermediate_answer: umbrella
-  validity: valid
+Non-content KL contribution:
+  different-capability setting:  54.0%        ← Problem 2 支持
+  different-style setting:       52.7%
 ```
 
-这样不同模型可以写完全不同的 CoT，但都能被投影到同一套检查点上。
+### Go Criteria 验证
 
-## 阅读路线
+| 条件 | 要求 | 实际 | 状态 |
+|---|---|---|---|
+| Cross-teacher content cosine 明显低于 same-teacher | mean < 0.5 | 0.327 vs 1.000 | ✅ |
+| Negative cosine rate 显著 > 0 | > 15% | 30.4% | ✅ |
+| 非内容 token 显著贡献 KL | > 50% | 54.0% | ✅ |
+| 结果不是脚本 artifact | same-teacher = 1.000 | 通过 | ✅ |
 
-### 第一阶段：补完多模态 RM 主线
+**结论: GO — 进入完整实验阶段。**
 
-1. `research-wiki/papers/ToRead/r1reward_iclr2026.pdf`
-   - 重点看 `Consistency Reward`。
-   - 关注它如何检查“推理过程是否支持最终判断”。
-   - 思考：这个 consistency reward 是否可以从 pairwise reward 扩展到 step-level PRM？
+---
 
-2. `research-wiki/papers/ToRead/basereward_iclr2026.pdf`
-   - 重点看多模态 RM 的范式比较：Naive-RM、Critic-RM、Generative RM。
-   - 关注它对 backbone、reward head、训练数据、ensemble 的系统消融。
-   - 目标：决定你的 PRM 应该是 classifier-style、critic-style，还是 generative judge-style。
+## 二、我们发现的问题
 
-### 第二阶段：转向 step-level / process reward
+### 2.1 Problem 1: Capability Gradient Conflict
 
-3. `research-wiki/papers/ToRead/r1vl_iccv2025.pdf`
-   - 最贴近当前问题。
-   - 重点看 StepGRPO、StepRAR、StepRVR。
-   - 关注它如何定义“关键步骤软匹配”和“推理逻辑一致性”。
-   - 核心问题：这些 step reward 是否依赖某个模型的 CoT 风格？
+不同能力 teacher（visual vs. knowledge）在相同 prompt/style 下，对 content token 产生显著不一致甚至相反的梯度。
 
-4. `research-wiki/papers/ToRead/opd_rethinking_2026.pdf`
-   - 重点看 teacher log-prob 作为 token-level dense reward 的解释。
-   - 关注 Thinking-Pattern Consistency。
-   - 这篇对应你的关键风险：不同模型推理模式不一致时，稠密监督可能无法迁移。
+```
+Same teacher:       content cosine = 1.000, negative rate = 0.0%
+Visual vs Knowledge: content cosine = 0.327, negative rate = 30.4%
+Visual concise vs descriptive: content cosine = 0.429, negative rate = 25.2%
+```
 
-### 第三阶段：补视觉证据和可验证 reward
+30.4% 的 content token 上，visual teacher 和 knowledge teacher 在告诉 student 同时增加和减少同一个 token 的概率。
 
-5. `research-wiki/papers/ToRead/perception_r1_iclr2026.pdf`
-   - 重点看 visual perception reward。
-   - 关注它如何判断生成内容是否与视觉标注一致。
-   - 目标：避免 PRM 退化成只看文本的 judge。
+### 2.2 Problem 2: Style Dominance in Token-Level KL
 
-6. `research-wiki/papers/ToRead/visualrft_iccv2025.pdf`
-   - 重点看任务专属可验证 reward，如 IoU、分类正确性、定位正确性。
-   - 目标：学习如何把“视觉感知步骤”变成可计算 reward。
+Token-level KL 将 >50% 的监督信号分配给非内容 token（功能词、标点、格式标记）。
 
-7. `research-wiki/papers/ToRead/grit_neurips2025.pdf`
-   - 重点看自然语言和 bounding box 坐标交替生成。
-   - 目标：学习如何把推理链与显式视觉 grounding 绑定。
+```
+内容 token KL 贡献:   46.0%
+非内容 token KL 贡献:  54.0%（其中功能词 38.2%、标点 12.1%、空格 2.3%）
+```
 
-### 第四阶段：补 RL 算法稳定性
+这意味着 token-level KL 的大部分优化努力花在了学习教师措辞习惯上，而非传递能力。
 
-8. `research-wiki/papers/ToRead/deepseekmath_grpo_2024.pdf`
-   - 理解 GRPO 的组内归一化和 critic-free advantage。
+### 2.3 两个问题独立但叠加
 
-9. `research-wiki/papers/ToRead/dapo_neurips2025.pdf`
-   - 重点看 token-level policy gradient loss、动态采样、长度惩罚。
+- Problem 2（风格主导）在单教师 setting 中已存在 → StepOPSD 等 preference 方法部分解决
+- Problem 1（梯度冲突）仅在多教师 setting 中存在 → 现有 MOPD 变体均未触及
+- 当两个问题同时存在（多教师 + token-level KL），它们相互放大：风格噪声为梯度冲突提供了更多"战场"
 
-10. `research-wiki/papers/ToRead/gspo_qwen_2025.pdf`
-    - 重点看 sequence-level ratio 如何降低 token-level 噪声。
+---
 
-11. `research-wiki/papers/ToRead/noisygrpo_neurips2025.pdf`
-    - 重点看视觉输入噪声注入是否能提高多样性和鲁棒性。
+## 三、解决方案
 
-## 实验路线
+### Capability-Decoupled Supervision
 
-### E0：问题和数据定义
+1. **能力 Segment 切分:** 将 student rollout 按能力切分为 [VISUAL] / [KNOWLEDGE] / [REASON] segment
+2. **教师隔离:** 每个 teacher 只监督/评价自己对应的 segment（解决 Problem 1）
+3. **偏好排序替代 KL:** Segment-level preference ranking 替代 token-level distribution matching（解决 Problem 2）
 
-目标：构建一个小而清晰的细粒度 VQA 验证集。
+```
+MOPD（冲突）:
+  Visual Teacher ────→ [tok1][tok2]...[tokN]  ← 全局 token-level KL
+  Knowledge Teacher ─→ [tok1][tok2]...[tokN]  ← 在 MIXED token 上冲突
 
-数据建议：
+Ours（解耦）:
+  Visual Teacher ────→ [VISUAL segment]        ← 只看视觉
+  Knowledge Teacher ─→ [KNOWLEDGE segment]     ← 只看知识
+  → 每个教师只在自己能力域内提供 segment-level 偏好排序
+```
 
-| 类型 | 数据集候选 | 关注能力 |
+---
+
+## 四、当前状态与已完成工作
+
+### 已完成 ✅
+
+- [x] 环境搭建（Qwen2.5-VL-3B, RTX 5080, WSL2）
+- [x] Prompt-only probe（验证 pipeline 可行）
+- [x] LoRA teacher 训练（visual_lora_r8 + knowledge_lora_r8）
+- [x] LoRA teacher conflict probe（120 样本）
+- [x] Same-teacher sanity baseline（cosine = 1.000）
+- [x] Same-capability different-style 对照
+- [x] Token-type KL contribution 分解
+- [x] Go/No-Go 判断 → GO
+
+### 关键限制（pilot → paper 需要升级）
+
+```
+当前 pilot:
+  - 120 样本（A-OKVQA 80 + V*Bench 40）
+  - 轻量 LoRA teacher（60/45 steps）
+  - Logit-space gradient proxy
+  - Token 分类用启发式规则
+  - 单模型（Qwen2.5-VL-3B）
+
+论文需要:
+  - 扩展 benchmark（OK-VQA, InfoSeek, Encyclopedic-VQA）
+  - 更强 teacher（GRPO trained, 独立能力评测）
+  - LoRA 参数梯度 cosine（不只是 logit-space proxy）
+  - 人工标注 token 分类验证
+  - 至少 2 个 model family
+```
+
+---
+
+## 五、ICML 2027 路线图
+
+**Deadline:** ~2027 年 1 月中（剩余 ~6.5 个月）
+
+### Phase 1: 实验升级（Jul-Aug 2026, ~6 周）
+
+**1A. 训练更强 Teacher**
+```
+- Visual Teacher: GRPO trained on TallyQA (counting) + V*Bench (visual search)
+- Knowledge Teacher: GRPO trained on OK-VQA + A-OKVQA
+- 独立能力评测确认 teacher 确实有能力偏置
+- 目标: 比当前 LoRA r8/60step teacher 明显更强的能力特化
+```
+
+**1B. 扩展到更多 Benchmark**
+```
+当前: A-OKVQA (80) + V*Bench (40) = 120 条
+目标: A-OKVQA + V*Bench + OK-VQA + InfoSeek + Encyclopedic-VQA = 500+ 条
+```
+
+**1C. 参数梯度 Cosine**
+```
+当前: Logit-space KL gradient proxy
+目标: LoRA 参数梯度 cosine（更接近真实训练中的冲突度量）
+```
+
+**1D. 实现方法 Baselines**
+```
+必须实现并对比:
+  - Vanilla MOPD (token-level KL, 全局)
+  - Content-masked KL (过滤非内容 token 的 KL)
+  - Segment-isolated KL (教师只看自己 segment，但仍用 KL)
+  - StepOPSD-at-VLM (单教师 preference，无 capability routing)
+  - fDPO-style (2-dim single-judge segment DPO)
+  - Drive-KD-AGP-at-VLM (gradient projection baseline)
+  - Ours: Capability-Decoupled Supervision (segment routing + preference)
+```
+
+### Phase 2: 主实验（Sep-Oct 2026, ~8 周）
+
+```
+2A. 单能力域验证 (Counting, Visual Grounding)
+  → 验证: 单教师 setting 中 segment-preference ≥ token-level KL
+  → 预期: 接近或略优（风格主导被解决，但无冲突问题所以差距不大）
+
+2B. 多能力域主实验 (OK-VQA, A-OKVQA, InfoSeek)
+  → 验证: 多教师 setting 中 Ours >> Token-KL MOPD
+  → 关键: Ours >> StepOPSD-at-VLM（证明多教师隔离是必要的）
+  → 关键: Ours >> Drive-KD-AGP（证明 decoupling > projection）
+
+2C. Ablation
+  → 去掉 capability routing（所有 teacher 监督所有 segment via preference）
+  → Segment-level KL 替代 preference
+  → 单 teacher segment-preference（去掉 multi-teacher）
+  → 维度数: 1 vs 2 vs 3 capability dimensions
+```
+
+### Phase 3: 理论与写作（Nov-Dec 2026, ~8 周）
+
+**3A. 轻量理论组件（ICML 必需）**
+```
+Lemma 1 (Token-Level KL Decomposition):
+  KL loss 分解为 content-token contribution 和 non-content contribution。
+  在标准 VLM 蒸馏 setting 中，non-content contribution > 0.5（实验支持）。
+
+Lemma 2 (Capability Gradient Divergence):
+  不同能力 teacher 在 content token 上的梯度 cosine 期望
+  显著低于同能力 teacher 的梯度 cosine 期望。
+
+Proposition 1 (Capability Decoupling Reduces Conflict):
+  将监督按能力段解耦后，content token 上的期望梯度 cosine
+  上界提高（冲突降低）。
+```
+
+**3B. 论文写作**
+```
+- Intro: 双问题发现 + 三张 smoking gun Figure
+- Related Work: MOPD variants + Drive-KD + IGA + StepOPSD + fDPO
+- Method: Capability-Decoupled Supervision
+- Experiments: Phase 1 + Phase 2 + Ablation
+- Analysis: 梯度冲突的 token 级分析 + KL composition
+```
+
+**3C. 投稿**
+```
+Deadline: ~2027 年 1 月中
+备选: 如果 ICML 被拒 → NeurIPS 2027 (May 2027)
+```
+
+---
+
+## 六、差异化定位
+
+### 与最接近 Prior Work 的关系
+
+| Prior Work | 做了什么 | 我们与它的区别 |
 |---|---|---|
-| 细粒度视觉问答 | GQA / VQAv2 subset | 对象、属性、关系、计数 |
-| OCR / 文档问答 | TextVQA / DocVQA | 文字定位和读取 |
-| 图表 / 数学视觉推理 | ChartQA / MathVista | 图表元素、数值比较、计算 |
+| **Drive-KD** (2025) | VLM 多教师蒸馏中识别跨能力梯度冲突 + AGP | 我们研究 visual-knowledge 冲突（而非 perception-reasoning-planning）；我们用 supervision decoupling（而非 gradient projection） |
+| **IGA** (Jun 2026) | 蒸馏中梯度冲突检测 + SVD masking | text-only 跨域（同能力）vs. VLM 跨能力；gradient masking vs. supervision decoupling |
+| **StepOPSD** (May 2026) | Preference 替代 KL（单教师 text agent） | 仅解决 Problem 2（风格主导），不触及 Problem 1（多教师冲突） |
+| **fDPO** (NeurIPS 2025) | VLM segment-level DPO（2 维，单偏好模型） | 单偏好模型 vs. 多教师能力特化 judges；2 维 vs. 3 维能力域 |
+| **MoVE-KD** (CVPR 2025) | Multi-visual-encoder KD + MoLE 冲突缓解 | Visual encoder 蒸馏 vs. answer generation 监督解耦 |
+| **CaMOPD** (May 2026) | 识别 recovery-preservation counteraction | 保留 token-level KL；training schedule 方案 vs. 监督信号类型改变 |
 
-最小规模：
+### 核心差异化
 
-- 每类 100-300 个问题即可先跑通。
-- 每题保留 image、question、gold answer、question type。
-- 优先挑需要多步视觉证据的问题，不要只选一眼能答的问题。
+1. **发现驱动而非方法驱动:** 我们不是 "提出了一个新方法"，而是 "发现了两个被忽视的问题，解法是问题分析的自然推论"
+2. **Token 级实证测量:** 30.4% negative cosine + 54% non-content KL — 这些具体数字在文献中不存在
+3. **双问题框架:** 两个独立但叠加的问题各自需要一个解决机制 — 这是 principled design，不是 A+B+C 组合
 
-### E1：生成多模型推理轨迹
+---
 
-目标：观察不同模型的 CoT 风格差异。
+## 七、风险与应对
 
-候选模型：
+| 风险 | 概率 | 影响 | 应对 |
+|---|---|---|---|
+| 参数梯度 cosine 不显著 | 低 | 高 | Logit-space proxy 已经显著；参数梯度通常是 logit 梯度的线性变换，预期保持 |
+| GRPO teacher 冲突弱于 LoRA teacher | 中 | 高 | GRPO teacher 的能力偏置更强 → 预期冲突更明显。如果反而弱，分析原因 |
+| 方法未显著优于 MOPD baseline | 中 | 致命 | Phase 1 先做单能力域（低风险验证），如果单能力域就不 work，调整方法 |
+| Drive-KD/IGA baseline 与我们持平 | 中 | 中 | 即使持平，如果我们的方法更简单/更可解释/更低计算，仍有 contribution |
+| ICML 审稿人认为无理论不够 | 中 | 中 | Lemma 1-3 提供轻量形式化；如果仍不够 → NeurIPS（对理论要求更低） |
+| 时间不够完成所有实验 | 中 | 高 | ICML 被拒 → NeurIPS 2027（+4 个月缓冲）。ICML 是第一枪，不是唯一一枪 |
 
-- Qwen2.5-VL-7B
-- InternVL 系列
-- LLaVA 系列
-- Qwen3-VL，如果本地或 API 可用
+---
 
-每题采样：
+## 八、现在需要做的事（优先级排序）
 
-- 每个模型生成 4-8 条 reasoning trajectory。
-- 保留最终答案、完整 CoT、采样温度、模型名。
+### 本周启动
 
-记录格式：
+1. **训练 GRPO teacher（替换 LoRA teacher）**
+   - Visual: TallyQA counting + V*Bench visual search
+   - Knowledge: OK-VQA + A-OKVQA
+   - 独立能力评测确认 teacher 能力偏置
+   - 预期耗时: 2-3 天（含评测）
 
-```json
-{
-  "id": "...",
-  "image": "...",
-  "question": "...",
-  "gold_answer": "...",
-  "model": "qwen2.5-vl-7b",
-  "trajectory_id": 0,
-  "reasoning": "...",
-  "final_answer": "...",
-  "is_final_correct": true
-}
-```
+2. **扩展 benchmark 样本**
+   - 从当前 120 条扩展到 500+ 条
+   - 加入 OK-VQA, InfoSeek, Encyclopedic-VQA
+   - 预期耗时: 1-2 天（数据下载 + 预处理）
 
-### E2：把 CoT 投影成 evidence tuple
+### 本月完成
 
-目标：从模型私有 CoT 中抽取统一中间状态。
+3. **参数梯度 cosine 测量**
+   - 从 logit-space proxy 升级到 LoRA 参数梯度
+   - 用 GRPO teacher 复现（并预期强化）先导实验结果
+   - 预期耗时: 2-3 天
 
-方法：
+4. **实现方法 baselines**
+   - Vanilla MOPD, Content-masked KL, Segment-isolated KL
+   - StepOPSD-at-VLM, fDPO-style, Drive-KD-AGP-at-VLM
+   - 预期耗时: 2-3 周
 
-- 用强 VLM / LLM judge 把自然语言 CoT 解析成 evidence tuple。
-- 对每个 step 标注 `operation`、`visual_evidence`、`intermediate_answer`。
-- 对每个 step 标注 `validity`。
+### 下月启动
 
-优先支持的 operation：
-
-| operation | 示例 |
-|---|---|
-| `grounding` | 定位某个对象、人物、区域 |
-| `ocr` | 读取图中文字 |
-| `attribute` | 判断颜色、形状、材质、状态 |
-| `counting` | 计数 |
-| `spatial_relation` | 左右、上下、遮挡、包含 |
-| `comparison` | 大小、数量、数值比较 |
-| `calculation` | 基于图表或视觉数值计算 |
-| `answer_synthesis` | 从中间结论合成最终答案 |
-
-### E3：训练 step-level PRM
-
-目标：训练一个判断单步推理是否有效的 PRM。
-
-输入：
-
-```text
-image + question + previous_steps + current_step
-```
-
-输出：
-
-```text
-valid / invalid
-```
-
-或：
-
-```text
-step_reward in [0, 1]
-```
-
-训练目标：
-
-- Binary classification：预测 step validity。
-- Ranking loss：同一问题下 valid step 分数高于 invalid step。
-- 可选：按 operation 做 multi-task head，观察不同视觉操作的难度。
-
-### E4：PRM rerank / rejection sampling
-
-目标：验证 step-level PRM 是否提升最终 VQA。
-
-流程：
-
-1. 对每题生成 K 条推理轨迹。
-2. PRM 给每条轨迹的每个 step 打分。
-3. 聚合为 trajectory score。
-4. 选择最高分轨迹的 final answer。
-
-聚合函数候选：
-
-```text
-mean(step_scores)
-min(step_scores)
-mean(step_scores) * final_consistency_score
-weighted_sum(step_scores by operation)
-```
-
-对比 baseline：
-
-| 方法 | 含义 |
-|---|---|
-| Greedy | 模型单次输出 |
-| Majority Vote | 多条轨迹最终答案投票 |
-| Outcome RM | 只看最终答案或最终解释打分 |
-| Text-only PRM | 不输入图像，只判断文本推理 |
-| Multimodal PRM | 输入图像，判断 step validity |
-
-关键 baseline 与目的：
-
-| Baseline | 目的 |
-|---|---|
-| Existing PRM / MRM | 检验现有好用的 PRM/MRM 直接作为外部 reward，能否迁移到多个架构 VLM 的 rerank 或后训练 |
-| Outcome Reward | 检验只监督最终答案是否足够，作为 step-level PRM 的下界对照 |
-| Model-specific PRM | 每个模型用自己的 CoT / rollout 训练 PRM，检验模型专属过程监督的上限 |
-| Text-only PRM | 去掉图像输入，检查提升是否只是来自语言流畅性和 CoT 风格 |
-| Unified Evidence PRM | 使用统一 evidence tuple 训练，检验模型无关的视觉证据监督是否更可复用 |
-| Oracle / Rule Reward | 在可验证任务上使用 GT、IoU、OCR match、答案匹配等规则奖励，提供可达到的强参考 |
-
-### E5：跨模型迁移实验
-
-目标：验证监督信号是否统一、可复用。
-
-核心设置：
-
-| 训练 PRM 数据 | 测试 rollouts | 目的 |
-|---|---|---|
-| Qwen2.5-VL | Qwen2.5-VL | 同模型上限 |
-| Qwen2.5-VL | InternVL / LLaVA | 跨模型迁移 |
-| 多模型混合 | 单个未见模型 | 泛化能力 |
-| 原始 CoT step | 未见模型 | 检查 CoT 风格过拟合 |
-| evidence tuple | 未见模型 | 检查统一表示是否更稳 |
-
-关键指标：
-
-- Final VQA accuracy
-- PRM step validity accuracy
-- PRM-AUC / pairwise ranking accuracy
-- Cross-model performance drop
-- Text-only vs multimodal gap
-- 不同 operation 上的 PRM 准确率
-
-### E6：消融实验
-
-建议消融：
-
-| 消融 | 要回答的问题 |
-|---|---|
-| 去掉图像输入 | PRM 是否真的使用视觉信息？ |
-| 去掉 visual evidence 字段 | 结构化证据是否必要？ |
-| 只用最终答案正确性训练 | step-level 监督是否优于 outcome-only？ |
-| 用自然语言 CoT step 替代 evidence tuple | 统一表示是否降低模型风格依赖？ |
-| 单模型训练 vs 多模型训练 | 多模型数据是否提高可复用性？ |
-| mean 聚合 vs min 聚合 | PRM 应该奖励整体质量还是惩罚任一坏步骤？ |
-
-## 最小可行版本
-
-第一轮不要直接做完整 RL。先做 PRM rerank。
-
-MVP：
-
-1. 选 300-900 个细粒度 VQA 样本。
-2. 用 Qwen2.5-VL-7B 每题生成 4 条 CoT。
-3. 用强 judge 把 CoT 转成 evidence tuple。
-4. 标注每个 tuple 的 validity。
-5. 训练一个小型 multimodal PRM。
-6. 用 PRM rerank K 条候选轨迹。
-7. 对比 greedy、majority vote、outcome RM、text-only PRM。
-8. 换 InternVL / LLaVA rollouts 测跨模型迁移。
-
-若 MVP 成立，再进入 RL：
-
-- 用 PRM 作为 dense reward。
-- 做 StepGRPO 或 PRM-guided GRPO。
-- 比较 outcome reward、step reward、mixed reward。
-
-## 预期论文贡献点
-
-可能贡献：
-
-1. 提出 model-agnostic visual evidence state，作为多模态 PRM 的统一监督表示。
-2. 证明 evidence-level PRM 比 raw CoT PRM 更能跨模型迁移。
-3. 证明 step-level multimodal PRM 比 outcome-only reward 更适合细粒度 VQA。
-4. 给出不同视觉推理 operation 的 PRM 难度分析。
-5. 将 PRM 用于 reranking 或 RL，提升细粒度 VQA 最终准确率。
-
-## 风险与检查点
-
-| 风险 | 检查方法 | 应对 |
-|---|---|---|
-| Judge 解析 CoT 不稳定 | 人工抽查 50-100 条 | 固定 schema，加入 few-shot 示例 |
-| PRM 只学到文本流畅性 | text-only vs multimodal 对比 | 强制加入视觉证据字段和 hard negatives |
-| 跨模型迁移差 | train/test 按模型拆分 | 使用 evidence tuple，混合多模型数据 |
-| Step validity 标注噪声大 | 计算 judge 一致性 | 多 judge 投票或只保留高置信样本 |
-| rerank 提升来自答案投票而非 PRM | 对比 majority vote | 控制 K 和候选集合 |
-
-## 实验记录模板
-
-```markdown
-## Experiment: YYYY-MM-DD short_name
-
-### Goal
-
-### Data
-- Dataset:
-- Sample size:
-- Question types:
-
-### Models
-- Generator:
-- Judge:
-- PRM backbone:
-
-### Training
-- Input format:
-- Objective:
-- Hyperparameters:
-
-### Results
-| Method | Accuracy | Step Acc | Cross-model Drop | Notes |
-|---|---:|---:|---:|---|
-
-### Findings
-
-### Next
-```
+5. **Phase 1 单能力域实验**（Counting）
+6. **Phase 2 多能力域主实验**（OK-VQA, A-OKVQA, InfoSeek）
+7. **开始写理论部分**（Lemma 1-3 draft）

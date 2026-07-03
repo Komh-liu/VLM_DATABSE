@@ -14,7 +14,7 @@
 | 7 | `noisygrpo_neurips2025.pdf` | NeurIPS 2025 | NoisyGRPO | ⬜ | 两项技术创新：(1) 对视觉输入注入高斯噪声以增强探索多样性；(2) 以噪声水平为先验、轨迹 reward 为似然的贝叶斯 advantage 估计。在小模型（Qwen2.5-VL-3B）上展现出更强的泛化和鲁棒性 |
 | 8 | `perception_r1_iclr2026.pdf` | ICLR 2026 | Perception R1 | ⬜ | 指出标准 RLVR 仅优化答案正确性、无法提升视觉感知能力的问题（McNemar 检验验证）。引入视觉感知 reward：用 judge LLM 评估模型生成内容与视觉标注的一致性，仅需 1,442 条训练数据即超越需要 200K 数据的 Vision-R1 |
 | 9 | `qoqmed_neurips2025.pdf` | NeurIPS 2025 Oral | QOQMed | ⬜ | 首个开放通用临床基础模型，跨医学图像 + 心电图 + 文本联合推理。提出 Domain-aware Relative Policy Optimization (DRPO)：按领域稀有度层级缩放 reward。macro-F1 超 GRPO 等 critic-free 方法 43%，IoU 超开源模型 10×，逼近 o4-mini |
-| 10 | `r1reward_iclr2026.pdf` | ICLR 2026 | R1 Reward | ⬜ | 将 reward modeling 重新定义为 rule-based RL 任务，提出 StableReinforce 算法解决三类训练不稳定：(1) advantage 为负时 refined clipping；(2) 低方差 batch 的鲁棒归一化；(3) 基于 MLLM referee 的一致性 reward。VL Reward-Bench 提升 8.4%，Multimodal Reward Bench 提升 14.3% |
+| 10 | `r1reward_iclr2026.pdf` | ICLR 2026 | R1 Reward | ✅ | 将 reward modeling 重新定义为 rule-based RL 任务，提出 StableReinforce 算法解决三类训练不稳定：(1) advantage 为负时 refined clipping；(2) 低方差 batch 的鲁棒归一化；(3) 基于 MLLM referee 的一致性 reward。VL Reward-Bench 提升 8.4%，Multimodal Reward Bench 提升 14.3% |
 | 11 | `r1vl_iccv2025.pdf` | ICCV 2025 | R1VL | ⬜ | 提出 StepGRPO（Step-wise Group Relative Policy Optimization），用两个规则化 step 级 reward——StepRAR（关键步骤软匹配）和 StepRVR（推理逻辑一致性）——替代仅看最终答案的粗粒度 reward。在 8 个多模态推理 benchmark 上展现强逐步推理能力 |
 | 12 | `srpo_neurips2025.pdf` | NeurIPS 2025 | SRPO | ⬜ | 提出两阶段 reflection-aware RL 框架：先 GRPO 增强推理，再引入自我反思机制。基于 Qwen2.5-VL（7B/32B），在 MathVista、MathVision、MathVerse、MMMU-Pro 上全面超越已有方法 |
 | 13 | `survey_perception_reason_2025.pdf` | 2025 | Survey: Perception & Reasoning | ⬜ | 91 页大型综述，覆盖 550+ 篇论文。按四阶段发展路线组织：感知驱动模块化推理 → 语言中心短推理（MCoT）→ 语言中心长推理（MM-O1/MM-R1）→ 原生大多模态推理模型（N-LMRM），是理解整个领域的最佳入口 |
@@ -27,10 +27,10 @@
 | 20 | `dapo_neurips2025.pdf` | NeurIPS 2025 | DAPO | ⬜ | 字节跳动 & 清华 AIR 联合发布的开源大规模 LLM RL 系统。四项关键技巧修复 GRPO：(1) Clip-Higher 防止熵崩溃；(2) 动态采样过滤低分 rollout；(3) Token 级 policy gradient loss 对长 CoT 至关重要；(4) 超长惩罚 shaping 减少 reward 噪声。Qwen2.5-32B 达 AIME 50 分，超越 DeepSeek-R1-Zero-Qwen-32B（47 分），训练步数仅其 50% |
 | 21 | `gspo_qwen_2025.pdf` | 2025.07 | GSPO | ⬜ | 通义千问团队提出 Group Sequence Policy Optimization。核心修正：将 GRPO 的 token 级 importance ratio 替换为**序列级**（几何平均 + 长度归一化），从理论上修复了 GRPO 中 importance sampling 误用导致的高方差噪声和不可逆模型崩溃。MoE 训练天然稳定，无需 Routing Replay。Qwen3 系列的关键训练算法 |
 | 22 | `opd_rethinking_2026.pdf` | ICML 2026 Workshop | OPD | ⬜ | 清华 THUNLP 系统性研究 On-Policy Distillation 机制。两大成功条件：(1) Thinking-Pattern Consistency——师生模型必须共享思维模式而非仅看分数；(2) New Knowledge Requirement——教师必须提供学生未见过的能力。发现 OPD 本质是 teacher log-prob 作为 token 级稠密 reward 替代 RL 的稀疏信号，但随着轨迹变长性能退化
-| 23 | `instructgpt_neurips2022.pdf` | NeurIPS 2022 | InstructGPT | ⬜ | **RLHF 开山之作**。定义 SFT → Reward Model → PPO 三阶段范式，reward model 作为人类偏好代理（proxy）的核心角色由此确立。理解 reward model 在 RLHF 管线中的位置和 reward hacking 问题的根源 |
-| 24 | `rewardbench_2024.pdf` | 2024 | RewardBench | ⬜ | 当前最通用的 RM 评测基准，定义了评估 reward model 的标准协议。VL-RewardBench（多模态版本）是其扩展。理解 RM 评估维度（overoptimization、偏好一致性等）的最佳入口 |
+| 23 | `instructgpt_neurips2022.pdf` | NeurIPS 2022 | InstructGPT | ✅ | **RLHF 开山之作**。定义 SFT → Reward Model → PPO 三阶段范式，reward model 作为人类偏好代理（proxy）的核心角色由此确立。理解 reward model 在 RLHF 管线中的位置和 reward hacking 问题的根源 |
+| 24 | `rewardbench_2024.pdf` | 2024 | RewardBench | ✅ | 当前最通用的 RM 评测基准，定义了评估 reward model 的标准协议。VL-RewardBench（多模态版本）是其扩展。理解 RM 评估维度（overoptimization、偏好一致性等）的最佳入口 |
 | 25 | `secrets_ppo_2024.pdf` | 2024 | Secrets of PPO | ⬜ | 实操层面深入讲解 RM 训练的细节：reward model overoptimization、数据质量影响、训练不稳定性等。StableReinforce 解决的多项问题在这里有先行讨论 |
-| 26 | `vl_rewardbench_cvpr2025.pdf` | CVPR 2025 | VL-RewardBench | ⬜ | 多模态 RM 的标准化评测基准（1250 偏好对），涵盖 General（14.7%）、Hallucination Detection（59.9%）、Complex Reasoning（25.4%）三类任务。性能与下游 Best-of-N 采样的 Pearson r > 0.9 |
+| 26 | `vl_rewardbench_cvpr2025.pdf` | CVPR 2025 | VL-RewardBench | ✅ | 多模态 RM 的标准化评测基准（1250 偏好对），涵盖 General（14.7%）、Hallucination Detection（59.9%）、Complex Reasoning（25.4%）三类任务。性能与下游 Best-of-N 采样的 Pearson r > 0.9 |
 | 27 | `qwenvl_2023.pdf` | arXiv 2023 | Qwen-VL | ⬜ | 第一代 Qwen 视觉语言模型。Qwen-7B + ViT-bigG + 单层交叉注意力。三阶段训练（预训练→多任务→指令微调）。支持视觉定位（RefCOCO 75.9% → Chat 86.3%）、text reading（TextVQA 61.5%）和通用 VQA（VQAv2 78.8%），同规模通用模型 SOTA |
 | 28 | `qwen2vl_2024.pdf` | arXiv 2024 | Qwen2-VL | ⬜ | 第二代 Qwen 视觉模型。Naive Dynamic Resolution（原生比例切图），M-RoPE（时间+高度+宽度三维位置编码），统一图像与视频处理。2B/8B/72B 三档。72B 在 ChartQA（88.2）、DocVQA（95.5）上超越 GPT-4o |
 | 29 | `qwen2_5vl_2025.pdf` | arXiv 2025 | Qwen2.5-VL | ⬜ | 第三代旗舰。从零训练原生动态分辨率 ViT + Window Attention，绝对时间编码支持小时级视频定位。新增计算机/手机操控 agent 能力。文档图表理解全面超越 GPT-4o（DocVQA 96.5、ChartQA 90.1、InfoVQA 84.3）|
@@ -83,4 +83,53 @@ Foundation（Reward Model 基础）
   26.VL-RewardBench (多模态 RM 评测)
   10.R1-Reward (用 RL 训练显式 MRM)
   1.BaseReward (MRM 系统化构建指南)
+═══════════════════════════════════════════════════════════
+多模态 PRM 新主线（从 outcome reward 转向 process reward）
+  Text PRM foundation
+    Let's Verify Step by Step (PRM / first-error / test-time search，待下载)
+    Math-Shepherd (无人工 step label 的 PRM 数据构造，待下载)
+    │
+    ▼
+  Multimodal PRM direct baselines
+    VisualPRM (VisualPRM400K + VisualProcessBench，多模态 PRM 直接 baseline，待下载)
+    DreamPRM (domain-reweighted multimodal PRM，待下载)
+    GM-PRM (generative/corrective multimodal PRM，待下载)
+    │
+    ▼
+  Step-level multimodal reward / RL
+    11.R1VL (StepGRPO：StepRAR + StepRVR)
+    8.Perception-R1 (视觉感知 reward)
+    15.VisualRFT (可验证视觉 reward)
+    3.GRIT (语言推理 + bbox grounding)
+    │
+    ▼
+  对照与下游使用
+    1.BaseReward (强 outcome-level MRM 对照)
+    10.R1-Reward (CoT generative judge 对照)
+    22.OPD (token-level dense teacher signal)
+    19.GRPO / 20.DAPO / 21.GSPO (若 PRM 用于 RL)
+```
+
+详见：`research-wiki/papers/ToRead/prm_reading.md`
+
+---
+
+## 新主线：世界知识 VQA × Multi-Teacher Distillation
+
+新增阅读路线：
+
+`research-wiki/papers/ToRead/world_knowledge_vqa_mopd_reading.md`
+
+定位：
+
+```text
+面向 OK-VQA / A-OKVQA / InfoSeek / Encyclopedic-VQA 等世界知识 VQA，
+系统阅读 MOPD / OPD / token-level KL failure modes / KB-VQA / RAG-VQA / PRM baseline。
+```
+
+核心问题：
+
+```text
+dense VLM 的 multi-teacher token-level KL 是否会把能力传递退化为
+风格模仿 + capability gradient conflict？
 ```
