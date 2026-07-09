@@ -13,7 +13,7 @@
 
 **与先前分析相比的关键进展：** 本次分析整合了更广泛的文献搜索（新增 Drive-KD、MoVE-KD、HAWAII、Unmasking On-Policy Distillation、SpecKD 等），以及先导实验的实际数据（content cosine 0.327, negative rate 30.4%, non-content KL 54.0%），并将评估聚焦在用户提出的 5 个具体 Claim 上。
 
-**核心判断：** 双问题框架仍是正确的战略选择。但 Drive-KD 的发现（VLM 多教师蒸馏中已存在跨能力梯度冲突）使 Problem 1 的 discovery claim 面临更大的 prior work 压力——现在需要同时区分 IGA（text-only 跨域）和 Drive-KD（VLM 跨能力，但不同能力轴）。Auxiliary Claim 2（dense parameterization 使冲突更直接）是最弱的 claim，建议降级为 background/motivation。
+**核心判断：** 
 
 ---
 
