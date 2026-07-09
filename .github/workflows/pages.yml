@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Remove broken symlinks
-        run: rm -rf .claude .vscode .devcontainer 2>/dev/null; true
+        run: rm -rf .claude .aris .venv .vscode .devcontainer 2>/dev/null; true
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:
