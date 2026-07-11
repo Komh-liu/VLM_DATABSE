@@ -24,6 +24,9 @@ experiment/probes/*.jsonl
 # Research wiki: large PDFs
 research-wiki/**/*.pdf
 
+# Editor
+.vscode/
+
 # OS
 .DS_Store
 Thumbs.db
