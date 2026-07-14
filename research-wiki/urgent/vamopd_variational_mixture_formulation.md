@@ -1,368 +1,647 @@
-# VaMOPD: Variational Mixture-of-Teachers for On-Policy Distillation
+# TCTR: Trajectory-Calibrated Teacher Routing for Multi-Teacher OPD
 
-> 将 multi-teacher OPD 在 mixed-reasoning 场景下的监督冲突，形式化为一个变分推断问题：每个 token 位置存在隐变量 $\lambda(t)$ 控制 perception teacher 和 reasoning teacher 的混合权重，student 的训练目标是学习这个隐变量下的后验推断。
-
----
-
-## 1. Problem Setup
-
-### 1.1 Notation
-
-考虑一个多模态输入 $(I, Q)$（图像 + 问题），student 模型自回归采样 rollout：
-
-$$
-\hat{y} = (\hat{y}_1, \ldots, \hat{y}_T) \sim \pi_\theta(\cdot \mid I, Q)
-$$
-
-两个专长 teacher：
-- **Perception teacher** $\pi_P$：擅长视觉 grounding，在需要识别图像细节的 token 上分布更可靠
-- **Reasoning teacher** $\pi_R$：擅长逻辑推理，在推理链收束的 token 上分布更可靠
-
-### 1.2 Vanilla MOPD 的问题
-
-Vanilla MOPD 在 student rollout 上用固定权重混合 teacher 信号：
-
-$$
-\mathcal{L}_{\text{MOPD}}(\theta) = \mathbb{E}_t\left[ \alpha \cdot D_{\text{KL}}(\pi_\theta(\cdot|t) \parallel \pi_P(\cdot|t)) + (1-\alpha) \cdot D_{\text{KL}}(\pi_\theta(\cdot|t) \parallel \pi_R(\cdot|t)) \right]
-$$
-
-其中 $\alpha \in [0,1]$ 是全局固定的，与 token 内容无关。
-
-**问题**：在 mixed-reasoning 轨迹中，不同 token 需要不同 teacher 的监督。施加固定 $\alpha$ 会导致：
-
-- 视觉 grounding token 上被 reasoning teacher 的噪声信号稀释
-- 逻辑推理 token 上被 perception teacher 的无信息梯度分散
-- 两个 teacher 梯度方向不一致的 token 上出现冲突
+> 将 multi-teacher OPD 在 mixed visual reasoning 场景下的监督冲突，形式化为一个 **structured evidence -> pseudo-optimal trajectory -> dense teacher routing** 问题：GQA scene graph 可以程序化构造近似最优推理轨迹，并在每个 token/span 上生成连续 teacher-mixture target。该 target 允许相邻 token 使用不同专家监督，也允许两个专家联合监督。
 
 ---
 
-## 2. Variational Formulation
+## 1. Core Motivation
 
-### 2.1 核心假设
-
-在真实 mixed-reasoning 过程中，每个 token 存在一个**隐能力混合变量** $\lambda(t) \in [0,1]$：
-
-- $\lambda(t) \to 1$：该 token 主要由 visual perception 能力支撑
-- $\lambda(t) \to 0$：该 token 主要由 logical reasoning 能力支撑
-- $\lambda(t) \approx 0.5$：真正 mixed，两种能力共同作用
-
-我们假设真正的 target next-token distribution 是两 teacher 的 $\lambda(t)$-加权混合：
+Multi-teacher OPD 的关键问题不是缺少 teacher，而是不同 teacher 在同一 student-visited state 上会给出不同监督方向：
 
 $$
-\boxed{\pi^*(v \mid t) = \lambda(t) \cdot \pi_P(v \mid t) + (1 - \lambda(t)) \cdot \pi_R(v \mid t)}
+s_t=(I,Q,\hat{y}_{<t}),\qquad \hat{y}\sim\pi_\theta
 $$
 
-> **关键洞察**：$\lambda(t)$ 是**不可直接观测的隐变量**。如果 student 能推断 $\lambda(t)$，就能在每个 token 上自适应地混合 teacher 信号。
+两个 teacher：
 
-### 2.2 变分目标
+- **Perception teacher** $\pi_P$：擅长 object / attribute / relation grounding
+- **Reasoning teacher** $\pi_R$：擅长 comparison / logic / answer aggregation
 
-对于一个 token 位置 $t$（为简洁省略条件 $(I, Q, \hat{y}_{<t})$），student 的目标是逼近 unknown target $\pi^*$：
-
-$$
-\mathcal{L}_t(\theta) = D_{\text{KL}}\left(\pi_\theta(\cdot) \parallel \pi^*(\cdot)\right)
-$$
-
-由于 $\pi^*$ 包含隐变量 $\lambda(t)$，直接优化不可行。我们引入**变分分布** $q(\lambda \mid t)$，导出 Evidence Lower Bound (ELBO)：
+固定权重 MOPD 使用：
 
 $$
-\begin{aligned}
-\log \pi_\theta(v \mid t) &\geq \mathbb{E}_{q(\lambda|t)}\left[ \log\left( \lambda \cdot \pi_P(v|t) + (1-\lambda) \cdot \pi_R(v|t) \right) \right] \\
-&\quad - D_{\text{KL}}\left( q(\lambda|t) \parallel p(\lambda|t) \right)
-\end{aligned}
+\alpha\pi_P(\cdot\mid s)+(1-\alpha)\pi_R(\cdot\mid s)
 $$
 
-其中 $p(\lambda|t)$ 是 $\lambda$ 的先验分布。
-
-### 2.3 Per-Token Student Objective
-
-最大化 ELBO 等价于最小化：
+但 mixed visual reasoning 中，不同 state 需要不同 teacher。核心问题是：
 
 $$
 \boxed{
-\mathcal{L}_{\text{VaMOPD}}(\theta) = \mathbb{E}_{t, \hat{y}\sim\pi_\theta}\left[ \min_{q(\lambda|t)} \mathcal{J}_t(\theta, q) \right]
+\text{Which teacher should supervise which student-visited state?}
 }
 $$
 
-其中 per-token objective：
+TCTR 的关键观察：
 
-$$
-\mathcal{J}_t(\theta, q) = \underbrace{D_{\text{KL}}\left(\pi_\theta(\cdot|t) \parallel \lambda_q \cdot \pi_P(\cdot|t) + (1-\lambda_q) \cdot \pi_R(\cdot|t)\right)}_{\text{distillation loss}}
-+ \beta \cdot \underbrace{D_{\text{KL}}\left(q(\lambda|t) \parallel p(\lambda|t)\right)}_{\text{regularization}}
-$$
-
-这里 $\lambda_q = \mathbb{E}_{q(\lambda|t)}[\lambda]$ 是后验期望混合权重。
+> GQA scene graph 不只是 evaluation resource。它可以程序化生成 pseudo-optimal reasoning trajectories，并为每个 token/span 提供连续 teacher-mixture supervision。
 
 ---
 
-## 3. Inference of Mixing Weights
+## 2. Structured Evidence -> Routing Trajectory
 
-### 3.1 封闭形式的 λ 推断
+### 2.1 GQA scene graph 的训练价值
 
-在每一步训练中，给定 student 当前分布 $\pi_\theta$ 和两 teacher 分布 $\pi_P, \pi_R$，最优 $\lambda$ 是以下一维优化问题的解：
-
-$$
-\lambda^*(t) = \arg\min_{\lambda \in [0,1]} D_{\text{KL}}\left( \pi_\theta(\cdot|t) \parallel \lambda \cdot \pi_P(\cdot|t) + (1-\lambda) \cdot \pi_R(\cdot|t) \right)
-$$
-
-**定理 1（Identifiability）**：若 $\pi_P(\cdot|t) \neq \pi_R(\cdot|t)$ 且 $\pi_\theta(\cdot|t)$ 不在二者连线的外推方向上，则 $\lambda^*(t)$ 是唯一的。
-
-*证明概要*：$f(\lambda) = D_{\text{KL}}(\pi_\theta \parallel \lambda \pi_P + (1-\lambda) \pi_R)$ 在 $[0,1]$ 上是严格凸函数（KL 散度对于混合分布的凸性），因此存在唯一极小值点。闭区间上严格凸函数的极小值要么在内部驻点，要么在边界。$\square$
-
-**定理 2（梯度形式的解）**：$\lambda^*(t)$ 满足不动点条件：
-
-$$
-\lambda = \frac{\mathbb{E}_{v \sim \pi_\theta}\left[ w_P(v, \lambda) \right]}{\mathbb{E}_{v \sim \pi_\theta}\left[ w_P(v, \lambda) + w_R(v, \lambda) \right]}
-$$
-
-其中 $w_P(v, \lambda) = \frac{\lambda \pi_P(v)}{\lambda \pi_P(v) + (1-\lambda) \pi_R(v)}$ 是 token $v$ 来自 perception teacher 的后验概率。
-
-*推导*：
-
-$$
-\begin{aligned}
-\frac{\partial}{\partial \lambda} D_{\text{KL}}(\pi_\theta \parallel \lambda \pi_P + (1-\lambda) \pi_R) &= 0 \\
-\sum_v \pi_\theta(v) \cdot \frac{\pi_P(v) - \pi_R(v)}{\lambda \pi_P(v) + (1-\lambda) \pi_R(v)} &= 0 \\
-\sum_v \pi_\theta(v) \cdot \frac{1}{\lambda + (1-\lambda) \frac{\pi_R(v)}{\pi_P(v)}} &= \sum_v \pi_\theta(v) \cdot \frac{1}{(1-\lambda) + \lambda \frac{\pi_P(v)}{\pi_R(v)}}
-\end{aligned}
-$$
-
-该不动点方程可通过少量（通常 10-20 步）二分搜索或 EM 迭代求解，开销远小于一次完整的 forward-backward pass。
-
-### 3.2 Fisher Information 先验
-
-$\lambda(t)$ 的先验应编码"teacher 在该 token 上的确信度"这一先验知识。我们用 teacher 的 token-level Fisher Information：
-
-$$
-\begin{aligned}
-\mathcal{I}_P(t) &\triangleq \mathbb{E}_{v \sim \pi_P}\left[ \|\nabla_{\text{logits}} \log \pi_P(v \mid t)\|^2 \right] \\
-&= \sum_v \pi_P(v) \cdot (1 - \pi_P(v))^2 + \sum_{v \neq u} \pi_P(v) \cdot \pi_P(u)^2 \\
-&= 1 - \sum_v \pi_P(v)^2
-\end{aligned}
-$$
-
-$1 - \sum_v \pi(v)^2$ 是 Gini 不纯度——分布越 peaked（entropy 越低），这个值越大，teacher 在该 token 上越"确信"。
-
-**Fisher 驱动的先验**：
-
-$$
-p(\lambda \mid t) = \text{Beta}\left(\lambda \;\middle|\; \alpha_0 \cdot \frac{\mathcal{I}_P(t)}{\mathcal{I}_P(t) + \mathcal{I}_R(t)} + 1,\; \alpha_0 \cdot \frac{\mathcal{I}_R(t)}{\mathcal{I}_P(t) + \mathcal{I}_R(t)} + 1 \right)
-$$
-
-其中 $\alpha_0$ 控制先验强度（$\alpha_0 = 0$ 退化为均匀先验）。
-
-**直觉**：若 $\mathcal{I}_P(t) \gg \mathcal{I}_R(t)$，说明 perception teacher 在该 token 上有更强的分布峰 → 先验偏向 $\lambda \to 1$ → 变分后验围绕先验微调。
-
----
-
-## 4. Joint Training Algorithm
-
-### 4.1 EM-Style Alternating Optimization
+GQA scene graph 包含 objects、attributes、relations，以及问题所需的组合推理结构。例如：
 
 ```
-Algorithm: VaMOPD Training Loop
+Scene graph:
+  objects: chair, table, cup
+  attributes: chair.color=red, table.material=wood
+  relations: chair left_of table, cup on table
+  question: "What is on the right of the red chair?"
 
-Input: Student π_θ, teachers π_P, π_R, dataset D
-Hyperparams: β (KL regularization), α_0 (prior strength)
-
-For each training step:
-  1. Sample batch of prompts (I, Q) ~ D
-  
-  2. Rollout: student generates ŷ = (ŷ_1, ..., ŷ_T) ~ π_θ
-  
-  3. E-Step (λ inference, no gradient):
-     For each token position t:
-       a. Get teacher distributions π_P(·|t), π_R(·|t)
-       b. Get student distribution π_θ(·|t)
-       c. Compute Fisher prior p(λ|t) using Eq. (Fisher prior)
-       d. Solve λ*(t) via bisection on the fixed-point equation
-       e. Compute posterior q(λ|t) = Beta with mean λ*(t),
-          regularized toward prior by β
-  
-  4. M-Step (student update):
-     For each token position t:
-       L_t = D_KL( π_θ(·|t) || λ*(t)·π_P(·|t) + (1-λ*(t))·π_R(·|t) )
-             + β · D_KL( q(λ|t) || p(λ|t) )
-       
-     θ ← θ - η · ∇_θ Σ_t L_t
+Generated interleaved trajectory:
+  Step 1: decompose the question into target and relation
+          λ is biased toward reasoning, but may still use visual context
+  Step 2: locate and verify the red chair
+          λ is biased toward perception, but may still use question context
+  Step 3: use the relation constraint to decide where to inspect next
+          λ may be mixed because relation reasoning and visual grounding interact
+  Step 4: verify the candidate object from the image / scene graph
+          λ is biased toward perception with reasoning context
+  Step 5: aggregate the verified evidence and answer
+          λ is biased toward reasoning, grounded by previous visual evidence
 ```
 
-### 4.2 计算开销分析
+这里不显示离散专家标签，因为相邻 token 完全可能需要不同专家监督，单个 span 内也可能需要联合监督。我们为每个 token/span 生成连续 routing target：
 
-| 组件 | 复杂度 | 备注 |
-|------|--------|------|
-| 两 teacher forward | $2 \times O(T \cdot |\mathcal{V}|)$ | 可并行，与 vanilla MOPD 相同 |
-| $\lambda$ inference (E-step) | $O(T \cdot K)$ | $K \approx 15$ 迭代，每迭代仅需标量计算 |
-| Student forward + backward | $O(T \cdot |\mathcal{V}|)$ | 与 vanilla MOPD 相同 |
-| Fisher prior 计算 | $O(T \cdot |\mathcal{V}|)$ | 从 teacher forward 结果直接算，无额外 forward |
+$$
+\lambda_t\in[0,1]
+$$
 
-**总开销**：约为 vanilla MOPD 的 $1.05\times$——几乎可以忽略的额外成本换来 per-token adaptive mixing。
+其中 $\lambda_t$ 越接近 1，teacher mixture 越偏向 $\pi_P$；越接近 0，越偏向 $\pi_R$；中间值表示联合监督。
+
+注意这里不是“先看完再推理”的两段式流程，而是：
+
+$$
+\text{decide what to inspect}
+\rightarrow
+\text{verify evidence}
+\rightarrow
+\text{update the next constraint}
+\rightarrow
+\text{verify new evidence}
+\rightarrow
+\text{aggregate answer}
+$$
+
+因此 TCTR 学到的是 token/span-level 连续 routing，而不是把输出模板硬切成 perception segment 和 reasoning segment。
+
+这把 trajectory dependency 从“昂贵标注”变成“程序化生成”：
+
+$$
+\mathcal{D}_{\text{GQA-SG}}
+\xrightarrow{\text{programmatic generation}}
+\mathcal{D}_{\text{traj}}
+=
+\{(x_i,\tau_i,\lambda_i)\}_{i=1}^N
+$$
+
+其中：
+
+$$
+\tau_i=(v_1,\ldots,v_T),
+\qquad
+\lambda_i=(\lambda_1,\ldots,\lambda_T)
+$$
+
+### 2.2 Operation-to-routing prior
+
+令第 $t$ 步 scene graph operation 为：
+
+$$
+o_t\in
+\{\text{decompose},\text{object},\text{attribute},\text{relation},\text{verify},\text{comparison},\text{logic},\text{answer}\}
+$$
+
+operation 不直接决定硬标签，而是给出一个软先验：
+
+$$
+\mu_{\text{SG}}(o_t)\in[0,1],
+\qquad
+c_{\text{SG}}(o_t)\ge 0
+$$
+
+$\mu_{\text{SG}}$ 表示该 operation 对 teacher mixture 的倾向，$c_{\text{SG}}$ 表示这个倾向的强度。例如 object / attribute / verify 的 $\mu_{\text{SG}}$ 可以偏高，decompose / logic / answer 的 $\mu_{\text{SG}}$ 可以偏低，relation 的 $\mu_{\text{SG}}$ 可以更接近中间。它们都是软先验，不是硬标签。
+
+最终 $\lambda_t$ 还会被两个 teacher 对 pseudo-optimal token 的支持程度修正：
+
+$$
+p_P^t=\pi_P(v_t^{\text{traj}}\mid s_t),
+\qquad
+p_R^t=\pi_R(v_t^{\text{traj}}\mid s_t)
+$$
+
+所以即使两个相邻 token 属于相似 operation，它们也可以得到不同的 $\lambda_t$；同一个 span 内也可以出现连续变化的 teacher mixture。
+
+### 2.3 Trajectory generation pipeline
+
+推荐的构造流程：
+
+```
+1. Parse GQA question and scene graph.
+2. Extract interleaved evidence-seeking and constraint-updating operations.
+3. Generate a structured reasoning skeleton with soft operation priors, alternating "what to inspect" and "what was verified".
+4. Use strong VLM / LLM to paraphrase the skeleton into natural reasoning.
+5. Preserve span-level routing priors during paraphrasing.
+6. Filter by answer consistency and scene-graph faithfulness.
+```
+
+质量过滤信号：
+
+- final answer 与 GQA answer 一致
+- trajectory 中的 object / attribute / relation 都存在于 scene graph
+- paraphrase 不引入 scene graph 外对象
+- routing label 分布不过度塌缩到一个 teacher
+- teacher likelihood 不极端反对该 trajectory span
 
 ---
 
-## 5. 关键理论性质
+## 3. Teacher Router
 
-### 5.1 与 Decomposed OPD 的关系
+### 3.1 Teacher mixture target
 
-**命题 1（Decomposed OPD 是 VaMOPD 的特例）**：当 $\lambda(t) \equiv \lambda_0$（常数）且 teacher 为 self-distillation 时，VaMOPD 退化为 single-teacher 的 weighted OPD。VGS 的固定偏 visual 策略对应 $\lambda_0 > 0.5$。
-
-**证明**：直接代入即可。
-
-**命题 2（VaMOPD 的严格泛化性）**：存在 mixed-reasoning 分布，使得最优 $\lambda^*(t)$ 随 token 变化而任意 fixed-$\lambda$ 策略严格次优。
-
-**证明构造**：考虑两个 token 位置 $t_1$（纯视觉，$\pi_P \gg \pi_R$）和 $t_2$（纯推理，$\pi_R \gg \pi_P$）。最优策略为 $\lambda(t_1)=1, \lambda(t_2)=0$。任何 fixed-$\lambda$ 的策略至少在其中一个位置产生非零 regret。$\square$
-
-### 5.2 与 ViGOS (Hard Separation) 的关系
-
-ViGOS 的 hard separation 等价于 $\lambda(t)$ 被输出格式显式约束：
+在 student state $s$ 上，定义 teacher mixture：
 
 $$
-\lambda_{\text{ViGOS}}(t) = \begin{cases}
-1 & \text{if token } t \text{ in } \langle\text{description}\rangle \text{ segment} \\
-0 & \text{if token } t \text{ in } \langle\text{think}\rangle \text{ segment}
+a_\lambda(v\mid s)
+=
+\lambda(s)\pi_P(v\mid s)
++
+(1-\lambda(s))\pi_R(v\mid s)
+$$
+
+学习一个 router：
+
+$$
+\lambda_\phi(s)=r_\phi(z(s))
+$$
+
+其中 $z(s)$ 可以包含：
+
+$$
+z(s)=
+\left[
+h_\theta(s),\;
+D_{\text{cand}}(\pi_P,\pi_R),\;
+D_{\text{KL}}(\pi_P\|\pi_R),\;
+D_{\text{KL}}(\pi_R\|\pi_P),\;
+\log\pi_P(v^{\text{traj}}\mid s)-\log\pi_R(v^{\text{traj}}\mid s)
+\right]
+$$
+
+这里的核心不是 teacher confidence，而是 teacher 对 pseudo-optimal token / candidate set 的相对支持。entropy 可以作为 baseline 或辅助特征，但不应成为主要依据。
+
+### 3.2 Router calibration loss
+
+在 generated trajectory states 上，先用 soft operation prior 和 teacher 对 pseudo-optimal token 的支持程度得到连续 target：
+
+$$
+\boxed{
+\lambda_t^*
+=
+\arg\min_{\lambda\in[0,1]}
+\left[
+-\log
+\left(
+\lambda p_P^t+(1-\lambda)p_R^t
+\right)
++
+c_{\text{SG}}(o_t)
+\left(
+\lambda-\mu_{\text{SG}}(o_t)
+\right)^2
+\right]
+}
+$$
+
+其中：
+
+$$
+p_P^t=\pi_P(v_t^{\text{traj}}\mid s_t),
+\qquad
+p_R^t=\pi_R(v_t^{\text{traj}}\mid s_t)
+$$
+
+这一步允许相邻 token 得到不同 $\lambda_t^*$，也允许 $\lambda_t^*$ 落在中间区间表示联合监督。然后训练 router：
+
+$$
+\boxed{
+\mathcal{L}_{\text{route}}(\phi)
+=
+\mathbb{E}_{s\sim\mathcal{D}_{\text{SG-traj}}}
+\left[
+w(s)
+\left(
+\lambda_\phi(s)-\lambda_t^*
+\right)^2
+\right]
+}
+$$
+
+$w(s)$ 是 label confidence，可以来自：
+
+- scene graph parser confidence
+- operation 类型置信度
+- teacher likelihood margin
+
+例如：
+
+$$
+w(s)=
+\left|
+\pi_P(v^{\text{traj}}\mid s)
+-
+\pi_R(v^{\text{traj}}\mid s)
+\right|
+$$
+
+### 3.3 Dense OPD loss
+
+在 student rollout states 上：
+
+$$
+s\sim d_{\pi_\theta}
+$$
+
+router 产生 dense teacher mixture：
+
+$$
+a_{\lambda_\phi}(v\mid s)
+=
+\lambda_\phi(s)\pi_P(v\mid s)
++
+(1-\lambda_\phi(s))\pi_R(v\mid s)
+$$
+
+student 的 OPD loss：
+
+$$
+\boxed{
+\mathcal{L}_{\text{TCTR}}(\theta)
+=
+\mathbb{E}_{s\sim d_{\pi_\theta}}
+\left[
+D_{\text{KL}}
+\left(
+\pi_\theta(\cdot\mid s)
+\parallel
+a_{\lambda_\phi}(\cdot\mid s)
+\right)
+\right]
+}
+$$
+
+总目标：
+
+$$
+\mathcal{L}
+=
+\mathcal{L}_{\text{TCTR}}
++
+\beta\mathcal{L}_{\text{route}}
++
+\gamma\mathcal{L}_{\text{smooth}}
++
+\delta\mathcal{L}_{\text{traj-imitation}}
+$$
+
+其中 trajectory imitation 是辅助项。主贡献是：
+
+$$
+\boxed{
+\text{soft operation prior + teacher support}
+\rightarrow
+\text{router}
+\rightarrow
+\text{dense OPD on student states}
+}
+$$
+
+---
+
+## 4. Off-Trajectory Generalization
+
+scene graph 轨迹覆盖的是 expert states：
+
+$$
+s_t^{\text{traj}}=(I,Q,v_{<t}^{\text{traj}})
+$$
+
+OPD 训练访问的是 student states：
+
+$$
+s_t^\theta=(I,Q,\hat{y}_{<t})
+$$
+
+通常：
+
+$$
+s_t^\theta\neq s_t^{\text{traj}}
+$$
+
+因此 TCTR 的真正技术点是 sparse-to-dense generalization：
+
+$$
+s\sim\mathcal{D}_{\text{SG-traj}}
+\quad\Longrightarrow\quad
+s\sim d_{\pi_\theta}
+$$
+
+可以加入 consistency regularization：
+
+$$
+\mathcal{L}_{\text{cons}}
+=
+\mathbb{E}_{s,s'\in\mathcal{N}(s)}
+\left[
+\left(\lambda_\phi(s)-\lambda_\phi(s')\right)^2
+\right]
+$$
+
+其中 $\mathcal{N}(s)$ 可以是相邻前缀、轻微扰动前缀、或 teacher-assisted rollout 产生的近邻 state。
+
+---
+
+## 5. Training Algorithm
+
+```
+Algorithm: Trajectory-Calibrated Teacher Routing
+
+Input:
+  Student π_θ
+  Teachers π_P, π_R
+  GQA scene graphs D_SG
+  OPD training prompts D_opd
+  Router r_φ
+
+Stage A: Generate routing trajectories
+  For each GQA sample (image, question, scene graph, answer):
+    1. Parse required scene graph operations.
+    2. Generate an interleaved skeleton:
+       reason what to inspect -> verify visual evidence -> reason next constraint.
+    3. Paraphrase skeleton with strong VLM / LLM.
+    4. Preserve span-level soft operation priors μ_SG, c_SG.
+    5. Filter by answer consistency and scene-graph faithfulness.
+
+Stage B: Train router
+  For each generated trajectory state s_t:
+    1. Query π_P(·|s_t), π_R(·|s_t).
+    2. Build feature z(s_t).
+    3. Compute λ_t* from teacher support and soft operation prior.
+    4. Optimize λ_φ(s_t) against λ_t*.
+
+Stage C: Dense multi-teacher OPD
+  For each prompt x in D_opd:
+    1. Student rollout: ŷ ~ π_θ(·|x).
+    2. For each student state s_t=(I,Q,ŷ_<t):
+       a. Query π_P(·|s_t), π_R(·|s_t).
+       b. Predict λ_φ(s_t)=r_φ(z(s_t)).
+       c. Construct a_{λ_φ}(·|s_t).
+       d. Update student with KL(π_θ(·|s_t) || a_{λ_φ}(·|s_t)).
+```
+
+---
+
+## 6. 与相关路线的区别
+
+### 6.1 相比 trajectory SFT
+
+Trajectory SFT 直接拟合：
+
+$$
+\mathcal{L}_{\text{SFT}}=-\log\pi_\theta(\tau\mid x)
+$$
+
+TCTR 学的是：
+
+$$
+\text{structured-evidence trajectory}
+\rightarrow
+\text{teacher router}
+\rightarrow
+\text{dense supervision on student states}
+$$
+
+### 6.2 相比 ViGOS hard separation
+
+ViGOS 依赖格式模板：
+
+$$
+\lambda_{\text{hard}}(s)=
+\begin{cases}
+1,& s\in\langle\text{description}\rangle\\
+0,& s\in\langle\text{think}\rangle
 \end{cases}
 $$
 
-即 $\lambda(t) \in \{0, 1\}$ 且由人工模板决定，而非由数据分布推断。
+TCTR 不依赖 `<description>` / `<think>` 分段，而是从 pseudo-optimal trajectory 中学习连续 routing weight。相邻 token 可以对应不同 $\lambda$，单个 span 也可以由两个 teacher 联合监督。
 
-**VaMOPD 的优势**：
-- $\lambda(t) \in [0, 1]$ 连续，允许真正的混合监督
-- $\lambda(t)$ 由 student-teacher 分布几何自动推断，不依赖格式先验
-- 泛化到没有固定 segment 格式的任意 mixed-reasoning 数据
+### 6.3 相比 fixed MOPD / confidence routing
 
-### 5.3 Token-Level Gradient Conflict Resolution
+Fixed MOPD 使用全局 $\alpha$。Confidence routing 主要依赖 entropy，但 teacher 可能 confidently wrong。TCTR 使用 pseudo-optimal trajectory 上的 teacher support 和 soft operation prior 校准 teacher mixture：
 
-**命题 3（梯度冲突的变分解）**：当 $\pi_P$ 和 $\pi_R$ 在某 token 上梯度方向明显分歧时（cosine similarity $< 0$），VaMOPD 的 $\lambda^*(t)$ 倾向于推向 0 或 1（即选择一个主导 teacher），而非取中间值。
+$$
+\lambda_\phi(s)
+=
+f(
+\text{state representation},
+\text{teacher support for pseudo-optimal tokens},
+\text{teacher disagreement},
+\text{soft trajectory prior}
+)
+$$
 
-**直觉证明**：$\lambda \approx 0.5$ 的混合分布在梯度冲突时会产生"模糊的" target distribution（两个 teacher 的高概率区域取并集），其 KL 散度通常不如选取一侧的分布的 KL 散度小。因此优化器自然选择极端 $\lambda$ 值。
+### 6.4 相比只用 scene graph 做 evaluation
 
-这意味着 **VaMOPD 自动解决了 token-level 的梯度冲突**——不需要显式梯度投影（PCGrad）或冲突规避（CAGrad），而是通过变分推断自然路由到正确的 teacher。
+常见做法是用 GQA scene graph 做 error attribution。TCTR 把 scene graph 变成 training signal：
+
+$$
+\text{scene graph}
+\rightarrow
+\text{pseudo-optimal trajectory}
+\rightarrow
+\text{router training}
+\rightarrow
+\text{dense OPD}
+$$
 
 ---
 
-## 6. 理论贡献总结
+## 7. 主要贡献
 
 | 内容 | 定位 |
 |------|------|
-| $\lambda(t)$ 隐变量形式化 | **核心理论贡献**：首次将 multi-teacher token-level mixing 形式化为变分推断问题 |
-| Fisher Information 先验 | 连接 teacher 确信度与混合权重的统计桥梁 |
-| EM 推断算法 | 实用贡献：封闭形式 E-step，$<5\%$ 额外开销 |
-| 统一 Decomposed OPD + ViGOS | 理论完备性：已有方法均为 VaMOPD 的特例/限制形式 |
-| 自动梯度冲突消解 | 属性：无需显式投影即可处理 teacher 冲突 |
+| Structured-evidence trajectories | 用 GQA scene graph 构造近似最优 reasoning trajectories |
+| Soft teacher-mixture targets | 用 soft operation prior 和 teacher 对 pseudo-optimal token 的支持得到连续 $\lambda_t^*$ |
+| Sparse-to-dense OPD | 将 trajectory anchors 泛化到 student rollout states |
+| Conflict-aware routing | 在 teacher disagreement 高的 state 上学习更合适的 teacher mixture |
+| Cross-dataset transfer | 用 GQA scene graph 学到的 router 迁移到无 scene graph 的 OK-VQA |
 
 ---
 
-## 7. 与论文叙事的对应
+## 8. 实验设计
+
+### 8.1 数据设置
 
 ```
-Abstract hook:
-  "We show that multi-teacher on-policy distillation for mixed visual
-   reasoning is fundamentally a variational inference problem over a
-   latent capability-mixing variable."
+Trajectory source:
+  GQA scene graph -> generated reasoning trajectories
+  pilot scale: 1K, 5K
+  scaling ratios: 1%, 5%, 10%
 
-Motivation figure:
-  Left: same token, π_P pushes one direction, π_R pushes another
-  Right: VaMOPD infers λ(t) and flexibly combines both
+Dense OPD training:
+  GQA remaining split
+  optional mixed VQA prompts without trajectories
 
-Method section title:
-  "Variational Multi-Teacher Distillation:
-   Token-Level Capability Mixing as Latent Variable Inference"
-
-Key equation (boxed):
-  λ*(t) = argmin_λ KL(π_θ || λ·π_P + (1-λ)·π_R)
-
-Comparison table:
-  | Method     | λ(t)               | λ source      | Format-Free | Error Attr. |
-  | Vanilla OPD| ≡ 1.0              | —             | ✓           | ✗           |
-  | MOPD       | ≡ α (constant)     | hyperparam    | ✓           | ✗           |
-  | ViGOS      | ∈ {0, 1}           | format parse  | ✗           | Partial     |
-  | Decomp. OPD| ≡ λ₀ (biased)      | hyperparam    | ✓           | ✗           |
-  | VaMOPD     | ∈ [0, 1], adaptive | VI from π_θ   | ✓           | ✓ (GQA SG)  |
+Evaluation:
+  GQA held-out
+  GQA compositional / high-hop subset
+  OK-VQA without OK-VQA scene graphs or trajectories
 ```
+
+### 8.2 Baselines
+
+```
+Method                              GQA held-out   GQA-Compose   OK-VQA   Evidence-Wrong ↓
+──────────────────────────────────────────────────────────────────────────────────────────
+Base student                         xx.x           xx.x          xx.x     xx.x
+Scene-graph trajectory SFT            xx.x           xx.x          xx.x     xx.x
+Vanilla OPD                           xx.x           xx.x          xx.x     xx.x
+Fixed-weight MOPD                     xx.x           xx.x          xx.x     xx.x
+Confidence / entropy routing          xx.x           xx.x          xx.x     xx.x
+Disagreement routing                  xx.x           xx.x          xx.x     xx.x
+DOPD-style advantage-gap routing       xx.x           xx.x          xx.x     xx.x
+ViGOS-style hard separation            xx.x           xx.x          xx.x     xx.x
+DOPD                                  xx.x           xx.x          xx.x     xx.x
+TCTR (ours)                           xx.x           xx.x          xx.x     xx.x
+TCTR + DOPD                            xx.x           xx.x          xx.x     xx.x
+  - w/o soft operation prior             xx.x           xx.x          xx.x     xx.x
+  - w/o disagreement features           xx.x           xx.x          xx.x     xx.x
+  - binarized routing                    xx.x           xx.x          xx.x     xx.x
+  - no off-trajectory regularization    xx.x           xx.x          xx.x     xx.x
+```
+
+### 8.3 必须展示的实验信号
+
+1. **Free trajectory construction**：展示 scene graph 自动生成 trajectory 的质量、通过率和规模。
+2. **Data efficiency**：1K / 5K / 1% / 5% GQA scene-graph trajectories 下，TCTR 优于 trajectory SFT。
+3. **Free heuristic gate**：TCTR 必须优于 entropy routing、disagreement routing、DOPD-style advantage-gap routing。只讨论“confident $\neq$ correct”不够，必须用 routing diagnostic 证明启发式确实会错。
+4. **Dense OPD gain**：TCTR 优于 fixed MOPD、confidence routing、ViGOS-style hard separation 和 DOPD；最好证明 TCTR + DOPD 进一步优于 DOPD。
+5. **Off-trajectory generalization**：student 偏离 expert trajectory 后，routing 仍然有效。
+6. **Cross-dataset transfer**：不使用 OK-VQA scene graph / trajectory，TCTR 在 OK-VQA 上仍有收益。
+7. **Conflict-region gain**：teacher disagreement 高的 token 上收益更大。
+8. **Teacher-pair transfer**：换一组 perception / reasoning teacher 后，router 或 routing features 仍有部分可迁移性。
+
+### 8.4 Routing diagnostic
+
+在完整 OPD 训练前，先做低成本 routing diagnostic。用 GQA scene graph 生成近似最优轨迹，再由 soft prior + teacher support 得到连续 $\lambda_t^*$，比较免费启发式和 learned router：
+
+| Method | Overall routing acc | High-conflict acc | Relation/comparison acc |
+|--------|---------------------|-------------------|-------------------------|
+| Entropy routing | xx.x | xx.x | xx.x |
+| Disagreement routing | xx.x | xx.x | xx.x |
+| DOPD-style advantage-gap routing | xx.x | xx.x | xx.x |
+| TCTR router | xx.x | xx.x | xx.x |
+
+如果 TCTR 不能明显优于这些无需训练、无需 scene graph 的启发式，方法必要性会明显下降。
+
+### 8.5 Trajectory quality evaluation
+
+自动生成 trajectory 需要单独评估：
+
+| 指标 | 目的 |
+|------|------|
+| Answer consistency | 生成轨迹是否导向 GQA answer |
+| Scene-graph faithfulness | 轨迹是否只使用图中存在的 object / attribute / relation |
+| Naturalness | paraphrased trajectory 是否接近真实 VLM 推理风格 |
+| Routing distribution | 连续 $\lambda_t^*$ 是否不过度塌缩到 0 或 1 |
+| Teacher agreement | teacher likelihood 是否极端反对生成轨迹 |
+
+建议先做 1K-5K pilot：
+
+```
+1. scene graph template generation
+2. Qwen2.5-VL-72B / strong VLM paraphrasing
+3. automatic filtering
+4. human spot-check 100 examples
+5. train router and test GQA held-out / OK-VQA
+```
+
+### 8.6 Off-trajectory evaluation
+
+```
+For each GQA trajectory:
+  1. Let student roll out from the same prompt.
+  2. Measure prefix divergence from generated trajectory.
+  3. Bucket states by divergence distance: 0, 1-5, 6-10, 10+ tokens.
+  4. Evaluate routing quality / teacher agreement / final accuracy per bucket.
+```
+
+关键结果：
+
+$$
+\text{TCTR gain at divergence}>0
+$$
+
+### 8.7 GQA scene graph error attribution
+
+GQA scene graph 还能支持 error decomposition：
+
+```
+Perception error:
+  wrong object / attribute / relation grounding
+
+Reasoning error:
+  wrong comparison / logical composition / answer aggregation
+
+Evidence-wrong:
+  answer correct but visual evidence chain wrong
+```
+
+TCTR 应该在 evidence-wrong 和 teacher-conflict token 上降低错误率。
 
 ---
 
-## 8. 实验设计：以 GQA 为主 Benchmark
+## 9. 风险与边界
 
-### 8.1 为什么选 GQA
+1. **Trajectory quality**：scene graph 可以免费生成轨迹，但模板轨迹可能不自然。需要 paraphrasing、filtering 和人工抽检。
 
-传统 KB-VQA benchmark（OK-VQA, A-OKVQA, InfoSeek）的语言先验过强，准确率天花板已被纯文本模型逼近，teacher conflict 信号被淹没。GQA 天然适合验证 VaMOPD：
+2. **Routing triviality**：单 token likelihood 的 $\lambda$ 优化本身很简单，论文贡献必须放在 soft operation prior、teacher support refinement 和 sparse-to-dense routing。
 
-- **组合式问题**：必须同时识别物体（perception）和理解关系（reasoning）
-- **场景图标注**：提供 object / attribute / relation 级别的 ground truth，可直接做 error attribution
-- **语言先验弱**：GQA 问题由模板生成，分布可控，不看图无法答对
-- **CVPR 经典 benchmark**：审稿人认可度高
+3. **Free heuristic risk**：entropy、disagreement、advantage-gap routing 几乎免费。如果它们接近 TCTR，scene graph router 的必要性不足。
 
-### 8.2 GQA 问题分解
+4. **DOPD / MoCA competition**：DOPD 已经做 token-level adaptive OPD routing，MoCA 已经做 perception-reasoning credit assignment。TCTR 必须定位为 trajectory-calibrated multi-teacher OPD routing，并把 DOPD / MoCA 作为相关工作和实验对照。
 
-```
-问题类型               Perception 需求       Reasoning 需求        λ*(t) 预期
-───────────────────────────────────────────────────────────────────────────
-Verify/Object          高（识别物体）        低（存在性判断）       → 1
-Verify/Attribute       高（识别属性）        低                      → 1
-Query/Color            高（颜色识别）        低                      → 1
-Query/Size             高（尺寸识别）        低                      → 1
-Verify/Relation        中（识别主体）        高（空间/比较关系）     → 0
-Choose/Logical         中（识别候选）        高（AND/OR/NOT）        → 0
-Compare/Attribute      高（识别两物体属性）  高（比较推理）          → 0.5
-Query/Count            高（识别+计数）       中                      → 0.7
-```
+5. **Transfer risk**：GQA 主要覆盖 visual relational reasoning，迁移到 OK-VQA 需要证明 router 学到的是 teacher-utility pattern，而不是 scene graph 模板。
 
-### 8.3 Error Attribution via Scene Graph
+6. **Teacher-pair dependence**：router 可能过拟合某一对 teachers，需要 teacher-pair transfer 或 feature-level ablation 支撑。
 
-GQA 的 scene graph 标注允许精确的 error decomposition：
-
-```
-Perception Error:
-  - Wrong object: 模型识别了错误物体
-  - Wrong attribute: 颜色/材质/尺寸判断错
-  → λ(t) 应该高 → perception teacher 应该主导
-
-Reasoning Error:
-  - Wrong relation: 空间/逻辑关系判断错
-  - Wrong logical composition: AND/OR 组合错
-  → λ(t) 应该低 → reasoning teacher 应该主导
-
-Evidence-Wrong (Joint Error):
-  - Answer coincidentally correct but perception chain wrong
-  - 例: "Is the red chair wooden?" → 答 Yes, 但模型把 blue chair 看成 red
-  → λ(t) 错误地偏向 reasoning → 需要校正
-```
-
-### 8.4 Baseline 矩阵
-
-```
-Method                          GQA     GQA-Compose    Evidence-Wrong ↓
-────────────────────────────────────────────────────────────────────────
-Direct (SFT only)                xx.x         xx.x           xx.x
-Mixed CoT                        xx.x         xx.x           xx.x
-Vanilla OPSD                     xx.x         xx.x           xx.x
-MOPD (fixed α)                   xx.x         xx.x           xx.x
-MOPD + PCGrad                    xx.x         xx.x           xx.x
-MOPD + CAGrad                    xx.x         xx.x           xx.x
-ViGOS-style (hard separation)    xx.x         xx.x           xx.x
-VaMOPD (ours)                    xx.x         xx.x           xx.x
-  - w/o Fisher prior             xx.x         xx.x           xx.x
-  - λ binarized (hard)           xx.x         xx.x           xx.x
-```
-
-### 8.5 关键实验信号
-
-1. **GQA-Compose（推理密集型子集）**：VaMOPD 收益 > GQA 全量
-2. **Evidence-Wrong Rate**：基于 scene graph 自动检测，VaMOPD 应显著低于 ViGOS
-3. **λ(t) 与问题类型的相关性**：Query/Color → λ 高，Verify/Relation → λ 低
-4. **High-hop 问题**：多跳组合推理中 λ(t) 变化应更剧烈，收益更大
+7. **Generation bias**：paraphrasing 模型可能引入自己的推理风格。需要比较 template-only、paraphrased、teacher-generated 三种 trajectory。
 
 ---
 
-## 9. 开放问题
+## 10. CVPR Positioning
 
-1. **多 teacher 推广**：perception / knowledge / reasoning 三者时，λ 从标量变为 2-simplex，从 Beta 变为 Dirichlet。推导直接成立。
+这个版本的优势不在复杂数学，而在资源利用和问题设置：
 
-2. **λ(t) 的时序结构**：当前假设 λ(t) 在不同 token 间独立。真实 mixed reasoning 中相邻 token 的 λ 应高度相关。可加入 Markov prior λ(t) ∣ λ(t−1) 来建模。
+> Existing structured evidence, instantiated with GQA scene graphs in this work, can be converted into pseudo-optimal trajectories for calibrating continuous teacher-mixture targets in multi-teacher OPD.
 
-3. **On-policy 偏差**：student 自身 rollout 上的 λ 推断可能不稳定。可加入 burn-in period 用 teacher rollout 初始化 λ。
+如果实验成立，claim 比“少量外部 expert trajectory”更强，因为 trajectory cost 从弱点变成优势。
 
-4. **Connection to RL**：λ(t) 可被视作 token-level 的 capability advantage。这连接到了 RLCSD 的 contrastive signal 思路。
+当前 CVPR 概率取决于三个 gate：
+
+| Gate | 通过条件 | 影响 |
+|------|----------|------|
+| Heuristic gate | TCTR 明显优于 entropy / disagreement / advantage-gap routing | 决定方法必要性 |
+| DOPD gate | TCTR + DOPD 优于 DOPD | 证明与强 OPD routing 互补 |
+| Transfer gate | 不用 OK-VQA scene graph 仍提升 OK-VQA | 证明不是 GQA 模板过拟合 |
+
+概率估计：
+
+- 三个 gate 都通过：$55\%-65\%$
+- 只通过 routing diagnostic 和 GQA，下游 transfer 一般：$35\%-45\%$
+- 免费启发式接近 TCTR：$20\%-30\%$
 
 ---
 

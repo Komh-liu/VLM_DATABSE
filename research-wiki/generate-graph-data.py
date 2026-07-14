@@ -256,6 +256,7 @@ def render_markdown_to_html(text):
         # Regular paragraph — collect consecutive non-empty, non-list, non-bq, non-hr lines
         para_lines = []
         while i < len(lines) and lines[i].strip() != '' \
+                and not re.match(r'^(#{3,6})\s+.+$', lines[i].strip()) \
                 and not re.match(r'^(\s*)[-*]\s+', lines[i].strip()) \
                 and not re.match(r'^(\s*)\d+\.\s+', lines[i].strip()) \
                 and not re.match(r'^\|.+\|$', lines[i].strip()) \
@@ -512,8 +513,8 @@ text.sub{font-size:11px;fill:var(--text2);font-weight:400;pointer-events:none}
 .detail-content section a{color:var(--accent)}
 .detail-content .MathJax{overflow-x:auto;overflow-y:hidden;max-width:100%}
 .detail-content mjx-container{overflow-x:auto;max-width:100%}
-.detail-content ul{padding-left:18px}
-.detail-content li{margin-bottom:4px}
+.detail-content ul,.detail-content ol{padding-left:22px;margin:8px 0;list-style-position:outside}
+.detail-content li{margin-bottom:4px;padding-left:2px}
 .detail-content table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
 .detail-content thead{border-bottom:2px solid var(--border)}
 .detail-content th{text-align:left;padding:8px 12px;color:var(--text3);font-weight:600;white-space:nowrap}
