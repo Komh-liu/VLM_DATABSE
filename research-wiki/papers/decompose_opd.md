@@ -287,7 +287,7 @@ $$
 在高视觉依赖 token（Bin 7-9，即 VDS 的 top 30%）处，$\nabla \mathcal{L}_{\text{Lang}}$ 和 $\nabla \mathcal{L}_{\text{Vis}}$ 的夹角进入钝角区（$> 90^\circ$），纯视觉优化会造成语言先验的"反学习"。为此引入 LP 正则项，**仅选择性地**应用于 VDS 最高的 30% token：
 
 $$
-\ell_{\text{LP}}(\tau) \triangleq \frac{1}{|\tau|} \sum_{t=1}^{|\tau|} \mathbf{1}[\text{VDS}_t > Q_{0.7}] \cdot D_{\mathrm{KL}}\big(p_{\theta_S}(\cdot \mid \tau_{<t}, x) \;\big\|\; q_T(\cdot \mid \tau_{<t}, x)\big) \tag{16}
+\ell_{\text{LP}}(\tau) \triangleq \frac{1}{|\tau|} \sum_{t=1}^{|\tau|} \mathbf{1}{}[\text{VDS}_t > Q_{0.7}] \cdot D_{\mathrm{KL}}\big(p_{\theta_S}(\cdot \mid \tau_{<t}, x) \;\big\|\; q_T(\cdot \mid \tau_{<t}, x)\big) \tag{16}
 $$
 
 其中 $Q_{0.7}$ 是 VDS 分布的 70 分位数阈值。
@@ -333,7 +333,7 @@ $$
 $\ell_{\text{VP}}(\tau)$ 是**视觉保护**正则项（与 LP 对称），仅在高视觉依赖 token 上惩罚偏离教师视觉分布：
 
 $$
-\ell_{\text{VP}}(\tau) \triangleq \frac{1}{|\tau|} \sum_{t=1}^{|\tau|} \mathbf{1}[\text{VDS}_t > Q_{0.7}] \cdot D_{\mathrm{KL}}\big(p_{\theta_S}(\cdot \mid \tau_{<t}, x) \;\big\|\; q_T^*(\cdot \mid \tau_{<t}, x)\big) \tag{21}
+\ell_{\text{VP}}(\tau) \triangleq \frac{1}{|\tau|} \sum_{t=1}^{|\tau|} \mathbf{1}{}[\text{VDS}_t > Q_{0.7}] \cdot D_{\mathrm{KL}}\big(p_{\theta_S}(\cdot \mid \tau_{<t}, x) \;\big\|\; q_T^*(\cdot \mid \tau_{<t}, x)\big) \tag{21}
 $$
 
 > **结果**：$\gamma_{\text{lang}} > 0$（掰向语言）→ 性能下降至 baseline 以下；$\gamma > 0$（掰向视觉）→ 性能持续提升。确认了视觉才是瓶颈，语言已足够成熟。
