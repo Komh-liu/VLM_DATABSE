@@ -757,9 +757,15 @@ var PAPERS = [
         "target": "RLHF",
         "targetId": "paper:rlhf_note",
         "text": "PIVOT 建立在 RLHF 和 DPO 的理论基础之上，核心发现的 Finding 2-4 直接验证了 DPO 优化不仅影响 LLM 输出，更反向传播重塑视觉编码器表征"
+      },
+      {
+        "type": "extended_by",
+        "target": "DecomposedOPD",
+        "targetId": "paper:decomposed_opd_icml2026",
+        "text": "两篇均将 VLM 优化分解为语言 vs 视觉两个分量，且共享 Asymmetric Maturity Hypothesis（视觉是瓶颈，语言已成熟）。PIVOT 从 RL/DPO 角度证明偏好优化通过反向传播重塑视觉编码器表征；DecomposedOPD 从 OPD 梯度几何角度发现 ∇L_Lang ⟂ ∇L_Vis，标准梯度被动平分二者。同组（KAIST/MSRA）工作，分解思想一脉相承：PDCR 用于 RL reward 分解，DecomposedOPD 用于 OPD 梯度导向"
       }
     ],
-    "edgeCount": 1
+    "edgeCount": 2
   },
   {
     "id": "paper:qwen3vl_2025",
@@ -956,8 +962,15 @@ var PAPERS = [
       "Relevance to This Project": "<p>这篇 OPD 论文对我们的思路最重要的价值是：它把“OPD 失败”从 teacher 分数问题转成了<strong>局部监督几何问题</strong>。teacher 是否有用，取决于它在 student 当前访问的状态上给出的 next-token distribution 是否与 student 有足够 overlap，并且是否携带 student 尚未掌握的新能力。</p>\n<p>放到我们的 VLM / MOPD 思路里，核心迁移是：</p>\n<ol>\n<li><strong>从 single-teacher compatibility 到 multi-teacher compatibility。</strong> OPD 要求 student 和 teacher 的 thinking pattern 对齐；MOPD 还要求多个 teacher 之间不要在同一 token 上给出互相抵消的能力信号。</li>\n<li><strong>从 prompt alignment 到 capability alignment。</strong> Teacher-aligned prompt 能提升 single-teacher OPD，是因为 prompt 让 teacher 回到熟悉分布。多教师时不能简单让所有样本贴近某一个 teacher 的后训练分布，否则可能牺牲另一个 teacher 的能力信号。</li>\n<li><strong>从 overlap sufficiency 到 conflict diagnosis。</strong> 如果有效训练信号主要来自 overlap tokens，那么多教师 setting 中最需要看的不是全词表 KL 均值，而是 capability-relevant token 上 visual / knowledge / reasoning teacher 的 top-k overlap、probability mass 和梯度方向。</li>\n<li><strong>从 entropy risk 到泛化风险。</strong> Teacher-aligned prompts 会压低 student entropy；在 VLM 中，如果训练过度贴近某类 teacher 的模板，student 可能学会固定回答风格，却降低对开放视觉证据和分布外问题的适应能力。</li>\n</ol>\n<p>因此我们的表述应该避免写成“OPD 不好”或“KL 只学风格”，而应写成：</p>\n<blockquote><p>Dense multi-teacher OPD in VLMs requires capability-compatible token-level supervision. The failure mode is not merely style drift, but that visual, knowledge, and reasoning teachers may assign incompatible local supervision on the same student-visited states; prompt/template alignment can reduce one source of mismatch, but cannot solve teacher-teacher capability conflict.</p></blockquote>",
       "Reading Notes": "<h3>核心概念</h3>\n<ul>\n<li><strong>Student-visited state:</strong> OPD 的监督不是在 teacher 自己生成的轨迹上计算，而是在 student rollout 的 prefix 上计算。这使 OPD 更贴近 student 当前策略，但也让 teacher 可能被迫评价自己不熟悉的状态。</li>\n<li><strong>Overlap support:</strong> teacher 和 student top-k token 集合的交集。论文认为成功 OPD 的主要收益来自这个交集，而不是来自全词表中大量低概率 token。</li>\n<li><strong>Entropy profile:</strong> teacher 和 student 的不确定性形状。只看 accuracy 不够，teacher 过尖或 student 过尖都会影响 KL 信号。</li>\n<li><strong>Teacher-aligned prompt:</strong> student 和 teacher 共用同一个 prompt，只是这个 prompt 的模板或内容贴近 teacher 后训练分布。</li>\n</ul>\n<h3>机制理解</h3>\n<p>OPD 可以理解成“student 在自己会走到的地方向 teacher 问路”。如果 student 走到的状态仍在 teacher 熟悉的局部区域，teacher 的 next-token distribution 就能提供密集、可用的方向；如果 student 走到 teacher 不熟悉的状态，teacher 仍然可能全局更强，但局部 token-level 分布不一定能形成稳定优化信号。</p>\n<p>这解释了两个表面矛盾：</p>\n<ul>\n<li>更强 teacher 可能失败：强 teacher 的 reasoning style 与 student 当前 rollout 差异过大，top-k support 不重叠，KL 信号难以转化为有效更新。</li>\n<li>弱一些但更兼容的 teacher 可能成功：它的 token distribution 与 student 更重叠，局部监督更容易被吸收。</li>\n</ul>\n<p>Prompt alignment 是从数据侧缓解这个问题：让 student rollout 和 teacher evaluation 都发生在 teacher 更熟悉的 prompt 分布上，从而提高 overlap 和 supervision reliability。</p>\n<h3>Recipe / 实践细节</h3>\n<ul>\n<li>OPD 训练前可以先做 teacher rollout SFT 冷启动，使 student 初始 thinking pattern 靠近 teacher，避免一开始 overlap 太低。</li>\n<li>训练 prompt 不只看任务领域，还要看 template / content 是否贴近 teacher 后训练数据。</li>\n<li>不要只用 teacher post-training prompts；混入分布外 prompts 以防 student entropy 被压低。</li>\n<li>监控指标至少包括：top-k overlap ratio、overlap-token probability mass、student/teacher entropy、entropy gap。</li>\n<li>对 VLM/MOPD，额外需要按能力 segment 或内容 token 统计这些指标，例如视觉实体 token、属性 token、外部知识 token、推理连接 token。</li>\n</ul>\n<h3>值得复现或借鉴的实验</h3>\n<ul>\n<li><strong>Prompt template ablation:</strong> 同一批问题，只换 prompt 模板，观察 OPD accuracy、overlap ratio、entropy 是否变化。迁移到 VLM 时，可以比较通用 VQA 模板、visual-grounding 模板、knowledge-reasoning 模板。</li>\n<li><strong>Prompt content ablation:</strong> 同样任务领域内，比较 teacher 后训练 prompt 分布与去重后的外部分布。关键不是只看 accuracy，而是看 overlap-token mass 和 entropy 是否变尖。</li>\n<li><strong>Cold-start ablation:</strong> 比较 base student 直接 OPD 与 teacher rollout SFT 后再 OPD。若冷启动显著提高 overlap，说明 failure 来自 thinking-pattern mismatch。</li>\n<li><strong>Long-depth reward degradation:</strong> 在长推理链上检查 teacher token-level reward 是否随 response depth 降低。这对 VLM 多步推理尤其重要，因为视觉证据错误可能在早期被引入，后续 token KL 只能放大错误链。</li>\n</ul>\n<h3>和 MOPD / 多教师蒸馏的关系</h3>\n<p>OPD 论文可以视为 MOPD 的前置诊断：如果单个 teacher 都需要和 student 在 local support 上对齐，那么多个 teacher 的 KL 信号更不应该被默认视为可加。</p>\n<p>在多教师 VLM 中，可以把每个 token 位置看成同时存在三种关系：</p>\n<ol>\n<li><strong>student-visual teacher overlap</strong>：visual teacher 是否在该 token 上提供可靠 grounding 监督。</li>\n<li><strong>student-knowledge / reasoning teacher overlap</strong>：knowledge 或 reasoning teacher 是否在该 token 上提供可靠语义监督。</li>\n<li><strong>teacher-teacher compatibility</strong>：不同 teacher 的 top-k support 和高概率 token 是否一致。</li>\n</ol>\n<p>如果第 3 点失败，固定权重 MOPD 会出现两类问题：</p>\n<ul>\n<li><strong>稀释有效信号</strong>：视觉 token 上 reasoning teacher 的低信息分布稀释 visual teacher；推理 token 上 visual teacher 稀释 reasoning teacher。</li>\n<li><strong>反向梯度冲突</strong>：两个 teacher 在同一内容 token 上把 student 推向不同方向，KL 加权后得到模糊 target，既不像 visual teacher，也不像 reasoning teacher。</li>\n</ul>\n<p>因此，可以把 OPD 的 recipe 改写成 MOPD/VLM 的 recipe：</p>\n<ul>\n<li>先诊断每个 teacher 与 student 的 overlap，而不是直接训练。</li>\n<li>再诊断 teacher-teacher 在 capability-relevant token 上的 overlap / conflict。</li>\n<li>prompt/template alignment 只作为减少风格 mismatch 的必要步骤，不作为解决能力冲突的充分条件。</li>\n<li>最终方法应当在 token 或 segment 级别动态选择 / 混合 teacher，而不是使用全局固定权重。</li>\n</ul>"
     },
-    "connections": [],
-    "edgeCount": 0
+    "connections": [
+      {
+        "type": "extends",
+        "target": "DecomposedOPD",
+        "targetId": "paper:decomposed_opd_icml2026",
+        "text": "OPD Rethinking 建立了 text-only Reverse KL on-policy distillation 的现象学（mode-seeking、thinking-pattern overlap 作为成功前提）。DecomposedOPD 将 OPD 从纯文本推广到多模态 VLM，通过 Bayes 分解将标准目标拆为语言先验+视觉 Grounding，并在梯度层面发现二者在高视觉依赖 token 上近乎正交（≈92°），从而用 VGS 掰向视觉子空间。两篇分别从「OPD 信号是否可用」和「可用信号如何被优化」两个维度切入"
+      }
+    ],
+    "edgeCount": 1
   },
   {
     "id": "paper:decomposed_opd_icml2026",
@@ -1003,8 +1016,21 @@ var PAPERS = [
       "Relevance to This Project": "<p>DecomposedOPD 是我们的 MOPD 方法路径上最重要的一篇直接前置工作。它将 OPD 从\"一个损失函数\"变成\"一个可分解的几何问题\"，为多教师场景提供了分析语言。</p>\n<p>核心迁移点：</p>\n<ol>\n<li><strong>从二元分解到多元分解</strong>：DecomposedOPD 证明标准 OPD = $L_{\\text{Lang}} + L_{\\text{Vis}}$。我们的 MOPD 自然地推广为：标准 MOPD = $\\sum_k w_k (L_{\\text{Lang}}^{(k)} + L_{\\text{Vis}}^{(k)})$，其中 $k$ 索引教师。关键新问题：不同教师的 $L_{\\text{Vis}}^{(k)}$ 之间是否存在梯度冲突？教师的专门化程度是否影响各时间步的几何？</li>\n</ol>\n<ol>\n<li><strong>从全局 $\\gamma$ 到 token 级教师权重矩阵</strong>：DecomposedOPD 用一个全局 $\\gamma$ 掰向视觉。MOPD 需要在每个 token 上做 K 维的教师选择，且权重 $(w_1, \\ldots, w_K)$ 需随 token 平滑变化。这不是\"调一个 $\\gamma$\"的问题，而是<strong>在线教师路由</strong>问题。</li>\n</ol>\n<ol>\n<li><strong>从单瓶颈假设到多瓶颈动态识别</strong>：DecomposedOPD 假设\"视觉永远是瓶颈\"。MOPD 中不同任务类型的瓶颈不同——数学推理 token 需要推理教师，视觉描述 token 需要视觉教师。需要一种机制动态识别当前 token 的瓶颈模态，并路由到对应教师。</li>\n</ol>\n<ol>\n<li><strong>LP 的多教师泛化</strong>：单教师的 LP 只保护语言先验。多教师中\"掰\"一个教师可能损害其他多个教师的监督信号。需要多目标帕累托优化，而非单正则项。</li>\n</ol>\n<p>因此我们的表述应该是：</p>\n<blockquote><p>DecomposedOPD revealed that in single-teacher OPD, language and visual gradients are nearly orthogonal, and standard optimization passively compromises between them. Our MOPD generalizes this geometric perspective to the multi-teacher regime: when K specialized teachers provide supervision on the same student-visited state, the gradient geometry is no longer a 2D bisector but a K-dimensional simplex requiring token-level routing with smoothness constraints, inter-teacher conflict resolution, and bottleneck-adaptive steering.</p></blockquote>\n<hr>",
       "Reading Notes": "<h3>核心概念</h3>\n<p><strong>全文涉及的分布速查</strong>——这是理解整篇论文最关键的 notation 基础：</p>\n<table><thead><tr><th>符号</th><th>含义</th><th>出现在</th></tr></thead><tbody><tr><td>$q_T(\\cdot \\mid \\tau_{&lt;t}, I, x)$</td><td>教师多模态分布（同时看图文）</td><td>Eq.3, 12</td></tr><tr><td>$q_T(\\cdot \\mid \\tau_{&lt;t}, x)$</td><td>教师纯文本分布（不看图）</td><td>Eq.6, 12, 16</td></tr><tr><td>$p_{\\theta_S}(\\cdot \\mid \\tau_{&lt;t}, I, x)$</td><td>学生多模态分布</td><td>Eq.3, 11</td></tr><tr><td>$p_{\\theta_S}(\\cdot \\mid \\tau_{&lt;t}, x)$</td><td>学生纯文本分布</td><td>Eq.6, 10</td></tr><tr><td>$q_T^*(\\cdot \\mid \\tau_{&lt;t}, I, x)$</td><td><strong>构造混合分布</strong>：学生语言先验 + 教师视觉增益</td><td>Eq.9-11, 21</td></tr></tbody></table>\n<blockquote><p><strong>关键区分</strong>：$q_T$ 是一个模型，上面两行是<strong>同一个模型在不同输入条件下</strong>的分布。$q_T^*$ 不是 $q_T$ 的变体——它是由 $p_{\\theta_S}$ 和 $q_T$ 拼接构造出的<strong>新分布</strong>，语言底座来自学生，视觉增量来自教师。</p></blockquote>\n<ul>\n<li><strong>Language Prior ($\\mathcal{L}_{\\text{Lang}}$)</strong>：在纯文本条件 $(x, \\tau_{&lt;t})$ 下匹配教师的纯文本分布 $q_T(\\cdot \\mid \\tau_{&lt;t}, x)$，传递推理风格，不涉及视觉上下文。KL target 是 $q_T$（教师），不是 $q_T^*$。</li>\n<li><strong>Visual Grounding ($\\mathcal{L}_{\\text{Vis}}$)</strong>：KL target 是 $q_T^*$（而非 $q_T(\\cdot \\mid \\tau_{&lt;t}, I, x)$）——因为只用教师的视觉信息增量嫁接在学生的语言底座上，实现视觉和语言的干净分离。</li>\n<li><strong>Visual Dependency Score (VDS)</strong>：教师在 token $t$ 的多模态分布与单模态分布的 KL 散度，量化 token 对视觉的依赖程度。是后续所有分析和 LP 正则化的基础。</li>\n<li><strong>Gradient Orthogonality</strong>：$\\nabla \\mathcal{L}_{\\text{Lang}} \\perp \\nabla \\mathcal{L}_{\\text{Vis}}$ 在高 VDS token 上成立——两个目标的优化需要改动模型的不同参数子空间。</li>\n<li><strong>Passive Bisector</strong>：$\\nabla \\mathcal{L}_{\\text{Standard}}$ 的行为模式——始终平分语言和视觉方向，是\"优化对称性\"的引擎。</li>\n<li><strong>Asymmetric Maturity Hypothesis</strong>：视觉是瓶颈，语言已成熟→掰向视觉是正确的方向。</li>\n</ul>\n<h3>机制理解</h3>\n<p>DecomposedOPD 的本质是<strong>在 OPD 的优化几何上做了手术</strong>。它不改变\"用 KL 匹配教师\"这件事，只改变\"梯度往哪里走\"。</p>\n<p>将这个机制画成参数空间的几何图景：</p>\n<p>```<br>标准 OPD 的更新（Bin 9 token）：<br>∇L_Vis ↑<br>│   ↗ ∇L_Standard ≈ ∇L_Lang + ∇L_Vis<br>│  /   (这是被动的角平分线——42° vs 50°)<br>│ /<br>●──────────→<br>∇L_Lang</p>\n<p>VGS 的更新（同一个 token）：<br>∇L_Vis ↑<br>│↗ ∇L_VGS = η(γ) · (∇L_Standard + γ·∇L_Vis)<br>│/  (被掰向视觉子空间)<br>│<br>●──────────→<br>∇L_Lang</p>\n<p>效果的差异：</p>\n<ul>\n<li>标准方案：在两个近乎正交的方向之间各走一半 → 视觉改善慢</li>\n<li>VGS：主动偏向视觉 → 视觉改善加速，语言因 LP 保护不退化</li>\n</ul>\n<p>```</p>\n<p>梯度正交性的物理意义是：提升语言能力和提升视觉感知需要改动模型的不同参数子结构。标准 OPD 把更新向量平分，意味着在所有参数上平均分配——相当于同时在两个近乎独立的子空间上做半速优化。VGS 把更新向量掰向视觉子空间，在瓶颈处集中资源。</p>\n<h3>Recipe / 实践细节</h3>\n<ul>\n<li>$\\gamma = 2.0, \\lambda = 0.01$：主导向系数和 LP 权重，经 sensitivity analysis 验证在宽范围内鲁棒。</li>\n<li>$\\eta_{\\text{VGS}}(2.0) = 0.41$（2B）、$0.36$（4B）：由附录 A 的梯度范数追踪实验预计算，训练中固定不变。</li>\n<li>text-only forward pass：每步额外跑一次不带图像的 forward（用 $x$ 和 $\\tau_{&lt;t}$），计算 $q_T(\\cdot \\mid \\tau_{&lt;t}, x)$ 和 $p_{\\theta_S}(\\cdot \\mid \\tau_{&lt;t}, x)$。</li>\n<li>$q_T^*$ 的构造在 logit 层面：<code>student_text_logits + (teacher_mm_logits - teacher_text_logits)</code>，Softmax 后即为目标分布。注意这里 $q_T^*$ 的 logit = 学生的语言底座 + 教师的视觉增量（多模态 logit 减纯文本 logit），不是直接用教师的原始 logit。</li>\n<li>统一 system prompt：教师 GRPO 训练和学生 OPD 蒸馏使用同一模板，强制 <code><reason>...</reason></code> + <code>\\boxed{}</code> 格式。</li>\n<li>Vision encoder 不冻结：训练中同时更新视觉编码器和 LLM backbone。</li>\n<li>1 epoch, lr=1e-6, AdamW, batch=512, rollout temperature=1.0, top-p=1.0。</li>\n<li>8×A100 80GB 单节点。</li>\n</ul>\n<h3>值得复现或借鉴的实验</h3>\n<ul>\n<li><strong>梯度夹角 vs VDS binned analysis（Figure 3）</strong>：在 MOPD 中可推广为——对每个教师的 $\\nabla L_{\\text{Vis}}^{(k)}$ 和 $\\nabla L_{\\text{Lang}}^{(k)}$，以及跨教师的 $\\nabla L_{\\text{Vis}}^{(k)}$ vs $\\nabla L_{\\text{Vis}}^{(j)}$，做相同的分桶夹角分析。这是理解多教师梯度几何的起点。</li>\n<li><strong>逆实验验证瓶颈假设（Section 7）</strong>：在 MOPD 中可推广为——分别关闭某个教师，观察哪些能力受损最严重，以识别真正的瓶颈教师。</li>\n<li><strong>η 的稳定性和近似可行性（Appendix A）</strong>：在 MOPD 中检查多教师组合梯度范数是否仍然稳定，决定了是否可以做类似的常数近似。</li>\n<li><strong>Adaptive steering 的三阶段阈值（Appendix E）</strong>：在 MOPD 中作为最简单的 baseline——用 VDS 分三段决定掰向哪个教师（低 VDS→语言教师，中 VDS→推理教师，高 VDS→视觉教师）——然后证明我们需要比三阶段更平滑的路由。</li>\n</ul>\n<h3>和 MOPD / 多教师蒸馏的关系</h3>\n<p>DecomposedOPD 为 MOPD 提供了<strong>分析范式</strong>而非直接可套用的方法。其最重要的遗产是：</p>\n<ol>\n<li><strong>证明了\"分解→分析几何→定向干预\"这条技术路线有效</strong>。MOPD 可以沿着相同的路线走：分解各教师贡献→分析跨教师梯度几何→设计 token 级路由干预。</li>\n</ol>\n<ol>\n<li><strong>暴露了全局静态控制信号的不足</strong>。VGS + LP 本质上是一个全局 $\\gamma$ + 一个 hard threshold 正则项。Adaptive VGS（附录 E）的三阶段改进也仍是离散的。MOPD 需要的平滑、连续、token 级、多教师的路由信号，是比 VGS 严格更难的问题。</li>\n</ol>\n<ol>\n<li><strong>给定了 MOPD 的下界</strong>。对任意一个 token，如果没有 token 级路由，我们能做的最好就是 VGS 式的全局偏见（偏某个教师/某个模态）。VGS 相对于 Standard OPD 的提升，就是 token 级路由理论上能获得的上限增益的一小部分。</li>\n</ol>\n<p>多教师时每 token 需要回答的不是\"掰多少给视觉\"，而是\"掰多少给视觉教师 vs 推理教师 vs 知识教师\"，且这个决策需要满足：</p>\n<ul>\n<li>Token 间平滑：相邻 token 的教师权重不能剧烈跳变</li>\n<li>教师间冲突检测：两个教师对同一 token 的梯度方向是否冲突</li>\n<li>学生能力感知：学生当前在哪个教师擅长领域最弱，应接受更多该教师的信号</li>\n</ul>"
     },
-    "connections": [],
-    "edgeCount": 0
+    "connections": [
+      {
+        "type": "extends",
+        "target": "Pivot",
+        "targetId": "paper:song2026_pivot",
+        "text": "两篇均将 VLM 优化分解为语言 vs 视觉两个分量，且共享 Asymmetric Maturity Hypothesis（视觉是瓶颈，语言已成熟）。PIVOT 从 RL/DPO 角度证明偏好优化通过反向传播重塑视觉编码器表征；DecomposedOPD 从 OPD 梯度几何角度发现 ∇L_Lang ⟂ ∇L_Vis，标准梯度被动平分二者。同组（KAIST/MSRA）工作，分解思想一脉相承：PDCR 用于 RL reward 分解，DecomposedOPD 用于 OPD 梯度导向"
+      },
+      {
+        "type": "extended_by",
+        "target": "OPD",
+        "targetId": "paper:opd_rethinking_2026",
+        "text": "OPD Rethinking 建立了 text-only Reverse KL on-policy distillation 的现象学（mode-seeking、thinking-pattern overlap 作为成功前提）。DecomposedOPD 将 OPD 从纯文本推广到多模态 VLM，通过 Bayes 分解将标准目标拆为语言先验+视觉 Grounding，并在梯度层面发现二者在高视觉依赖 token 上近乎正交（≈92°），从而用 VGS 掰向视觉子空间。两篇分别从「OPD 信号是否可用」和「可用信号如何被优化」两个维度切入"
+      }
+    ],
+    "edgeCount": 2
   }
 ];
 var EDGES = [
@@ -1112,6 +1138,20 @@ var EDGES = [
     "type": "extends",
     "evidence": "R1-Reward 在 VL-RewardBench 上评测，相比 baseline 提升 8.4%（Vote@1），验证了 CoT+RL 训练范式在多模态 reward model 上的有效性——reasoning 和 hallucination 维度提升尤为显著",
     "added": "2026-07-01T00:00:00Z"
+  },
+  {
+    "from": "paper:opd_rethinking_2026",
+    "to": "paper:decomposed_opd_icml2026",
+    "type": "extends",
+    "evidence": "OPD Rethinking 建立了 text-only Reverse KL on-policy distillation 的现象学（mode-seeking、thinking-pattern overlap 作为成功前提）。DecomposedOPD 将 OPD 从纯文本推广到多模态 VLM，通过 Bayes 分解将标准目标拆为语言先验+视觉 Grounding，并在梯度层面发现二者在高视觉依赖 token 上近乎正交（≈92°），从而用 VGS 掰向视觉子空间。两篇分别从「OPD 信号是否可用」和「可用信号如何被优化」两个维度切入",
+    "added": "2026-07-16T00:00:00Z"
+  },
+  {
+    "from": "paper:decomposed_opd_icml2026",
+    "to": "paper:song2026_pivot",
+    "type": "extends",
+    "evidence": "两篇均将 VLM 优化分解为语言 vs 视觉两个分量，且共享 Asymmetric Maturity Hypothesis（视觉是瓶颈，语言已成熟）。PIVOT 从 RL/DPO 角度证明偏好优化通过反向传播重塑视觉编码器表征；DecomposedOPD 从 OPD 梯度几何角度发现 ∇L_Lang ⟂ ∇L_Vis，标准梯度被动平分二者。同组（KAIST/MSRA）工作，分解思想一脉相承：PDCR 用于 RL reward 分解，DecomposedOPD 用于 OPD 梯度导向",
+    "added": "2026-07-16T00:00:00Z"
   }
 ];
 
