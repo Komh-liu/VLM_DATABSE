@@ -519,25 +519,36 @@ DecomposedOPD 的本质是**在 OPD 的优化几何上做了手术**。它不改
 将这个机制画成参数空间的几何图景：
 
 ```
-标准 OPD 的更新（Bin 9 token）：
-  ∇L_Vis ↑
-          │   ↗ ∇L_Standard ≈ ∇L_Lang + ∇L_Vis
-          │  /   (这是被动的角平分线——42° vs 50°)
-          │ /
-          ●──────────→
-             ∇L_Lang
+                     Standard OPD  (Bin 9)
+                     ==============
+       (visual)
+         ^
+         |     /  <- grad L_Standard (passive bisector, ~42 deg from visual)
+         |    /
+         |   /
+         |  /
+         | /
+         O---------->  (language)
+              grad L_Lang
 
-VGS 的更新（同一个 token）：
-  ∇L_Vis ↑
-          │↗ ∇L_VGS = η(γ) · (∇L_Standard + γ·∇L_Vis)
-          │/  (被掰向视觉子空间)
-          │
-          ●──────────→
-             ∇L_Lang
+         Angle(grad L_Lang, grad L_Vis) ~= 92 deg (nearly orthogonal)
+         Standard update splits the difference -> slow visual progress
 
-效果的差异：
-- 标准方案：在两个近乎正交的方向之间各走一半 → 视觉改善慢
-- VGS：主动偏向视觉 → 视觉改善加速，语言因 LP 保护不退化
+
+                     VGS  (same Bin 9 token)
+                     ===
+       (visual)
+         ^
+         |  /
+         | /   <- grad VGS = eta * (grad Standard + gamma * grad Vis)
+         |/       (steered toward visual subspace)
+         |
+         O---------->  (language)
+              grad L_Lang
+
+         Standard: compromise between two near-orthogonal directions
+         VGS:      explicitly biased toward visual -> faster grounding
+                   LP regularizer prevents language unlearning
 ```
 
 梯度正交性的物理意义是：提升语言能力和提升视觉感知需要改动模型的不同参数子结构。标准 OPD 把更新向量平分，意味着在所有参数上平均分配——相当于同时在两个近乎独立的子空间上做半速优化。VGS 把更新向量掰向视觉子空间，在瓶颈处集中资源。
