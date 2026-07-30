@@ -154,6 +154,21 @@ def render_markdown_to_html(text):
             i += 1
             continue
 
+        # Fenced code block: ``` ... ```
+        if stripped.startswith('```'):
+            code_lines = []
+            i += 1
+            while i < len(lines):
+                if lines[i].strip() == '```':
+                    i += 1
+                    break
+                code_lines.append(lines[i])
+                i += 1
+            code_text = '\n'.join(code_lines)
+            escaped = code_text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            result.append(f'<pre><code>{escaped}</code></pre>')
+            continue
+
         # Multi-line MathJax block: $$ ... $$ (spans multiple lines)
         if stripped == '$$':
             math_lines = ['$$']
@@ -164,7 +179,10 @@ def render_markdown_to_html(text):
                     i += 1
                     break
                 i += 1
-            result.append(f'<p>{"<br>".join(math_lines)}</p>')
+            # Escape < and > to prevent browsers from parsing them as HTML tags
+            # (e.g., \tau_{<t} would otherwise break MathJax rendering)
+            escaped = '<br>'.join(math_lines).replace('<', '&lt;').replace('>', '&gt;')
+            result.append(f'<p>{escaped}</p>')
             continue
 
         # Heading: ### H3, #### H4, ##### H5, ###### H6
