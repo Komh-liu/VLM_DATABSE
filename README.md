@@ -6,7 +6,7 @@ ViT SwinT
 ### 感兴趣但是还没有加入
 DiT SiT
 ## 页面链接
-[知识库页面可视化](https://komh-liu.github.io/vlm_database/research-wiki/knowledge-graph.html)
+[知识库页面可视化](https://komh-liu.github.io/VLM_DATABSE/research-wiki/knowledge-graph.html)
 ### 目前感兴趣的研究方向
 - 投机解码
 
@@ -16,6 +16,6 @@ DiT SiT
 
 - MOPD监督信号互相干扰，并且KL监督风格信息大于内容等。dense模型 多能力提升
 
-- 全模态模型与多模态的联系和区别
+- 全模态模型与多模态的联系和区别 & NMM架构
 ## aris skills
 novelty-check、kill-argument、research-review

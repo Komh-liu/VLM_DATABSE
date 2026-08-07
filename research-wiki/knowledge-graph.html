@@ -1429,7 +1429,7 @@ function applyFilters(){
     matches=neighborhood.visible;
     dist=neighborhood.dist;
   }else{
-    PAPERS.forEach(function(p){matches[p.id]=false});
+    PAPERS.forEach(function(p){matches[p.id]=true});
   }
   var count=Object.keys(matches).filter(function(id){return matches[id]}).length;
   var empty=side.querySelector('.side-empty');
@@ -1439,7 +1439,7 @@ function applyFilters(){
     empty.textContent='先输入文章名并从候选栏选择一篇论文。右侧会显示该论文 3 步邻域内的文章。';
     side.insertBefore(empty,side.firstChild);
   }
-  if(empty)empty.style.display=selectedId?'none':'block';
+  if(empty)empty.style.display='none';
   PAPERS.forEach(function(p,i){
     if(cards[i])cards[i].style.display=matches[p.id]?'':'none';
     if(cards[i]&&matches[p.id]){
@@ -1447,9 +1447,9 @@ function applyFilters(){
     }
   });
   var selected=PAPERS.find(function(p){return p.id===selectedId});
-  document.getElementById('searchCount').textContent=selectedId?(count+' nodes'):'';
-  document.getElementById('graphTitle').textContent=selected?'3-Hop Neighborhood · '+selected.short:'Knowledge Graph · Select a Paper';
-  document.getElementById('graphEmpty').style.display=selectedId?'none':'flex';
+  document.getElementById('searchCount').textContent=selectedId?(count+' nodes'):(PAPERS.length+' papers');
+  document.getElementById('graphTitle').textContent=selected?'3-Hop Neighborhood · '+selected.short:'Knowledge Graph · All Papers';
+  document.getElementById('graphEmpty').style.display='none';
   window._visibleNodeIds=matches;
   seedVisibleNeighborhood(selectedId,matches,dist);
   centerSelectedNode();
@@ -1463,7 +1463,7 @@ function applyFilters(){
   if(window._linkSel){
     window._linkSel.attr('opacity',function(d){return matches[d.source.id]&&matches[d.target.id]?0.6:0});
   }
-  if(window._sim)window._sim.alpha(selectedId?0.9:0.2).restart();
+  if(window._sim)window._sim.alpha(selectedId?0.9:0.5).restart();
 }
 function centerSelectedNode(){
   if(!window._graphNodes)return;
