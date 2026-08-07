@@ -432,32 +432,34 @@ Day 1:
   1. MOPD
   2. CaMOPD
   3. Revisiting OPD
-  4. StepOPSD
+  4. RLCSD
+  5. StepOPSD
 
 Day 2:
-  5. OK-VQA
-  6. A-OKVQA
-  7. Encyclopedic-VQA
-  8. InfoSeek
+  6. OK-VQA
+  7. A-OKVQA
+  8. Encyclopedic-VQA
+  9. InfoSeek
 ```
 
 目标：
 
 ```text
-确认我们的问题是否被 OPD/MOPD 文献覆盖；
+确认已发表文献给出的正式 novelty 边界；
+把未发表 OPD/MOPD preprint 当作趋势和风险观察，而不是正式 novelty attack；
 确认哪些 KB-VQA benchmark 最适合暴露 visual/knowledge conflict。
 ```
 
 ### 1 周完整版
 
 ```text
-Day 1: MOPD + CaMOPD
-Day 2: Revisiting OPD + StepOPSD + OmniOPD
+Day 1: MOPD + CaMOPD + Drive-KD（若未发表，仅作 recent/concurrent work）
+Day 2: Revisiting OPD + RLCSD + StepOPSD + OmniOPD
 Day 3: OK-VQA + A-OKVQA
-Day 4: Encyclopedic-VQA + InfoSeek
-Day 5: EchoSight + MI-RAG + Multimodal Reranking
-Day 6: DPO + VisualPRM
-Day 7: BaseReward + VL-RewardBench + R1-Reward
+Day 4: Encyclopedic-VQA + InfoSeek + EchoSight + ReAG
+Day 5: PCGrad + CAGrad + GradVac
+Day 6: MoVE-KD + AMMKD
+Day 7: DPO + Let's Verify Step by Step + Math-Shepherd
 ```
 
 ---
@@ -469,20 +471,23 @@ Day 7: BaseReward + VL-RewardBench + R1-Reward
 1. MOPD 是否默认 token-level dense teacher feedback 总是正收益？
 2. CaMOPD 的 counteraction 与我们的 capability conflict 是否本质不同？
 3. Revisiting OPD 的 special-token masking / top-K matching 是否能解释我们的 style dominance？
-4. StepOPSD / OmniOPD 是否已经足够解决 token-level KL 的问题？
+4. RLCSD 的 contrastive 去风格是否能迁移到 multi-teacher VLM？
+5. StepOPSD / OmniOPD 是否已经足够解决 token-level KL 的问题？
+6. 哪些结论来自已发表论文，哪些只是未发表 preprint 的参考？
 
 ### Benchmark 问题
 
-5. 哪些 benchmark 的样本必须同时依赖图像和外部知识？
-6. 哪些 benchmark 有 evidence / rationale / entity link，可用于自动 segment 或 verifier？
-7. OK-VQA / A-OKVQA / InfoSeek / Encyclopedic-VQA 中，哪个最适合主实验，哪个适合诊断实验？
+7. 哪些 benchmark 的样本必须同时依赖图像和外部知识？
+8. 哪些 benchmark 有 evidence / rationale / entity link，可用于自动 segment 或 verifier？
+9. OK-VQA / A-OKVQA / InfoSeek / Encyclopedic-VQA 中，哪个最适合主实验，哪个适合诊断实验？
 
 ### 方法问题
 
-8. Masked KL 能缓解多少？
-9. Segment-isolated KL 能缓解多少？
-10. 什么时候必须抛弃 KL，转向 segment preference？
-11. capability-specific preference 是否比 generic full-answer DPO 更好？
+10. Masked KL 能缓解多少？
+11. Segment-isolated KL 能缓解多少？
+12. Contrastive capability signal 是否比 masking-only 更能保留冲突关键 token 的学习？
+13. 什么时候必须抛弃 KL，转向 segment preference？
+14. capability-specific preference 是否比 generic full-answer DPO 更好？
 
 ---
 
@@ -565,4 +570,3 @@ Capability-specific segment preference
 ```
 
 这个方向就具备冲 ICML / NeurIPS 的完整叙事。
-

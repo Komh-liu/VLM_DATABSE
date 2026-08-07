@@ -50,6 +50,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .search-bar input:focus{border-color:var(--accent)}
 .search-bar input::placeholder{color:var(--text4)}
 .search-bar .search-count{font-size:12px;color:var(--text2);white-space:nowrap;min-width:50px}
+.search-wrap{position:relative;max-width:420px}
+.suggestions{display:none;position:absolute;z-index:200;top:calc(100% + 6px);left:0;right:0;background:var(--tip);border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 28px rgba(0,0,0,0.28);overflow:hidden}
+.suggestions.open{display:block}
+.suggestion-item{display:block;width:100%;background:transparent;border:0;border-bottom:1px solid var(--border2);padding:10px 12px;text-align:left;color:var(--text);cursor:pointer}
+.suggestion-item:last-child{border-bottom:0}
+.suggestion-item:hover,.suggestion-item:focus{background:var(--bg3);outline:none}
+.suggestion-item strong{display:block;color:var(--accent);font-size:13px;line-height:1.35}
+.suggestion-item span{display:block;color:var(--text2);font-size:12px;margin-top:3px;line-height:1.35}
+.empty-state{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:32px;text-align:center;color:var(--text2);font-size:14px;line-height:1.6;pointer-events:none}
+.side-empty{padding:24px;color:var(--text2);font-size:13px;line-height:1.6}
 .time-filter{display:flex;align-items:center;gap:10px;margin-top:12px;max-width:420px;flex-wrap:wrap}
 .time-filter .time-label{font-size:12px;color:var(--text2);white-space:nowrap;font-weight:500}
 .time-filter input[type=number]{width:72px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text3);outline:none;text-align:center;-moz-appearance:textfield;transition:border-color .2s}
@@ -123,16 +133,16 @@ text.sub{font-size:11px;fill:var(--text2);font-weight:400;pointer-events:none}
     <h1>VLM Research Knowledge Graph</h1>
     <div class="subtitle" id="headerSubtitle">Loading...</div>
     <div class="stats-bar" id="statsBar"></div>
-    <div class="search-bar"><input type="text" id="searchInput" placeholder="Search papers, authors, tags, content..." autofocus><span class="search-count" id="searchCount"></span></div>
-    <div class="time-filter" id="timeFilter"><span class="time-label">⏱ Year:</span><input type="number" id="yearFrom" min="2020" max="2026" value="2020" placeholder="From"><span class="time-sep">–</span><input type="number" id="yearTo" min="2020" max="2026" value="2026" placeholder="To"><button id="timeResetBtn" style="font-size:11px;padding:2px 8px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);border-radius:4px;cursor:pointer;white-space:nowrap">↺ Reset</button></div>
+    <div class="search-wrap"><div class="search-bar"><input type="text" id="searchInput" placeholder="输入文章名，然后从候选中选择" autofocus><span class="search-count" id="searchCount"></span></div><div class="suggestions" id="searchSuggestions"></div></div>
   </div>
   <button class="theme-btn" id="themeToggle" title="Switch theme"><span class="icon">☀️</span> Light</button>
   <a href="https://papernotes.org/" target="_blank" class="theme-btn" title="PaperNotes 论文笔记平台" style="text-decoration:none">📝 PaperNotes</a>
 </div>
 <div class="main">
   <div class="graph-panel" id="graph">
-    <div class="graph-title">Knowledge Graph · Force-Directed</div>
+    <div class="graph-title" id="graphTitle">Knowledge Graph · Select a Paper</div>
     <div class="graph-legend"><div><span class="swatch" style="background:var(--accent)"></span> extends / builds upon</div></div>
+    <div class="empty-state" id="graphEmpty">输入文章名字并选择一篇论文后，将展示距离该论文 3 步以内的知识图谱。</div>
   </div>
   <div class="side-panel" id="sidePanel"></div>
 </div>
@@ -1267,54 +1277,46 @@ function init() {
 
   // Search
   var si=document.getElementById('searchInput');
-  si.addEventListener('input',function(){applyFilters()});
-  // Year filter
-  var years=PAPERS.map(function(p){return p.year}).filter(Boolean);
-  window._minYear=years.length?Math.min.apply(null,years):2020;
-  window._maxYear=years.length?Math.max.apply(null,years):2026;
-  var yf=document.getElementById('yearFrom'),yt=document.getElementById('yearTo');
-  yf.min=window._minYear;yf.max=window._maxYear;yf.value=window._minYear;
-  yt.min=window._minYear;yt.max=window._maxYear;yt.value=window._maxYear;
-  yf.addEventListener('input',function(){
-    var fv=parseInt(yf.value)||window._minYear;
-    if(fv<window._minYear)yv=window._minYear;
-    if(parseInt(yt.value)<fv)yt.value=fv;
-    applyFilters();
+  si.addEventListener('input',function(){window._selectedPaperId=null;renderSuggestions();applyFilters()});
+  si.addEventListener('focus',function(){renderSuggestions()});
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('.search-wrap'))closeSuggestions();
   });
-  yf.addEventListener('change',function(){
-    var fv=parseInt(yf.value)||window._minYear;
-    if(fv<window._minYear){yf.value=window._minYear;}
-    if(fv>window._maxYear){yf.value=window._maxYear;}
-    if(parseInt(yt.value)<parseInt(yf.value))yt.value=yf.value;
-    applyFilters();
-  });
-  yt.addEventListener('input',function(){
-    var tv=parseInt(yt.value)||window._maxYear;
-    if(tv>window._maxYear)tv=window._maxYear;
-    if(parseInt(yf.value)>tv)yf.value=tv;
-    applyFilters();
-  });
-  yt.addEventListener('change',function(){
-    var tv=parseInt(yt.value)||window._maxYear;
-    if(tv<window._minYear){yt.value=window._minYear;}
-    if(tv>window._maxYear){yt.value=window._maxYear;}
-    if(parseInt(yf.value)>parseInt(yt.value))yf.value=yt.value;
-    applyFilters();
-  });
-  document.getElementById('timeResetBtn').addEventListener('click',resetTimeFilter);
   applyFilters();
 
   // D3 force graph
   var el=document.getElementById('graph');
   var w=el.clientWidth,h=Math.max(500,window.innerHeight-200);
+  window._graphWidth=w;
+  window._graphHeight=h;
   var svg=d3.select('#graph').append('svg').attr('width',w).attr('height',h);
   var g=svg.append('g');
   d3.zoom().scaleExtent([0.3,3]).on('zoom',function(e){g.attr('transform',e.transform)})(svg);
 
   var nd=PAPERS.map(function(p){return Object.assign({},p)});
   var ld=EDGES.map(function(e){return{source:nd.findIndex(function(n){return n.id===e.from}),target:nd.findIndex(function(n){return n.id===e.to}),evidence:e.evidence}}).filter(function(d){return d.source>=0&&d.target>=0});
-
-  var sim=d3.forceSimulation(nd).force('link',d3.forceLink(ld).distance(200).strength(0.5)).force('charge',d3.forceManyBody().strength(-400)).force('center',d3.forceCenter(w/2,h/2).strength(0.3)).force('x',d3.forceX(w/2).strength(0.05)).force('y',d3.forceY(h/2).strength(0.05)).force('collision',d3.forceCollide().radius(100));
+  window._graphNodes=nd;
+  window._visibleNodeIds={};
+  function isVisibleNode(d){return !!(window._visibleNodeIds&&window._visibleNodeIds[d.id])}
+  function isVisibleLink(d){return isVisibleNode(d.source)&&isVisibleNode(d.target)}
+  var linkForce=d3.forceLink(ld).distance(function(d){return isVisibleLink(d)?190:0}).strength(function(d){return isVisibleLink(d)?0.7:0});
+  var chargeForce=d3.forceManyBody().strength(function(d){return isVisibleNode(d)?-420:0});
+  var xForce=d3.forceX(function(){return window._graphWidth/2}).strength(function(d){return d.id===window._selectedPaperId?1.4:(isVisibleNode(d)?0.08:0)});
+  var yForce=d3.forceY(function(){return window._graphHeight/2}).strength(function(d){return d.id===window._selectedPaperId?1.4:(isVisibleNode(d)?0.08:0)});
+  var collisionForce=d3.forceCollide().radius(function(d){return isVisibleNode(d)?96:0});
+  var sim=d3.forceSimulation(nd).force('link',linkForce).force('charge',chargeForce).force('center',d3.forceCenter(w/2,h/2).strength(0.1)).force('x',xForce).force('y',yForce).force('collision',collisionForce);
+  window._sim=sim;
+  window._refreshGraphForces=function(){
+    var activeNodes=nd.filter(function(d){return isVisibleNode(d)});
+    var activeLinks=ld.filter(function(d){return isVisibleLink(d)});
+    sim.nodes(activeNodes);
+    linkForce.links(activeLinks);
+    linkForce.distance(function(d){return isVisibleLink(d)?190:0}).strength(function(d){return isVisibleLink(d)?0.7:0});
+    chargeForce.strength(function(d){return isVisibleNode(d)?-420:0});
+    xForce.strength(function(d){return d.id===window._selectedPaperId?1.4:(isVisibleNode(d)?0.08:0)});
+    yForce.strength(function(d){return d.id===window._selectedPaperId?1.4:(isVisibleNode(d)?0.08:0)});
+    collisionForce.radius(function(d){return isVisibleNode(d)?96:0});
+  };
 
   function getNodeColors(){
     var isLight=document.documentElement.getAttribute('data-theme')==='light';
@@ -1330,15 +1332,16 @@ function init() {
   var defs=svg.append('defs');
   defs.append('marker').attr('id','arrow').attr('viewBox','0 -5 10 10').attr('refX',48).attr('refY',0).attr('markerWidth',8).attr('markerHeight',8).attr('orient','auto').append('path').attr('d','M0,-4L10,0L0,4').attr('fill','#79c0ff').attr('opacity',0.6);
 
-  var link=g.append('g').selectAll('line').data(ld).join('line').attr('stroke','#79c0ff').attr('stroke-width',2.5).attr('stroke-dasharray','6,3').attr('marker-end','url(#arrow)');
+  var link=g.append('g').attr('class','edges').selectAll('line').data(ld).join('line').attr('stroke','#79c0ff').attr('stroke-width',2.5).attr('stroke-dasharray','6,3').attr('marker-end','url(#arrow)');
   window._linkSel=link;
   // Edge labels removed — kept minimal
 
-  var node=g.append('g').selectAll('g').data(nd).join('g').call(d3.drag().on('start',function(e,d){if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',function(e,d){d.fx=e.x;d.fy=e.y}).on('end',function(e,d){if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
+  var node=g.append('g').attr('class','nodes').selectAll('g').data(nd).join('g').call(d3.drag().on('start',function(e,d){if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',function(e,d){d.fx=e.x;d.fy=e.y}).on('end',function(e,d){if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
   node.append('circle').attr('r',42).attr('fill',function(d){return d.nodeColor}).attr('opacity',0.85).on('mouseover',function(e,d){showTooltip(e,d)}).on('mouseout',function(){hideTooltip()}).on('click',function(e,d){e.stopPropagation();openDetail(d.id)});
   node.append('text').attr('dy',-6).attr('fill',clText).attr('class','lbl-name').attr('text-anchor','middle').attr('pointer-events','none').text(function(d){return d.short});
   node.append('text').attr('dy',10).attr('class','sub').attr('fill',clMuted).attr('text-anchor','middle').attr('pointer-events','none').text(function(d){return d.arxivDate||d.year});
   window._nodeSel=node;
+  applyFilters();
 
 
   sim.on('tick',function(){
@@ -1346,42 +1349,155 @@ function init() {
     
     node.attr('transform',function(d){return 'translate('+d.x+','+d.y+')'});
   });
-  window.addEventListener('resize',function(){var cw=el.clientWidth,ch=Math.max(500,window.innerHeight-200);svg.attr('width',cw).attr('height',ch);sim.force('center',d3.forceCenter(cw/2,ch/2)).alpha(0.3).restart()});
+  window.addEventListener('resize',function(){
+    var cw=el.clientWidth,ch=Math.max(500,window.innerHeight-200);
+    window._graphWidth=cw;
+    window._graphHeight=ch;
+    svg.attr('width',cw).attr('height',ch);
+    sim.force('center',d3.forceCenter(cw/2,ch/2).strength(0.1));
+    centerSelectedNode();
+    sim.alpha(0.5).restart();
+  });
 }
 
-function applyFilters(){
-  var q=document.getElementById('searchInput').value.toLowerCase().trim();
-  var yFrom=parseInt(document.getElementById('yearFrom').value)||window._minYear;
-  var yTo=parseInt(document.getElementById('yearTo').value)||window._maxYear;
-  var cards=document.getElementById('sidePanel').children;
-  var count=0;
-  var matches={};
-  PAPERS.forEach(function(p,i){
-    var textMatch=true;
-    if(q){
-      var haystack=[p.title,p.short,p.authors.join(' '),p.tags.join(' '),p.thesis,p.venue,String(p.year||''),p.slug,p.arxivDate||''];
-      textMatch=haystack.join(' ').toLowerCase().indexOf(q)!==-1;
-    }
-    var timeMatch=p.year!=null&&p.year>=yFrom&&p.year<=yTo;
-    var match=textMatch&&timeMatch;
-    matches[p.id]=match;
-    if(match)count++;
-    if(cards[i])cards[i].style.display=match?'':'none';
+function buildNeighborhood(rootId,maxSteps){
+  var adjacency={};
+  PAPERS.forEach(function(p){adjacency[p.id]=[]});
+  EDGES.forEach(function(e){
+    if(!adjacency[e.from]||!adjacency[e.to])return;
+    adjacency[e.from].push(e.to);
+    adjacency[e.to].push(e.from);
   });
-  document.getElementById('searchCount').textContent=q?(count+'/'+PAPERS.length+' results'):(count<PAPERS.length?count+'/'+PAPERS.length+' in range':'');
+  var visible={},dist={};
+  var queue=[rootId];
+  visible[rootId]=true;dist[rootId]=0;
+  while(queue.length){
+    var id=queue.shift();
+    if(dist[id]>=maxSteps)continue;
+    (adjacency[id]||[]).forEach(function(next){
+      if(visible[next])return;
+      visible[next]=true;
+      dist[next]=dist[id]+1;
+      queue.push(next);
+    });
+  }
+  return {visible:visible,dist:dist};
+}
+function selectPaper(id){
+  var p=PAPERS.find(function(x){return x.id===id});if(!p)return;
+  window._selectedPaperId=id;
+  document.getElementById('searchInput').value=p.title;
+  closeSuggestions();
+  applyFilters();
+}
+function renderSuggestions(){
+  var q=document.getElementById('searchInput').value.toLowerCase().trim();
+  var box=document.getElementById('searchSuggestions');
+  if(!q){box.classList.remove('open');box.innerHTML='';return}
+  var results=PAPERS.filter(function(p){
+    var haystack=[p.title,p.short,p.slug,p.authors.join(' '),p.tags.join(' '),p.venue,String(p.year||'')].join(' ').toLowerCase();
+    return haystack.indexOf(q)!==-1;
+  }).slice(0,8);
+  if(!results.length){
+    box.innerHTML='<button class="suggestion-item" type="button" disabled><strong>没有匹配的论文</strong><span>试试论文简称、标题关键词或作者名。</span></button>';
+    box.classList.add('open');
+    document.getElementById('searchCount').textContent='0 results';
+    return;
+  }
+  box.innerHTML=results.map(function(p){
+    var meta=[p.short,p.venue,p.arxivDate||p.year].filter(Boolean).join(' · ');
+    return '<button class="suggestion-item" type="button" data-id="'+p.id+'"><strong>'+p.title+'</strong><span>'+meta+'</span></button>';
+  }).join('');
+  Array.prototype.forEach.call(box.querySelectorAll('.suggestion-item[data-id]'),function(btn){
+    btn.addEventListener('click',function(){selectPaper(btn.getAttribute('data-id'))});
+  });
+  box.classList.add('open');
+  document.getElementById('searchCount').textContent=results.length+'/'+PAPERS.length+' choices';
+}
+function closeSuggestions(){
+  var box=document.getElementById('searchSuggestions');
+  box.classList.remove('open');
+}
+function applyFilters(){
+  var side=document.getElementById('sidePanel');
+  var cards=side.querySelectorAll('.node-card');
+  var selectedId=window._selectedPaperId;
+  var matches={};
+  var dist={};
+  if(selectedId){
+    var neighborhood=buildNeighborhood(selectedId,3);
+    matches=neighborhood.visible;
+    dist=neighborhood.dist;
+  }else{
+    PAPERS.forEach(function(p){matches[p.id]=false});
+  }
+  var count=Object.keys(matches).filter(function(id){return matches[id]}).length;
+  var empty=side.querySelector('.side-empty');
+  if(!selectedId&&!empty){
+    empty=document.createElement('div');
+    empty.className='side-empty';
+    empty.textContent='先输入文章名并从候选栏选择一篇论文。右侧会显示该论文 3 步邻域内的文章。';
+    side.insertBefore(empty,side.firstChild);
+  }
+  if(empty)empty.style.display=selectedId?'none':'block';
+  PAPERS.forEach(function(p,i){
+    if(cards[i])cards[i].style.display=matches[p.id]?'':'none';
+    if(cards[i]&&matches[p.id]){
+      cards[i].style.order=String(dist[p.id]||0).padStart(2,'0')+p.short;
+    }
+  });
+  var selected=PAPERS.find(function(p){return p.id===selectedId});
+  document.getElementById('searchCount').textContent=selectedId?(count+' nodes'):'';
+  document.getElementById('graphTitle').textContent=selected?'3-Hop Neighborhood · '+selected.short:'Knowledge Graph · Select a Paper';
+  document.getElementById('graphEmpty').style.display=selectedId?'none':'flex';
+  window._visibleNodeIds=matches;
+  seedVisibleNeighborhood(selectedId,matches,dist);
+  centerSelectedNode();
+  if(window._refreshGraphForces)window._refreshGraphForces();
   if(window._nodeSel){
     window._nodeSel.select('circle').attr('opacity',function(d){return matches[d.id]?0.85:0});
     window._nodeSel.selectAll('text').attr('opacity',function(d){return matches[d.id]?1:0});
     window._nodeSel.style('pointer-events',function(d){return matches[d.id]?'auto':'none'});
+    window._nodeSel.filter(function(d){return d.id===selectedId}).raise();
   }
   if(window._linkSel){
     window._linkSel.attr('opacity',function(d){return matches[d.source.id]&&matches[d.target.id]?0.6:0});
   }
+  if(window._sim)window._sim.alpha(selectedId?0.9:0.2).restart();
 }
-function resetTimeFilter(){
-  document.getElementById('yearFrom').value=window._minYear;
-  document.getElementById('yearTo').value=window._maxYear;
-  applyFilters();
+function centerSelectedNode(){
+  if(!window._graphNodes)return;
+  var cx=(window._graphWidth||0)/2,cy=(window._graphHeight||0)/2;
+  window._graphNodes.forEach(function(d){
+    if(d.id===window._selectedPaperId){
+      d.x=cx;d.y=cy;d.fx=cx;d.fy=cy;d.vx=0;d.vy=0;
+    }else{
+      d.fx=null;d.fy=null;
+      if(!window._visibleNodeIds||!window._visibleNodeIds[d.id]){d.vx=0;d.vy=0}
+    }
+  });
+}
+function seedVisibleNeighborhood(selectedId,matches,dist){
+  if(!selectedId||!window._graphNodes)return;
+  var cx=(window._graphWidth||0)/2,cy=(window._graphHeight||0)/2;
+  var rings={1:[],2:[],3:[]};
+  window._graphNodes.forEach(function(d){
+    if(d.id!==selectedId&&matches[d.id]){
+      var step=dist[d.id]||1;
+      if(!rings[step])rings[step]=[];
+      rings[step].push(d);
+    }
+  });
+  [1,2,3].forEach(function(step){
+    var nodes=rings[step]||[];
+    var radius=150+(step-1)*115;
+    nodes.forEach(function(d,i){
+      var angle=(Math.PI*2*i/Math.max(nodes.length,1))-(Math.PI/2)+(step*0.35);
+      d.x=cx+Math.cos(angle)*radius;
+      d.y=cy+Math.sin(angle)*radius;
+      d.vx=0;d.vy=0;d.fx=null;d.fy=null;
+    });
+  });
 }
 function showTooltip(e,d){
   var tip=document.getElementById('tooltip');

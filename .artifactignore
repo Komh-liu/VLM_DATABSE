@@ -1,0 +1,14 @@
+# Exclude symlinked skills that break the artifact upload
+.claude/
+# Exclude dev/experiment files not needed on the site
+experiment/
+.git/
+.gitignore
+# Only exclude ROOT-level .md files, not papers/
+/README.md
+/CLAUDE.md
+/AGENTS.md
+/KILL_ARGUMENT.md
+/NOVELTY_CHECK.md
+/STEP.md
+/graph-data.js
