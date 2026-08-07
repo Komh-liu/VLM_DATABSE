@@ -5,7 +5,7 @@ VLM paper knowledge base with interactive graph visualization, deployed via GitH
 
 **Live URL:** `https://komh-liu.github.io/vlm_database/research-wiki/knowledge-graph.html`
 
-**Repo:** `https://github.com/Komh-liu/vlm_database.git` (HTTPS, `gh` auth)
+**Repo:** `https://github.com/Komh-liu/VLM_DATABSE.git` (HTTPS, `gh` auth; repo renamed from `vlm_database`)
 
 ### Structure
 ```

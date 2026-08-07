@@ -7,8 +7,13 @@ __pycache__/
 # Experiment: not tracked
 experiment/
 
-# Research wiki: large PDFs
+# Research wiki: large PDFs (except urgent/)
 research-wiki/**/*.pdf
+!research-wiki/urgent/*.pdf
+
+# Research wiki: papers subdirectories (reading queue / archive)
+research-wiki/papers/Already/
+research-wiki/papers/ToRead/
 
 # Editor
 .vscode/
