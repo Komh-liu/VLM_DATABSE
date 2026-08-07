@@ -91,19 +91,50 @@ def extract_sections(body):
 
 
 def embed_section_images(text, md_path):
-    """Replace markdown image refs ![alt](path) with base64-embedded <img> tags.
+    """Replace markdown image refs ![alt](path) and HTML <img> tags with base64-embedded <img> tags.
     Resolves path relative to the markdown file's directory."""
-    def _replace(m):
+
+    # Step 1: Handle HTML <img> tags with relative src paths
+    def _replace_html_img(m):
+        attrs = m.group(0)
+        # Extract src
+        src_m = re.search(r'src="([^"]+)"', attrs)
+        if not src_m:
+            return m.group(0)
+        src = src_m.group(1)
+        # Only process relative paths (not http://, data:, etc.)
+        if src.startswith('http') or src.startswith('data:') or src.startswith('/'):
+            return m.group(0)
+        img_path = (md_path.parent / src).resolve()
+        if not img_path.exists():
+            return m.group(0)
+        ext = img_path.suffix.lower()
+        mime_map = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+                    '.gif': 'image/gif', '.svg': 'image/svg+xml', '.webp': 'image/webp'}
+        mime = mime_map.get(ext, 'image/png')
+        b64 = base64.b64encode(img_path.read_bytes()).decode()
+        # Replace src with base64 data URI, keep all other attributes intact
+        return re.sub(r'src="[^"]+"', f'src="data:{mime};base64,{b64}"', attrs)
+
+    text = re.sub(r'<img\s+[^>]*src="[^"]*"[^>]*>', _replace_html_img, text)
+
+    # Step 2: Handle Markdown image refs ![alt](path)
+    def _replace_md_img(m):
         alt = m.group(1)
         src = m.group(2)
+        # Skip if already processed as data: or http
+        if src.startswith('http') or src.startswith('data:'):
+            return m.group(0)
         img_path = (md_path.parent / src).resolve()
         if img_path.exists():
             ext = img_path.suffix.lower()
-            mime = {'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'gif': 'image/gif', 'svg': 'image/svg+xml'}
+            mime_map = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+                        '.gif': 'image/gif', '.svg': 'image/svg+xml', '.webp': 'image/webp'}
+            mime = mime_map.get(ext, 'image/png')
             b64 = base64.b64encode(img_path.read_bytes()).decode()
-            return f'<img src="data:{mime.get(ext.lstrip("."), "image/png")};base64,{b64}" alt="{alt}" style="max-width:100%;border-radius:8px;margin:12px 0">'
+            return f'<img src="data:{mime};base64,{b64}" alt="{alt}" style="max-width:100%;border-radius:8px;margin:12px 0">'
         return m.group(0)
-    return re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', _replace, text)
+    return re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', _replace_md_img, text)
 
 
 def _protect_math(text):
