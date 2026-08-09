@@ -17,5 +17,7 @@ DiT SiT
 - MOPD监督信号互相干扰，并且KL监督风格信息大于内容等。dense模型 多能力提升
 
 - 全模态模型与多模态的联系和区别 & NMM架构
+
+- long horizon agent loop
 ## aris skills
 novelty-check、kill-argument、research-review
