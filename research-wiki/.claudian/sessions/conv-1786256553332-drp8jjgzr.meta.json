@@ -1,0 +1,29 @@
+{
+  "id": "conv-1786256553332-drp8jjgzr",
+  "providerId": "claude",
+  "title": "在吗",
+  "titleGenerationStatus": "failed",
+  "createdAt": 1786256553341,
+  "lastActivityAt": 1786256972104,
+  "sessionId": "10abb564-043f-4d16-a597-b41348d6ad5b",
+  "selectedModel": "claude-code/deepseek-v4-flash",
+  "providerState": {
+    "previousProviderSessionIds": [
+      "10abb564-043f-4d16-a597-b41348d6ad5b"
+    ],
+    "providerSessionId": "10abb564-043f-4d16-a597-b41348d6ad5b"
+  },
+  "currentNote": "urgent/Defacto.pdf",
+  "isPinned": false,
+  "isArchived": true,
+  "usage": {
+    "model": "claude-code/deepseek-v4-flash",
+    "inputTokens": 3308,
+    "cacheCreationInputTokens": 0,
+    "cacheReadInputTokens": 37376,
+    "contextWindow": 1000000,
+    "contextTokens": 40684,
+    "percentage": 4,
+    "contextWindowIsAuthoritative": false
+  }
+}

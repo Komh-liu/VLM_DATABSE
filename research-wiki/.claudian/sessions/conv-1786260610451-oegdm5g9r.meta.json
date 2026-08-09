@@ -1,0 +1,23 @@
+{
+  "id": "conv-1786260610451-oegdm5g9r",
+  "providerId": "claude",
+  "title": "评估单卡5080复现论文代码的可行性",
+  "titleGenerationStatus": "success",
+  "createdAt": 1786260610458,
+  "lastActivityAt": 1786261759413,
+  "sessionId": "6b16ed27-d1b5-476e-b528-50d6c5d54bad",
+  "selectedModel": "claude-code/deepseek-v4-flash",
+  "providerState": {
+    "providerSessionId": "6b16ed27-d1b5-476e-b528-50d6c5d54bad"
+  },
+  "currentNote": "urgent/DeFacto.md",
+  "usage": {
+    "model": "deepseek-v4-flash",
+    "inputTokens": 205,
+    "cacheCreationInputTokens": 0,
+    "cacheReadInputTokens": 78080,
+    "contextWindow": 1000000,
+    "contextTokens": 78285,
+    "percentage": 8
+  }
+}

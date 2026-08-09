@@ -30,6 +30,9 @@ pdf: "DeFacto_2509.20912.pdf"
 
 >  将训练拆解成3种不同范式： 1.正样本 2.事实遮挡 3.随机mask
 
+1. 正样本的case中，
+
+
 
 ## Contribution
 
@@ -40,7 +43,7 @@ pdf: "DeFacto_2509.20912.pdf"
 
 ### 实验设置
 
->
+>使用了Deepeyes和GRIT以量化证明这些问题（定位错误/偶然正确/忠实但错误）
 
 ### 主要结果
 
@@ -60,7 +63,7 @@ pdf: "DeFacto_2509.20912.pdf"
 
 ## Connections
 
->
+>之前的工作包括“thinking with image”将直接的视觉步骤加入多模态推理中以解释推理的可解释性和视觉grounding。也有工作通过SFT让模型在cot中生成区域
 
 ## Relevance to This Project
 

@@ -1,0 +1,219 @@
+{
+  "main": {
+    "id": "0e1a90c1a7f6d219",
+    "type": "split",
+    "children": [
+      {
+        "id": "0e1baf00ff00a303",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7172ed5ee5e29073",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "urgent/DeFacto.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "DeFacto"
+            }
+          },
+          {
+            "id": "04fb516b2a5b1735",
+            "type": "leaf",
+            "state": {
+              "type": "claudian-view",
+              "state": {},
+              "icon": "bot",
+              "title": "Claudian"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "1872d72cbe0fab46",
+    "type": "split",
+    "children": [
+      {
+        "id": "a1e7b19431bc49e5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8bfec1bc502f437d",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "456f8b2840f09456",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "b454ffb554be6499",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "right": {
+    "id": "db16d2ec13c504ef",
+    "type": "split",
+    "children": [
+      {
+        "id": "c37df2220dfeb507",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d8f3db9d26d71a01",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "urgent/DeFacto.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "DeFacto 的反向链接列表"
+            }
+          },
+          {
+            "id": "2065f2ebd728d90b",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "urgent/DeFacto.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "DeFacto 的出链列表"
+            }
+          },
+          {
+            "id": "1382b6dfc413dc62",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "3dc0a82ca5d9b595",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "f1424e66fa549b68",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "urgent/DeFacto.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "DeFacto 的大纲"
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "horizontal",
+    "width": 375.5,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": true,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": true,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": true,
+      "realclaudian:Open Claudian": false,
+      "codex-panel:Open panel": false,
+      "pdf-plus:PDF++: Toggle auto-copy": false,
+      "pdf-plus:PDF++: Toggle auto-focus": false,
+      "pdf-plus:PDF++: Toggle auto-paste": false
+    }
+  },
+  "active": "7172ed5ee5e29073",
+  "lastOpenFiles": [
+    "urgent/Defacto.pdf",
+    "urgent/DeFacto.md",
+    "papers/instructgpt_neurips2022.md",
+    "2026-08-09.md",
+    "urgent/mopd.pdf",
+    "urgent/mopd.md",
+    "未命名.canvas",
+    "urgent/SCoRe.md",
+    "urgent/MOPD_2606.30406.pdf",
+    "urgent/SCoRe_From_Correction_to_Mastery_2509.14257.pdf",
+    "urgent/2605.25343v1.pdf",
+    "2026-05-31.md",
+    "未命名.base"
+  ]
+}

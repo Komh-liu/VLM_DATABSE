@@ -1,0 +1,378 @@
+{
+  "userName": "",
+  "permissionMode": "yolo",
+  "model": "claude-code/deepseek-v4-flash",
+  "thinkingBudget": "off",
+  "effortLevel": "medium",
+  "serviceTier": "default",
+  "enableAutoTitleGeneration": true,
+  "titleGenerationLocale": "zh-CN",
+  "titleGenerationModel": "",
+  "excludedTags": [],
+  "mediaFolder": "",
+  "systemPrompt": "",
+  "persistentExternalContextPaths": [],
+  "sharedEnvironmentVariables": "",
+  "envSnippets": [],
+  "customContextLimits": {
+    "deepseek-v4-flash": 1000000,
+    "deepseek-v4-pro[1m]": 1000000
+  },
+  "customModelAliases": {
+    "deepseek-v4-flash": "haiku",
+    "deepseek-v4-pro[1m]": "opus"
+  },
+  "keyboardNavigation": {
+    "scrollUpKey": "w",
+    "scrollDownKey": "s",
+    "focusInputKey": "i"
+  },
+  "requireCommandOrControlEnterToSend": false,
+  "locale": "zh-CN",
+  "providerConfigs": {
+    "claude": {
+      "enabled": true,
+      "safeMode": "acceptEdits",
+      "cliPath": "",
+      "cliPathsByHost": {
+        "device:e0b911ad-cdf9-4143-a3f5-a9fc5d9ca48d": "/opt/homebrew/bin/claude"
+      },
+      "loadUserSettings": true,
+      "enableChrome": true,
+      "enableBangBash": false,
+      "customModels": "",
+      "lastModel": "haiku",
+      "modelEnvironmentType": "haiku",
+      "titleModelEnvironmentType": "",
+      "environmentVariables": "ANTHROPIC_BASE_URL=\"https://api.deepseek.com/anthropic\"\nANTHROPIC_MODEL=\"deepseek-v4-pro[1m]\"\nANTHROPIC_DEFAULT_OPUS_MODEL=\"deepseek-v4-pro[1m]\"\nANTHROPIC_DEFAULT_SONNET_MODEL=\"deepseek-v4-pro[1m]\"\nANTHROPIC_DEFAULT_HAIKU_MODEL=\"deepseek-v4-flash\"\nANTHROPIC_API_KEY=\"sk-f3907d72a0404d509c7151e27af8edc9\"\n",
+      "environmentHash": "runtime-input:v1:56791018c3f601fe9f59460adb910bd251ebbb53ac86e823b812180d39db7509"
+    },
+    "codex": {
+      "enabled": true,
+      "safeMode": "workspace-write",
+      "cliPath": "",
+      "cliPathsByHost": {
+        "device:e0b911ad-cdf9-4143-a3f5-a9fc5d9ca48d": "/Users/komh-liu/.npm-global/bin/codex"
+      },
+      "customModels": "",
+      "discoveredModels": [
+        {
+          "model": "gpt-5.6-sol",
+          "displayName": "GPT-5.6-Sol",
+          "description": "Latest frontier agentic coding model.",
+          "supportedReasoningEfforts": [
+            {
+              "value": "low",
+              "description": "Fast responses with lighter reasoning"
+            },
+            {
+              "value": "medium",
+              "description": "Balances speed and reasoning depth for everyday tasks"
+            },
+            {
+              "value": "high",
+              "description": "Greater reasoning depth for complex problems"
+            },
+            {
+              "value": "xhigh",
+              "description": "Extra high reasoning depth for complex problems"
+            },
+            {
+              "value": "max",
+              "description": "Maximum reasoning depth for the hardest problems"
+            },
+            {
+              "value": "ultra",
+              "description": "Maximum reasoning with automatic task delegation"
+            }
+          ],
+          "defaultReasoningEffort": "low",
+          "serviceTiers": [
+            {
+              "id": "priority",
+              "name": "Fast",
+              "description": "1.5x speed, increased usage"
+            }
+          ],
+          "defaultServiceTier": null,
+          "inputModalities": [
+            "text",
+            "image"
+          ],
+          "isDefault": true
+        },
+        {
+          "model": "gpt-5.6-terra",
+          "displayName": "GPT-5.6-Terra",
+          "description": "Balanced agentic coding model for everyday work.",
+          "supportedReasoningEfforts": [
+            {
+              "value": "low",
+              "description": "Fast responses with lighter reasoning"
+            },
+            {
+              "value": "medium",
+              "description": "Balances speed and reasoning depth for everyday tasks"
+            },
+            {
+              "value": "high",
+              "description": "Greater reasoning depth for complex problems"
+            },
+            {
+              "value": "xhigh",
+              "description": "Extra high reasoning depth for complex problems"
+            },
+            {
+              "value": "max",
+              "description": "Maximum reasoning depth for the hardest problems"
+            },
+            {
+              "value": "ultra",
+              "description": "Maximum reasoning with automatic task delegation"
+            }
+          ],
+          "defaultReasoningEffort": "medium",
+          "serviceTiers": [
+            {
+              "id": "priority",
+              "name": "Fast",
+              "description": "1.5x speed, increased usage"
+            }
+          ],
+          "defaultServiceTier": null,
+          "inputModalities": [
+            "text",
+            "image"
+          ],
+          "isDefault": false
+        },
+        {
+          "model": "gpt-5.6-luna",
+          "displayName": "GPT-5.6-Luna",
+          "description": "Fast and affordable agentic coding model.",
+          "supportedReasoningEfforts": [
+            {
+              "value": "low",
+              "description": "Fast responses with lighter reasoning"
+            },
+            {
+              "value": "medium",
+              "description": "Balances speed and reasoning depth for everyday tasks"
+            },
+            {
+              "value": "high",
+              "description": "Greater reasoning depth for complex problems"
+            },
+            {
+              "value": "xhigh",
+              "description": "Extra high reasoning depth for complex problems"
+            },
+            {
+              "value": "max",
+              "description": "Maximum reasoning depth for the hardest problems"
+            }
+          ],
+          "defaultReasoningEffort": "medium",
+          "serviceTiers": [
+            {
+              "id": "priority",
+              "name": "Fast",
+              "description": "1.5x speed, increased usage"
+            }
+          ],
+          "defaultServiceTier": null,
+          "inputModalities": [
+            "text",
+            "image"
+          ],
+          "isDefault": false
+        },
+        {
+          "model": "gpt-5.5",
+          "displayName": "GPT-5.5",
+          "description": "Frontier model for complex coding, research, and real-world work.",
+          "supportedReasoningEfforts": [
+            {
+              "value": "low",
+              "description": "Fast responses with lighter reasoning"
+            },
+            {
+              "value": "medium",
+              "description": "Balances speed and reasoning depth for everyday tasks"
+            },
+            {
+              "value": "high",
+              "description": "Greater reasoning depth for complex problems"
+            },
+            {
+              "value": "xhigh",
+              "description": "Extra high reasoning depth for complex problems"
+            }
+          ],
+          "defaultReasoningEffort": "medium",
+          "serviceTiers": [
+            {
+              "id": "priority",
+              "name": "Fast",
+              "description": "1.5x speed, increased usage"
+            }
+          ],
+          "defaultServiceTier": null,
+          "inputModalities": [
+            "text",
+            "image"
+          ],
+          "isDefault": false
+        },
+        {
+          "model": "gpt-5.4",
+          "displayName": "GPT-5.4",
+          "description": "Strong model for everyday coding.",
+          "supportedReasoningEfforts": [
+            {
+              "value": "low",
+              "description": "Fast responses with lighter reasoning"
+            },
+            {
+              "value": "medium",
+              "description": "Balances speed and reasoning depth for everyday tasks"
+            },
+            {
+              "value": "high",
+              "description": "Greater reasoning depth for complex problems"
+            },
+            {
+              "value": "xhigh",
+              "description": "Extra high reasoning depth for complex problems"
+            }
+          ],
+          "defaultReasoningEffort": "medium",
+          "serviceTiers": [
+            {
+              "id": "priority",
+              "name": "Fast",
+              "description": "1.5x speed, increased usage"
+            }
+          ],
+          "defaultServiceTier": null,
+          "inputModalities": [
+            "text",
+            "image"
+          ],
+          "isDefault": false
+        },
+        {
+          "model": "gpt-5.4-mini",
+          "displayName": "GPT-5.4-Mini",
+          "description": "Small, fast, and cost-efficient model for simpler coding tasks.",
+          "supportedReasoningEfforts": [
+            {
+              "value": "low",
+              "description": "Fast responses with lighter reasoning"
+            },
+            {
+              "value": "medium",
+              "description": "Balances speed and reasoning depth for everyday tasks"
+            },
+            {
+              "value": "high",
+              "description": "Greater reasoning depth for complex problems"
+            },
+            {
+              "value": "xhigh",
+              "description": "Extra high reasoning depth for complex problems"
+            }
+          ],
+          "defaultReasoningEffort": "medium",
+          "serviceTiers": [],
+          "defaultServiceTier": null,
+          "inputModalities": [
+            "text",
+            "image"
+          ],
+          "isDefault": false
+        }
+      ],
+      "modelAliases": {},
+      "visibleModels": [
+        "gpt-5.6-luna",
+        "gpt-5.6-terra",
+        "gpt-5.6-sol"
+      ],
+      "enableUltraEffort": false,
+      "reasoningSummary": "detailed",
+      "environmentVariables": "",
+      "environmentHash": "runtime-input:v1:6727d4bed346431b89ca28235288961ec3c6be7bf13ec79dd4193b86f2bfe085",
+      "catalogTimestamp": 1786258469462,
+      "catalogFingerprint": "2:4df482837f660eeb35f86fad79aebc0309a46599717e93ba1818187af237c433",
+      "installationMethodsByHost": {},
+      "wslDistroOverridesByHost": {}
+    },
+    "grok": {
+      "catalogsByHost": {},
+      "cliPath": "",
+      "cliPathsByHost": {},
+      "enabled": false,
+      "environmentHash": "",
+      "environmentVariables": "",
+      "modelAliases": {},
+      "planBasePermissionMode": "normal",
+      "preferredReasoningByModel": {},
+      "visibleModels": null
+    },
+    "opencode": {
+      "cliPath": "",
+      "cliPathsByHost": {},
+      "enabled": false,
+      "environmentHash": "",
+      "environmentVariables": "OPENCODE_ENABLE_EXA=1",
+      "modelAliases": {},
+      "preferredThinkingByModel": {},
+      "selectedMode": "",
+      "thinkingOptionsByModel": {},
+      "visibleModels": []
+    },
+    "pi": {
+      "cliPath": "",
+      "cliPathsByHost": {},
+      "discoveredModels": [],
+      "enabled": false,
+      "environmentHash": "",
+      "environmentVariables": "",
+      "modelAliases": {},
+      "preferredThinkingByModel": {},
+      "toolMode": "all",
+      "visibleModels": []
+    }
+  },
+  "settingsProvider": "claude",
+  "savedProviderModel": {
+    "claude": "claude-code/deepseek-v4-flash",
+    "codex": "gpt-5.6-luna"
+  },
+  "savedProviderEffort": {
+    "claude": "medium",
+    "codex": "high"
+  },
+  "savedProviderServiceTier": {
+    "codex": "default"
+  },
+  "savedProviderThinkingBudget": {},
+  "savedProviderPermissionMode": {
+    "claude": "yolo",
+    "codex": "yolo"
+  },
+  "pendingProviderSessionInvalidations": {},
+  "lastCustomModel": "",
+  "maxWarmAgentProcesses": 5,
+  "enableAutoScroll": true,
+  "deferMathRenderingDuringStreaming": true,
+  "expandFileEditsByDefault": false,
+  "chatViewPlacement": "main-tab",
+  "enableDualPane": false,
+  "dualPaneSide": "right",
+  "sessionManagerOrganization": "list",
+  "sessionManagerSort": "last-updated",
+  "pinnedLinkedNotePaths": [],
+  "hiddenProviderCommands": {}
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "conversationId": "conv-1786260610451-oegdm5g9r",
+  "records": [
+    {
+      "schemaVersion": 1,
+      "id": "msg-1786260610483-fe2mhii",
+      "userTurnOrdinal": 1,
+      "state": "accepted",
+      "localMessageId": "msg-1786260610444-h1ko8ba",
+      "timestamp": 1786260610444,
+      "rawDisplayText": "这篇原论文的代码能在单卡5080上复现吗",
+      "canonicalText": "这篇原论文的代码能在单卡5080上复现吗",
+      "context": {
+        "currentNote": {
+          "path": "urgent/DeFacto.md"
+        }
+      },
+      "images": [],
+      "contentDigest": "a9c1424ec838800f9a6f1d723bddba89db92496dba153544a01bb3e7c3f30f42",
+      "providerUserMessageId": "d663263e-0bb5-41b2-90c2-50d53a586cc7",
+      "providerAssistantMessageId": "251f64ac-934b-4f66-99d1-dd03b34752a7"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "msg-1786260854875-72dcs5d",
+      "userTurnOrdinal": 2,
+      "state": "accepted",
+      "localMessageId": "msg-1786260854869-bei12t4",
+      "timestamp": 1786260854869,
+      "rawDisplayText": "我想在qwen2.5vl 3b上尝试浮现",
+      "canonicalText": "我想在qwen2.5vl 3b上尝试浮现",
+      "images": [],
+      "contentDigest": "4fbd92b9fe3c9a546f497a70b30a5ec2100f9c6c3a2a516b2af9a1fa1a83e76d",
+      "providerUserMessageId": "a28e95b7-389e-4027-8511-4884dbe11616",
+      "providerAssistantMessageId": "ab3fb71b-dd1a-4a78-b854-036a31a54873"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "msg-1786261753879-bhl1kyt",
+      "userTurnOrdinal": 3,
+      "state": "accepted",
+      "localMessageId": "msg-1786261753871-8mss0gz",
+      "timestamp": 1786261753871,
+      "rawDisplayText": "Mislocalized Failure (wrong evidence, wrong an-\nswer), (ii) Spurious Correctness (wrong evidence, correct\nanswer), and (iii) Faithful Incorrectness (correct evidence,\nwrong answer)翻译",
+      "canonicalText": "Mislocalized Failure (wrong evidence, wrong an-\nswer), (ii) Spurious Correctness (wrong evidence, correct\nanswer), and (iii) Faithful Incorrectness (correct evidence,\nwrong answer)翻译",
+      "images": [],
+      "contentDigest": "64a94be21a640b7d393e00c08f691566d4c1ec74a13db95ec707a41c206fb1d9",
+      "providerUserMessageId": "9061fb31-c2f9-4741-84a9-0fa2468fd719",
+      "providerAssistantMessageId": "214c65ea-e5fe-4c97-8af0-3158439f0785"
+    }
+  ]
+}

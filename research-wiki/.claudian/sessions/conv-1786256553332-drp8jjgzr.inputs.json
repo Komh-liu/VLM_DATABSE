@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "conversationId": "conv-1786256553332-drp8jjgzr",
+  "records": [
+    {
+      "schemaVersion": 1,
+      "id": "msg-1786256553416-oxi9mbg",
+      "userTurnOrdinal": 1,
+      "state": "accepted",
+      "localMessageId": "msg-1786256553322-cm3x5j0",
+      "timestamp": 1786256553322,
+      "rawDisplayText": "在吗",
+      "canonicalText": "在吗",
+      "context": {
+        "currentNote": {
+          "path": "urgent/Defacto.pdf"
+        }
+      },
+      "images": [],
+      "contentDigest": "c824e68c9cd0730c0b50adda0f5414aa2a7c1bd510cd20e905b0670eaab6dca3",
+      "providerUserMessageId": "02964885-f66e-4717-85f9-dbd294419ad6"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "msg-1786256565646-snk8gsh",
+      "userTurnOrdinal": 2,
+      "state": "accepted",
+      "localMessageId": "msg-1786256565642-9cs2drf",
+      "timestamp": 1786256565642,
+      "rawDisplayText": "啥意思",
+      "canonicalText": "啥意思",
+      "images": [],
+      "contentDigest": "d8018e169e182444fca2ef31a66ab424257feb897c78dcd273c54b1240340f80",
+      "providerUserMessageId": "363364a3-ebc8-407d-a80d-40d79dfa9a93"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "msg-1786256632218-c6pejcz",
+      "userTurnOrdinal": 3,
+      "state": "accepted",
+      "localMessageId": "msg-1786256632194-w91a1gk",
+      "timestamp": 1786256632194,
+      "rawDisplayText": "在吗",
+      "canonicalText": "在吗",
+      "images": [],
+      "contentDigest": "c824e68c9cd0730c0b50adda0f5414aa2a7c1bd510cd20e905b0670eaab6dca3",
+      "providerUserMessageId": "7aaa94af-fd99-4e03-9a8b-bfb363992190"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "msg-1786256921517-rwwfdxg",
+      "userTurnOrdinal": 4,
+      "state": "accepted",
+      "localMessageId": "msg-1786256921497-df6p955",
+      "timestamp": 1786256921497,
+      "rawDisplayText": "在吗",
+      "canonicalText": "在吗",
+      "images": [],
+      "contentDigest": "c824e68c9cd0730c0b50adda0f5414aa2a7c1bd510cd20e905b0670eaab6dca3",
+      "providerUserMessageId": "86147a77-976d-4c37-81e5-1d656fd32847",
+      "providerAssistantMessageId": "bc15d7b0-e5d3-4b2e-b48d-616287e25832"
+    }
+  ]
+}
