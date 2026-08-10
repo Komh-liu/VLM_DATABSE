@@ -761,8 +761,15 @@ var PAPERS = [
       "Limitations": "<blockquote><p>训练开销相较于opsd极大，而且还需要先做SFT对齐格式</p></blockquote>",
       "Relevance to This Project": "<blockquote><p>VCSD提升视觉grounding能力或者细粒度定位能力，Defacto提升反思能力</p></blockquote>"
     },
-    "connections": [],
-    "edgeCount": 0
+    "connections": [
+      {
+        "type": "extended_by",
+        "target": "RLHF",
+        "targetId": "paper:rlhf_note",
+        "text": "DeFacto 将 RLHF 范式延伸至视觉反事实推理：其训练框架使用 GRPO（PPO 的 group-based 变体）作为策略优化器，将推理过程建模为 MDP（状态=多模态上下文+历史预测区域，动作=新边界框或 STOP），反事实遮挡区域作为负奖励信号引导模型学习证据-答案一致性，本质上是在视觉推理场景下对 RLHF 三阶段范式的 GRPO 化改造"
+      }
+    ],
+    "edgeCount": 1
   },
   {
     "id": "paper:song2026_pivot",
@@ -964,13 +971,19 @@ var PAPERS = [
         "text": "PIVOT 建立在 RLHF 和 DPO 的理论基础之上，核心发现的 Finding 2-4 直接验证了 DPO 优化不仅影响 LLM 输出，更反向传播重塑视觉编码器表征"
       },
       {
+        "type": "extends",
+        "target": "DeFacto",
+        "targetId": "paper:defacto_2025",
+        "text": "DeFacto 将 RLHF 范式延伸至视觉反事实推理：其训练框架使用 GRPO（PPO 的 group-based 变体）作为策略优化器，将推理过程建模为 MDP（状态=多模态上下文+历史预测区域，动作=新边界框或 STOP），反事实遮挡区域作为负奖励信号引导模型学习证据-答案一致性，本质上是在视觉推理场景下对 RLHF 三阶段范式的 GRPO 化改造"
+      },
+      {
         "type": "extended_by",
         "target": "InstructGPT",
         "targetId": "paper:instructgpt_neurips2022",
         "text": "RLHF 笔记系统讲解 InstructGPT 定义的 SFT→RM→PPO 三阶段框架，并延伸至 DPO 的完整数学推导"
       }
     ],
-    "edgeCount": 2
+    "edgeCount": 3
   },
   {
     "id": "paper:entropy_aware_opd_2026",
@@ -1279,6 +1292,13 @@ var EDGES = [
     "type": "extends",
     "evidence": "OPD Rethinking 发现了标准 RKL-OPD 的两大病理：① 高熵 token 上多样性崩塌，学生熵比教师大幅下降；② 教师不确定时 Reverse KL 提供不稳定的梯度信号。EOPD 直接将这些诊断转化为方法——以教师 token-level 熵为门控信号，低熵用 RKL（mode-seeking 精准模仿），高熵切为 Forward KL（mode-covering 保留不确定性），在 0.6B~4B 学生模型上一致超越标准 OPD",
     "added": "2026-07-30T00:00:00Z"
+  },
+  {
+    "from": "paper:rlhf_note",
+    "to": "paper:defacto_2025",
+    "type": "extends",
+    "evidence": "DeFacto 将 RLHF 范式延伸至视觉反事实推理：其训练框架使用 GRPO（PPO 的 group-based 变体）作为策略优化器，将推理过程建模为 MDP（状态=多模态上下文+历史预测区域，动作=新边界框或 STOP），反事实遮挡区域作为负奖励信号引导模型学习证据-答案一致性，本质上是在视觉推理场景下对 RLHF 三阶段范式的 GRPO 化改造",
+    "added": "2026-08-10T00:00:00Z"
   }
 ];
 
