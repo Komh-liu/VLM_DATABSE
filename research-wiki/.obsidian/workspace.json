@@ -8,20 +8,6 @@
         "type": "tabs",
         "children": [
           {
-            "id": "7172ed5ee5e29073",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "urgent/DeFacto.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "DeFacto"
-            }
-          },
-          {
             "id": "04fb516b2a5b1735",
             "type": "leaf",
             "state": {
@@ -167,13 +153,12 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "urgent/DeFacto.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "DeFacto 的大纲"
+              "title": "大纲"
             }
           }
         ],
@@ -188,22 +173,26 @@
     "hiddenItems": {
       "switcher:打开快速切换": false,
       "graph:查看关系图谱": false,
-      "canvas:新建白板": true,
       "daily-notes:打开/创建今天的日记": false,
       "templates:插入模板": true,
       "command-palette:打开命令面板": false,
       "bases:新建数据库": true,
-      "realclaudian:Open Claudian": false,
-      "codex-panel:Open panel": false,
-      "pdf-plus:PDF++: Toggle auto-copy": false,
-      "pdf-plus:PDF++: Toggle auto-focus": false,
-      "pdf-plus:PDF++: Toggle auto-paste": false
+      "realclaudian:Open Claudian": false
     }
   },
-  "active": "7172ed5ee5e29073",
+  "active": "04fb516b2a5b1735",
   "lastOpenFiles": [
-    "urgent/Defacto.pdf",
     "urgent/DeFacto.md",
+    "papers/DeFacto.md",
+    "images/Defacto_R2.png",
+    "Defacto_R2.png",
+    "Pasted image 20260810092610.png",
+    "Pasted image 20260810092603.png",
+    "Pasted image 20260810092559.png",
+    "images/Defacto_R1.png",
+    "Defacto_R1.png",
+    "Pasted image 20260810091213.png",
+    "urgent/Defacto.pdf",
     "papers/instructgpt_neurips2022.md",
     "2026-08-09.md",
     "urgent/mopd.pdf",

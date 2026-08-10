@@ -1,0 +1,28 @@
+{
+  "id": "conv-1786323541580-xji4iduom",
+  "providerId": "codex",
+  "title": "解释训练步骤为何只预测bbox却默认文本存在",
+  "titleGenerationStatus": "success",
+  "createdAt": 1786323541589,
+  "lastActivityAt": 1786355147417,
+  "sessionId": "019fe92e-3263-76f2-a6b6-f59a8a4954e7",
+  "selectedModel": "gpt-5.6-luna",
+  "providerState": {
+    "threadId": "019fe92e-3263-76f2-a6b6-f59a8a4954e7",
+    "nativeConversationContextEstablished": true,
+    "sessionFilePath": "/Users/komh-liu/.codex/sessions/2026/08/10/rollout-2026-08-10T08-59-06-019fe92e-3263-76f2-a6b6-f59a8a4954e7.jsonl",
+    "transcriptRootPath": "/Users/komh-liu/.codex/sessions",
+    "workspaceDependencyToolVersion": 1
+  },
+  "currentNote": "urgent/DeFacto.md",
+  "usage": {
+    "inputTokens": 70662,
+    "cacheCreationInputTokens": 0,
+    "cacheReadInputTokens": 69632,
+    "contextWindow": 258400,
+    "contextWindowIsAuthoritative": true,
+    "contextTokens": 70662,
+    "percentage": 27,
+    "model": "gpt-5.6-luna"
+  }
+}

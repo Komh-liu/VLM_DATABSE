@@ -225,62 +225,25 @@
           "isDefault": false
         },
         {
-          "model": "gpt-5.4",
-          "displayName": "GPT-5.4",
-          "description": "Strong model for everyday coding.",
+          "model": "gpt-5.2",
+          "displayName": "GPT-5.2",
+          "description": "Optimized for professional work and long-running agents.",
           "supportedReasoningEfforts": [
             {
               "value": "low",
-              "description": "Fast responses with lighter reasoning"
+              "description": "Balances speed with some reasoning; useful for straightforward queries and short explanations"
             },
             {
               "value": "medium",
-              "description": "Balances speed and reasoning depth for everyday tasks"
+              "description": "Provides a solid balance of reasoning depth and latency for general-purpose tasks"
             },
             {
               "value": "high",
-              "description": "Greater reasoning depth for complex problems"
+              "description": "Maximizes reasoning depth for complex or ambiguous problems"
             },
             {
               "value": "xhigh",
-              "description": "Extra high reasoning depth for complex problems"
-            }
-          ],
-          "defaultReasoningEffort": "medium",
-          "serviceTiers": [
-            {
-              "id": "priority",
-              "name": "Fast",
-              "description": "1.5x speed, increased usage"
-            }
-          ],
-          "defaultServiceTier": null,
-          "inputModalities": [
-            "text",
-            "image"
-          ],
-          "isDefault": false
-        },
-        {
-          "model": "gpt-5.4-mini",
-          "displayName": "GPT-5.4-Mini",
-          "description": "Small, fast, and cost-efficient model for simpler coding tasks.",
-          "supportedReasoningEfforts": [
-            {
-              "value": "low",
-              "description": "Fast responses with lighter reasoning"
-            },
-            {
-              "value": "medium",
-              "description": "Balances speed and reasoning depth for everyday tasks"
-            },
-            {
-              "value": "high",
-              "description": "Greater reasoning depth for complex problems"
-            },
-            {
-              "value": "xhigh",
-              "description": "Extra high reasoning depth for complex problems"
+              "description": "Extra high reasoning for complex problems"
             }
           ],
           "defaultReasoningEffort": "medium",
@@ -303,7 +266,7 @@
       "reasoningSummary": "detailed",
       "environmentVariables": "",
       "environmentHash": "runtime-input:v1:6727d4bed346431b89ca28235288961ec3c6be7bf13ec79dd4193b86f2bfe085",
-      "catalogTimestamp": 1786258469462,
+      "catalogTimestamp": 1786323507037,
       "catalogFingerprint": "2:4df482837f660eeb35f86fad79aebc0309a46599717e93ba1818187af237c433",
       "installationMethodsByHost": {},
       "wslDistroOverridesByHost": {}
