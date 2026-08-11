@@ -302,6 +302,19 @@ def render_markdown_to_html(text):
             result.append(f'<blockquote><p>{bq_content}</p></blockquote>')
             continue
 
+        # Raw HTML block: multi-line tags like <table>, <div>, etc.
+        html_block_tags = r'</?(?:table|thead|tbody|tr|t[dh]|div|pre|blockquote|img|br|hr|ul|ol|li)'
+        if re.search(html_block_tags, stripped, re.IGNORECASE):
+            html_lines = []
+            while i < len(lines) and lines[i].strip() != '' \
+                    and not re.match(r'^(#{1,6})\s+.+$', lines[i].strip()) \
+                    and not re.match(r'^(-{3,}|\*{3,}|_{3,})$', lines[i].strip()):
+                html_lines.append(lines[i])
+                i += 1
+            if html_lines:
+                result.append('\n'.join(html_lines))
+            continue
+
         # Regular paragraph — collect consecutive non-empty, non-list, non-bq, non-hr lines
         para_lines = []
         while i < len(lines) and lines[i].strip() != '' \
@@ -310,7 +323,8 @@ def render_markdown_to_html(text):
                 and not re.match(r'^(\s*)\d+\.\s+', lines[i].strip()) \
                 and not re.match(r'^\|.+\|$', lines[i].strip()) \
                 and not re.match(r'^(-{3,}|\*{3,}|_{3,})$', lines[i].strip()) \
-                and not re.match(r'^>\s?', lines[i].strip()):
+                and not re.match(r'^>\s?', lines[i].strip()) \
+                and not re.search(html_block_tags, lines[i].strip(), re.IGNORECASE):
             para_lines.append(_render_inline(lines[i].strip()))
             i += 1
 
@@ -530,7 +544,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .graph-legend{position:absolute;bottom:20px;left:24px;background:var(--tip);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:12px;pointer-events:none}
 .graph-legend div{margin:4px 0;display:flex;align-items:center;gap:8px}
 .graph-legend .swatch{width:28px;height:3px;border-radius:2px}
-.side-panel{width:380px;border-left:1px solid var(--border);background:var(--bg2);overflow-y:auto;max-height:calc(100vh - 160px)}
+.side-panel{width:380px;min-width:0;border-left:1px solid var(--border);background:var(--bg2);overflow-y:auto;max-height:calc(100vh - 160px);transition:width .3s ease}
+.side-panel.hidden{width:0;min-width:0;border-left:none;overflow:hidden;padding:0}
+.sidebar-toggle{position:absolute;top:12px;right:396px;z-index:50;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:right .3s ease,color .15s}
+.sidebar-toggle:hover{color:var(--accent)}
+.sidebar-toggle.shifted{right:16px}
 .side-panel::-webkit-scrollbar{width:6px}
 .side-panel::-webkit-scrollbar-track{background:var(--bg2)}
 .side-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -601,6 +619,7 @@ text.sub{font-size:11px;fill:var(--text2);font-weight:400;pointer-events:none}
     <div class="graph-legend"><div><span class="swatch" style="background:var(--accent)"></span> extends / builds upon</div></div>
     <div class="empty-state" id="graphEmpty">输入文章名字并选择一篇论文后，将展示距离该论文 3 步以内的知识图谱。</div>
   </div>
+  <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar" onclick="toggleSidebar()">◀</button>
   <div class="side-panel" id="sidePanel"></div>
 </div>
 <div class="tooltip" id="tooltip"></div>
@@ -636,6 +655,19 @@ function init() {
   var years=PAPERS.map(function(p){return p.year}).filter(Boolean);
   var yr=years.length?Math.min.apply(null,years)+'–'+Math.max.apply(null,years):'—';
   document.getElementById('statsBar').innerHTML='<div class="stat"><span class="num">'+PAPERS.length+'</span><span class="label">Papers</span></div><div class="stat"><span class="num">'+EDGES.length+'</span><span class="label">Relationships</span></div><div class="stat"><span class="num">'+yr+'</span><span class="label">Timeline</span></div>';
+
+  // Sidebar toggle
+  window.toggleSidebar=function(){
+    var sp=document.getElementById('sidePanel');
+    var tb=document.getElementById('sidebarToggle');
+    sp.classList.toggle('hidden');
+    tb.classList.toggle('shifted');
+    tb.innerHTML=sp.classList.contains('hidden')?'▶':'◀';
+    try{localStorage.setItem('sidebarHidden',sp.classList.contains('hidden')?'1':'0');}catch(e){}
+  };
+  if(typeof localStorage!=='undefined'&&localStorage.getItem('sidebarHidden')==='1'){
+    setTimeout(function(){toggleSidebar();},100);
+  }
 
   // Side panel
   var side=document.getElementById('sidePanel');side.innerHTML='';
