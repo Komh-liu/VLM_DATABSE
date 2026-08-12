@@ -210,9 +210,9 @@ def render_markdown_to_html(text):
                     i += 1
                     break
                 i += 1
-            # Escape < and > to prevent browsers from parsing them as HTML tags
-            # (e.g., \tau_{<t} would otherwise break MathJax rendering)
-            escaped = '<br>'.join(math_lines).replace('<', '&lt;').replace('>', '&gt;')
+            # Join with newlines (NOT <br>) for MathJax to parse correctly;
+            # escape < and > to prevent browsers from treating them as HTML tags
+            escaped = '\n'.join(math_lines).replace('<', '&lt;').replace('>', '&gt;')
             result.append(f'<p>{escaped}</p>')
             continue
 
