@@ -2,6 +2,7 @@
 type: paper
 node_id: paper:optimizer_sgd_adam
 title: "SGD 与 Adam 优化器详解"
+short: "SGD vs Adam"
 authors: []
 year: 2026
 venue: "Note"
