@@ -30,7 +30,7 @@ pdf: ""
 
 > 熵感知的OPD，用Forward KL增强模型在教师的熵分布较高时的Reverse KL目标。这在不确定的步骤上捕捉了所有可能的output但是保留了其他地方的准确模仿能力。平衡了mode seeking准确率和mode covering的鲁棒性，同时没有牺牲在线训练的效率。
 
-<img src="../images/EOPD公式.png" alt="公式" style="width: 50%;" />
+
 
 ### 1. 背景：OPD 中的两种 KL 散度
 
